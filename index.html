@@ -7428,6 +7428,11 @@
                     return;
                 }
 
+                // Debug logging
+                console.log('Approval Modal - Job:', job);
+                console.log('Approval Modal - Completion Data:', job.completionData);
+                console.log('Approval Modal - Signature:', job.completionData?.signature);
+
                 const approvalDetails = document.getElementById('approval-details');
                 approvalDetails.innerHTML = `
                     <div class="approval-job-info">
@@ -7448,9 +7453,9 @@
                             ${job.completionData.signature ? `
                                 <div class="signature-display">
                                     <h5>Client Signature:</h5>
-                                    <img src="${app.getImageUrl(job.completionData.signature)}" alt="Client Signature" style="max-width: 300px; border: 1px solid #ddd; border-radius: 8px;">
+                                    <img src="${job.completionData.signature.startsWith('data:') ? job.completionData.signature : app.getImageUrl(job.completionData.signature)}" alt="Client Signature" style="max-width: 300px; border: 1px solid #ddd; border-radius: 8px;" onerror="console.error('Signature image failed to load:', this.src)">
                                 </div>
-                            ` : ''}
+                            ` : '<p><strong>Client Signature:</strong> No signature provided</p>'}
                         </div>
                     ` : '<p>No completion data available</p>'}
                 `;

@@ -8526,7 +8526,7 @@
                             <div class="staff-list">
                                 ${assignedStaff.length > 0 ? assignedStaff.map(staff => `
                                     <div class="staff-card">
-                                        <img src="${staff.profileImage || ''}" alt="${staff.name}" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(staff.profileImage || '')}" alt="${staff.name}" onerror="this.style.display='none'">
                                         <h4>${staff.name}</h4>
                                         <p>${staff.designation}</p>
                                         ${staff.emiratesIdFront || staff.emiratesIdBack ? `
@@ -8534,13 +8534,13 @@
                                                 ${staff.emiratesIdFront ? `
                                                     <div class="emirates-id-item">
                                                         <h4>Emirates ID Front</h4>
-                                                        <img src="${staff.emiratesIdFront}" alt="Emirates ID Front" onclick="app.showImageModal('${staff.emiratesIdFront}')">
+                                                        <img src="${app.getImageUrl(staff.emiratesIdFront)}" alt="Emirates ID Front" onclick="app.showImageModal('${staff.emiratesIdFront}')">
                                                     </div>
                                                 ` : ''}
                                                 ${staff.emiratesIdBack ? `
                                                     <div class="emirates-id-item">
                                                         <h4>Emirates ID Back</h4>
-                                                        <img src="${staff.emiratesIdBack}" alt="Emirates ID Back" onclick="app.showImageModal('${staff.emiratesIdBack}')">
+                                                        <img src="${app.getImageUrl(staff.emiratesIdBack)}" alt="Emirates ID Back" onclick="app.showImageModal('${staff.emiratesIdBack}')">
                                                     </div>
                                                 ` : ''}
                                             </div>
@@ -8720,7 +8720,7 @@
                             <div class="image-gallery">
                                 ${supervisor.profileImage ? `
                                     <div class="image-item" onclick="app.showImageModal('${supervisor.profileImage}')">
-                                        <img src="${supervisor.profileImage}" alt="Profile Image" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(supervisor.profileImage)}" alt="Profile Image" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No profile image available'}
                             </div>
@@ -8732,7 +8732,7 @@
                             <div class="image-gallery">
                                 ${supervisor.emiratesIdFront ? `
                                     <div class="image-item" onclick="app.showImageModal('${supervisor.emiratesIdFront}')">
-                                        <img src="${supervisor.emiratesIdFront}" alt="Emirates ID Front" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(supervisor.emiratesIdFront)}" alt="Emirates ID Front" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID front image available'}
                             </div>
@@ -8744,7 +8744,7 @@
                             <div class="image-gallery">
                                 ${supervisor.emiratesIdBack ? `
                                     <div class="image-item" onclick="app.showImageModal('${supervisor.emiratesIdBack}')">
-                                        <img src="${supervisor.emiratesIdBack}" alt="Emirates ID Back" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(supervisor.emiratesIdBack)}" alt="Emirates ID Back" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID back image available'}
                             </div>
@@ -8799,7 +8799,7 @@
                             <div class="image-gallery">
                                 ${teamLeader.profileImage ? `
                                     <div class="image-item" onclick="app.showImageModal('${teamLeader.profileImage}')">
-                                        <img src="${teamLeader.profileImage}" alt="Profile Image" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(teamLeader.profileImage)}" alt="Profile Image" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No profile image available'}
                             </div>
@@ -8811,7 +8811,7 @@
                             <div class="image-gallery">
                                 ${teamLeader.emiratesIdFront ? `
                                     <div class="image-item" onclick="app.showImageModal('${teamLeader.emiratesIdFront}')">
-                                        <img src="${teamLeader.emiratesIdFront}" alt="Emirates ID Front" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(teamLeader.emiratesIdFront)}" alt="Emirates ID Front" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID front image available'}
                             </div>
@@ -8823,7 +8823,7 @@
                             <div class="image-gallery">
                                 ${teamLeader.emiratesIdBack ? `
                                     <div class="image-item" onclick="app.showImageModal('${teamLeader.emiratesIdBack}')">
-                                        <img src="${teamLeader.emiratesIdBack}" alt="Emirates ID Back" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(teamLeader.emiratesIdBack)}" alt="Emirates ID Back" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID back image available'}
                             </div>
@@ -8874,7 +8874,7 @@
                             <div class="image-gallery">
                                 ${staff.profileImage ? `
                                     <div class="image-item" onclick="app.showImageModal('${staff.profileImage}')">
-                                        <img src="${staff.profileImage}" alt="Profile Image" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(staff.profileImage)}" alt="Profile Image" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No profile image available'}
                             </div>
@@ -8886,7 +8886,7 @@
                             <div class="image-gallery">
                                 ${staff.emiratesIdFront ? `
                                     <div class="image-item" onclick="app.showImageModal('${staff.emiratesIdFront}')">
-                                        <img src="${staff.emiratesIdFront}" alt="Emirates ID Front" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(staff.emiratesIdFront)}" alt="Emirates ID Front" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID front image available'}
                             </div>
@@ -8898,7 +8898,7 @@
                             <div class="image-gallery">
                                 ${staff.emiratesIdBack ? `
                                     <div class="image-item" onclick="app.showImageModal('${staff.emiratesIdBack}')">
-                                        <img src="${staff.emiratesIdBack}" alt="Emirates ID Back" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(staff.emiratesIdBack)}" alt="Emirates ID Back" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID back image available'}
                             </div>

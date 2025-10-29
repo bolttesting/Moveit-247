@@ -6930,6 +6930,9 @@
                     if (!response.ok) throw new Error(`Failed to fetch ${type}`);
                     const data = await response.json();
                     this.data[type] = data;
+                    
+                    // Update users collection after fetching people data
+                    this.setupUsers();
                 } catch (error) {
                     console.error(`Error fetching ${type}:`, error);
                     this.showNotification(`Failed to load ${type}`, 'error');
@@ -9181,12 +9184,18 @@
                         userData = this.data.users['admin'];
                         console.log('Admin user data:', userData);
                     } else if (this.currentRole === 'supervisor') {
+                        console.log('Looking for supervisor with username:', this.currentUser.username);
+                        console.log('Available supervisors:', this.data.supervisors);
                         userData = this.data.supervisors.find(s => s.username === this.currentUser.username);
                         console.log('Supervisor user data:', userData);
                     } else if (this.currentRole === 'teamleader') {
+                        console.log('Looking for team leader with username:', this.currentUser.username);
+                        console.log('Available team leaders:', this.data.teamLeaders);
                         userData = this.data.teamLeaders.find(t => t.username === this.currentUser.username);
                         console.log('Team leader user data:', userData);
                     } else if (this.currentRole === 'staff') {
+                        console.log('Looking for staff with username:', this.currentUser.username);
+                        console.log('Available staff:', this.data.staff);
                         userData = this.data.staff.find(s => s.username === this.currentUser.username);
                         console.log('Staff user data:', userData);
                     }

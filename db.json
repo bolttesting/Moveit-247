@@ -12,11 +12,5 @@
   "supervisors": [],
   "teamLeaders": [],
   "staff": [],
-  "tracking": {
-    "Talha": {
-      "latitude": 25.2706816,
-      "longitude": 55.312384,
-      "lastUpdate": "2025-10-29T11:06:19.097Z"
-    }
-  }
+  "tracking": {}
 }

@@ -203,14 +203,16 @@ function createRoute(key, idField = 'id') {
       
       // Add user to users collection for login (for people collections)
       if (['supervisors', 'teamLeaders', 'staff'].includes(key) && item.username && item.password) {
+        const role = key === 'supervisors' ? 'supervisor' : key === 'teamLeaders' ? 'teamLeader' : 'staff';
         db.users[item.username] = {
           username: item.username,
           password: item.password,
-          role: key === 'supervisors' ? 'supervisor' : key === 'teamLeaders' ? 'teamLeader' : 'staff',
+          role: role,
           name: item.name || item.fullName || 'User',
           email: item.email || '',
           phone: item.phone || ''
         };
+        console.log(`✅ Created ${role} user: ${item.username} (${item.name || item.fullName})`);
       }
       
       // post-create hooks
@@ -844,7 +846,7 @@ function migrateExistingUsers() {
   let migrated = 0;
   
   // Migrate supervisors
-  if (db.supervisors) {
+  if (db.supervisors && Array.isArray(db.supervisors)) {
     db.supervisors.forEach(supervisor => {
       if (supervisor.username && supervisor.password && !db.users[supervisor.username]) {
         db.users[supervisor.username] = {
@@ -861,7 +863,7 @@ function migrateExistingUsers() {
   }
   
   // Migrate team leaders
-  if (db.teamLeaders) {
+  if (db.teamLeaders && Array.isArray(db.teamLeaders)) {
     db.teamLeaders.forEach(teamLeader => {
       if (teamLeader.username && teamLeader.password && !db.users[teamLeader.username]) {
         db.users[teamLeader.username] = {
@@ -878,7 +880,7 @@ function migrateExistingUsers() {
   }
   
   // Migrate staff
-  if (db.staff) {
+  if (db.staff && Array.isArray(db.staff)) {
     db.staff.forEach(staff => {
       if (staff.username && staff.password && !db.users[staff.username]) {
         db.users[staff.username] = {
@@ -900,8 +902,10 @@ function migrateExistingUsers() {
   }
 }
 
-// Run migration
-migrateExistingUsers();
+// Run migration after a short delay to ensure database is ready
+setTimeout(() => {
+  migrateExistingUsers();
+}, 1000);
 
 app.listen(PORT, () => {
   console.log(`MoveIt247 API listening on http://localhost:${PORT}`);

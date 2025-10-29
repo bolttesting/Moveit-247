@@ -1,0 +1,213 @@
+========================================
+  FIRST TIME SETUP AFTER DEPLOYMENT
+========================================
+
+🎉 Congratulations on deploying MoveIt247!
+
+Your database is now COMPLETELY CLEAN with:
+  ✅ Only 1 admin account
+  ❌ No supervisors
+  ❌ No team leaders
+  ❌ No staff members
+  ❌ No jobs
+
+This gives you a fresh start!
+
+========================================
+  FIRST LOGIN
+========================================
+
+1. Visit your website: https://your-domain.com
+
+2. Login with:
+   Username: admin
+   Password: admin123
+
+⚠️  IMPORTANT: Change this password immediately!
+
+========================================
+  STEP 1: CHANGE ADMIN PASSWORD
+========================================
+
+1. Click on your profile (top right)
+2. Go to "My Profile"
+3. Update your password
+4. Update your name, email, phone
+5. Click "Update Profile"
+
+========================================
+  STEP 2: ADD YOUR TEAM MEMBERS
+========================================
+
+Add team members in this order:
+
+1️⃣ ADD SUPERVISORS:
+   - Navigate to: Supervisors (sidebar menu)
+   - Click: "+ Add New Supervisor"
+   - Fill in details:
+     • Name
+     • Username (for login)
+     • Password (they can change later)
+     • Phone
+     • Email
+   - Click "Add Supervisor"
+
+2️⃣ ADD TEAM LEADERS:
+   - Navigate to: Team Leaders
+   - Click: "+ Add New Team Leader"
+   - Fill in details
+   - Click "Add Team Leader"
+
+3️⃣ ADD STAFF:
+   - Navigate to: Staff
+   - Click: "+ Add New Staff Member"
+   - Fill in details
+   - Click "Add Staff"
+
+========================================
+  STEP 3: INFORM YOUR TEAM
+========================================
+
+Send each team member their login credentials:
+
+Example message:
+---
+"Hi [Name],
+
+You now have access to our MoveIt247 system!
+
+Website: https://your-domain.com
+Username: [their username]
+Password: [their password]
+
+Please login and update your profile.
+
+Thanks!"
+---
+
+========================================
+  STEP 4: CREATE YOUR FIRST JOB
+========================================
+
+1. Navigate to: Jobs (sidebar menu)
+2. Click: "+ Add New Job" (green card at top)
+3. Fill in job details:
+   - Date & Time
+   - Client information
+   - Apartment size
+   - Moving locations
+   - Assign Team Leader
+   - Assign Staff
+   - Special Instructions (optional)
+   - Upload item images (optional)
+4. Click "Add Job"
+
+========================================
+  TEAM MEMBER FEATURES
+========================================
+
+After adding team members, they can:
+
+📱 TEAM LEADERS:
+  • View assigned jobs
+  • Update job status
+  • Share live GPS location
+  • Upload job completion photos
+  • Mark jobs as delayed
+  • Add status notes
+
+👤 SUPERVISORS:
+  • View all jobs
+  • Monitor team leaders
+  • Approve job completions
+  • View live tracking
+  • Attach bills to jobs
+  • View reports
+
+👥 STAFF:
+  • View assigned jobs
+  • See job details
+  • Update their profile
+
+👑 ADMIN (You):
+  • Everything above PLUS:
+  • Manage all users
+  • Delete images
+  • View full reports
+  • Complete system control
+
+========================================
+  LIVE TRACKING SETUP
+========================================
+
+For location tracking to work:
+
+1. Team Leaders must LOGIN from mobile device
+2. Browser will ask: "Allow location access?"
+3. Team Leader clicks: "Allow"
+4. Green indicator appears: "📍 Sharing Location"
+5. Location updates every 30 seconds automatically
+
+Admin/Supervisors can then:
+  • Go to "Live Tracking" menu
+  • See all team leaders on map
+  • Click markers for details
+  • Auto-refreshes every 10 seconds
+
+⚠️  REQUIRES HTTPS (SSL certificate)
+   Location won't work on HTTP!
+
+========================================
+  BEST PRACTICES
+========================================
+
+✅ DO:
+  • Change all default passwords
+  • Backup database regularly
+  • Test all features before going live
+  • Train your team on the system
+  • Keep team member info updated
+
+❌ DON'T:
+  • Share admin credentials
+  • Delete jobs unless necessary
+  • Forget to approve completed jobs
+  • Ignore pending approvals
+
+========================================
+  COMMON FIRST-TIME QUESTIONS
+========================================
+
+Q: Can staff see all jobs?
+A: No, only jobs they're assigned to.
+
+Q: Can team leaders edit jobs?
+A: No, only update status and add notes.
+
+Q: Can supervisors delete users?
+A: No, only admin can manage users.
+
+Q: How do I backup my data?
+A: Download db.json from server regularly.
+
+Q: Can I customize job statuses?
+A: Currently fixed, customization requires code changes.
+
+Q: How do I delete old jobs?
+A: Only admin can delete from Job History.
+
+========================================
+  SUPPORT & DOCUMENTATION
+========================================
+
+📖 Full User Guide: README.md
+🚀 Deployment Guide: HOSTINGER_DEPLOYMENT.md
+📋 Quick Checklist: DEPLOYMENT_CHECKLIST.txt
+💡 Feature Ideas: FEATURE_SUGGESTIONS.md
+
+========================================
+
+🎉 You're all set! Start by adding your team members!
+
+========================================
+

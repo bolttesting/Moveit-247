@@ -1,0 +1,22 @@
+{
+  "users": {
+    "admin": {
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "name": "Admin User"
+    }
+  },
+  "jobs": [],
+  "notifications": [],
+  "supervisors": [],
+  "teamLeaders": [],
+  "staff": [],
+  "tracking": {
+    "Talha": {
+      "latitude": 25.2706816,
+      "longitude": 55.312384,
+      "lastUpdate": "2025-10-29T11:06:19.097Z"
+    }
+  }
+}

@@ -8252,6 +8252,8 @@
 
             // Add Methods
             addSupervisor() {
+                console.log('addSupervisor called');
+                
                 const emiratesFrontInput = document.getElementById('new-supervisor-emirates-front');
                 const emiratesBackInput = document.getElementById('new-supervisor-emirates-back');
                 
@@ -8263,8 +8265,11 @@
                 const username = document.getElementById('new-supervisor-username').value.trim();
                 const password = document.getElementById('new-supervisor-password').value;
 
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
+
                 // Validate required fields
                 if (!name || !phone || !email || !username || !password) {
+                    console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
                 }
@@ -8327,6 +8332,8 @@
             }
 
             addTeamLeader() {
+                console.log('addTeamLeader called');
+                
                 const emiratesFrontInput = document.getElementById('new-teamleader-emirates-front');
                 const emiratesBackInput = document.getElementById('new-teamleader-emirates-back');
                 
@@ -8338,8 +8345,11 @@
                 const username = document.getElementById('new-teamleader-username').value.trim();
                 const password = document.getElementById('new-teamleader-password').value;
 
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
+
                 // Validate required fields
                 if (!name || !phone || !email || !username || !password) {
+                    console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
                 }
@@ -8405,6 +8415,8 @@
             }
 
             addStaff() {
+                console.log('addStaff called');
+                
                 const emiratesFrontInput = document.getElementById('new-staff-emirates-front');
                 const emiratesBackInput = document.getElementById('new-staff-emirates-back');
                 
@@ -8417,8 +8429,11 @@
                 const password = document.getElementById('new-staff-password').value;
                 const teamLeader = document.getElementById('new-staff-teamleader').value;
 
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty', teamLeader });
+
                 // Validate required fields
                 if (!name || !phone || !email || !username || !password) {
+                    console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
                 }

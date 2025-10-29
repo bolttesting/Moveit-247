@@ -521,6 +521,13 @@ app.put('/api/users/:username', (req, res) => {
   res.json(updated);
 });
 
+app.put('/api/users', (req, res) => {
+  const db = readDb();
+  db.users = req.body;
+  writeDb(db);
+  res.json({ success: true });
+});
+
 // People collections
 app.get('/api/supervisors', listRoute('supervisors'));
 app.post('/api/supervisors', createRoute('supervisors'));

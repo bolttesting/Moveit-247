@@ -5289,7 +5289,13 @@
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.staff)
-                    }).catch(err => console.error('Failed to save staff:', err))
+                    }).catch(err => console.error('Failed to save staff:', err)),
+                    
+                    fetch('/api/users', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.data.users)
+                    }).catch(err => console.error('Failed to save users:', err))
                 ]);
             }
 
@@ -9128,22 +9134,27 @@
                 e.preventDefault();
                 
                 try {
-                // Get current user data
-                let userData;
-                if (this.currentRole === 'admin') {
-                    userData = this.data.users['admin'];
-                } else if (this.currentRole === 'supervisor') {
-                    userData = this.data.supervisors.find(s => s.username === this.currentUser.username);
-                } else if (this.currentRole === 'teamleader') {
-                    userData = this.data.teamLeaders.find(t => t.username === this.currentUser.username);
-                } else if (this.currentRole === 'staff') {
-                    userData = this.data.staff.find(s => s.username === this.currentUser.username);
-                }
-                
+                    console.log('Updating profile for role:', this.currentRole);
+                    
+                    // Get current user data
+                    let userData;
+                    if (this.currentRole === 'admin') {
+                        userData = this.data.users['admin'];
+                    } else if (this.currentRole === 'supervisor') {
+                        userData = this.data.supervisors.find(s => s.username === this.currentUser.username);
+                    } else if (this.currentRole === 'teamleader') {
+                        userData = this.data.teamLeaders.find(t => t.username === this.currentUser.username);
+                    } else if (this.currentRole === 'staff') {
+                        userData = this.data.staff.find(s => s.username === this.currentUser.username);
+                    }
+                    
                     if (!userData) {
+                        console.error('User data not found for role:', this.currentRole);
                         this.showNotification('User data not found', 'error');
                         return;
                     }
+
+                    console.log('Found user data:', userData);
 
                     // Validate inputs
                     const name = document.getElementById('profile-name').value?.trim();
@@ -9178,88 +9189,85 @@
                             this.showNotification('Password must be at least 6 characters long', 'error');
                             return;
                         }
-                        if (newPassword === confirmPassword) {
-                            userData.password = newPassword;
-                            if (this.data.users[userData.username]) {
-                            this.data.users[userData.username].password = newPassword;
-                            }
-                        } else {
+                        if (newPassword !== confirmPassword) {
                             this.showNotification('Passwords do not match', 'error');
                             return;
                         }
+                        userData.password = newPassword;
+                        
+                        // Also update in users collection for login
+                        if (this.data.users[userData.username]) {
+                            this.data.users[userData.username].password = newPassword;
+                        }
                     }
                     
-                    const applyAvatar = (url) => {
-                        if (!url) return;
-                        if (this.currentUser && this.currentUser.username === userData.username) {
-                            this.currentUser.profileImage = url;
-                            localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-                        }
-                        const avatarEl = document.getElementById('user-avatar');
-                        const initialsEl = document.getElementById('user-initials');
-                        if (avatarEl && initialsEl) {
-                            initialsEl.style.display = 'none';
-                            avatarEl.style.backgroundImage = `url(${url})`;
-                            avatarEl.style.backgroundSize = 'cover';
-                            avatarEl.style.backgroundPosition = 'center';
-                        }
-                    };
-
+                    // Handle profile image upload
                     const profileInput = document.getElementById('profile-image');
-                    const maybeUpload = async () => {
-                        if (profileInput && profileInput.files && profileInput.files[0]) {
-                            try {
-                                const form = new FormData();
-                                form.append('file', profileInput.files[0]);
-                                const res = await fetch('/api/upload', { method: 'POST', body: form });
-                                const data = await res.json();
-                                if (data && data.url) {
-                                    userData.profileImage = data.url;
-                                    applyAvatar(data.url);
-                                }
-                            } catch (_) {
-                                this.showNotification('Failed to upload profile image', 'error');
+                    if (profileInput && profileInput.files && profileInput.files[0]) {
+                        try {
+                            const form = new FormData();
+                            form.append('file', profileInput.files[0]);
+                            const res = await fetch('/api/upload', { method: 'POST', body: form });
+                            const data = await res.json();
+                            if (data && data.url) {
+                                userData.profileImage = data.url;
+                                console.log('Profile image uploaded:', data.url);
                             }
+                        } catch (error) {
+                            console.error('Failed to upload profile image:', error);
+                            this.showNotification('Failed to upload profile image', 'error');
                         }
-                    };
-                    
-                    try {
-                        // Upload profile image first if provided
-                        await maybeUpload();
-                        
-                        // If admin, persist directly to users map via new endpoint
-                        if (this.currentRole === 'admin') {
-                            const payload = { 
-                                name: userData.name, 
-                                phone: userData.phone, 
-                                email: userData.email,
-                                profileImage: userData.profileImage
-                            };
-                            if (userData.password) payload.password = userData.password;
-                            
-                            const response = await fetch(`/api/users/${encodeURIComponent(this.currentUser.username)}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                            
-                            if (!response.ok) {
-                                throw new Error('Failed to update profile');
-                            }
-                        } else {
-                            // For other roles, keep bulk save to their collections
-                            await this.saveData();
-                        }
-                        
-                    this.showNotification('Profile updated successfully!', 'success');
-                        this.forceRefresh();
-                    } catch (error) {
-                        console.error('Error updating profile:', error);
-                        this.showNotification('Error updating profile', 'error');
                     }
+                    
+                    // Update current user in localStorage
+                    if (this.currentUser && this.currentUser.username === userData.username) {
+                        this.currentUser.name = userData.name;
+                        this.currentUser.phone = userData.phone;
+                        this.currentUser.email = userData.email;
+                        this.currentUser.profileImage = userData.profileImage;
+                        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                    }
+                    
+                    // Save data based on role
+                    if (this.currentRole === 'admin') {
+                        // For admin, update both users collection and save
+                        this.data.users['admin'] = userData;
+                        await this.saveData();
+                    } else {
+                        // For other roles, save their collection
+                        await this.saveData();
+                    }
+                    
+                    // Update UI
+                    this.updateUserAvatar();
+                    
+                    this.showNotification('Profile updated successfully!', 'success');
+                    this.hideModals();
+                    
                 } catch (error) {
                     console.error('Profile update error:', error);
-                    this.showNotification('An unexpected error occurred', 'error');
+                    this.showNotification('Error updating profile: ' + error.message, 'error');
+                }
+            }
+
+            // Update user avatar in UI
+            updateUserAvatar() {
+                const avatarEl = document.getElementById('user-avatar');
+                const initialsEl = document.getElementById('user-initials');
+                
+                if (this.currentUser && this.currentUser.profileImage) {
+                    if (avatarEl && initialsEl) {
+                        initialsEl.style.display = 'none';
+                        avatarEl.style.backgroundImage = `url(${this.currentUser.profileImage})`;
+                        avatarEl.style.backgroundSize = 'cover';
+                        avatarEl.style.backgroundPosition = 'center';
+                    }
+                } else if (this.currentUser && this.currentUser.name) {
+                    if (avatarEl && initialsEl) {
+                        initialsEl.style.display = 'flex';
+                        initialsEl.textContent = this.currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                        avatarEl.style.backgroundImage = '';
+                    }
                 }
             }
 

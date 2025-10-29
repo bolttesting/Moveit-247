@@ -144,7 +144,13 @@ app.post('/api/auth/login', (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
-    const db = readDb();
+    
+    // Use cached database for faster login
+    const db = useFileSystem ? readDb() : inMemoryDb;
+    if (!db || !db.users) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
     // Case-insensitive username lookup to improve UX
     const matchedKey = Object.keys(db.users).find(k => k.toLowerCase() === username.toLowerCase());
     const user = matchedKey ? db.users[matchedKey] : undefined;
@@ -832,27 +838,77 @@ app.post('/api/notifications/:id/read', (req, res) => {
 // Initialize database system
 const db = initDatabase();
 
+// Migration: Fix existing users who can't login
+function migrateExistingUsers() {
+  const db = readDb();
+  let migrated = 0;
+  
+  // Migrate supervisors
+  if (db.supervisors) {
+    db.supervisors.forEach(supervisor => {
+      if (supervisor.username && supervisor.password && !db.users[supervisor.username]) {
+        db.users[supervisor.username] = {
+          username: supervisor.username,
+          password: supervisor.password,
+          role: 'supervisor',
+          name: supervisor.name || supervisor.fullName || 'Supervisor',
+          email: supervisor.email || '',
+          phone: supervisor.phone || ''
+        };
+        migrated++;
+      }
+    });
+  }
+  
+  // Migrate team leaders
+  if (db.teamLeaders) {
+    db.teamLeaders.forEach(teamLeader => {
+      if (teamLeader.username && teamLeader.password && !db.users[teamLeader.username]) {
+        db.users[teamLeader.username] = {
+          username: teamLeader.username,
+          password: teamLeader.password,
+          role: 'teamLeader',
+          name: teamLeader.name || teamLeader.fullName || 'Team Leader',
+          email: teamLeader.email || '',
+          phone: teamLeader.phone || ''
+        };
+        migrated++;
+      }
+    });
+  }
+  
+  // Migrate staff
+  if (db.staff) {
+    db.staff.forEach(staff => {
+      if (staff.username && staff.password && !db.users[staff.username]) {
+        db.users[staff.username] = {
+          username: staff.username,
+          password: staff.password,
+          role: 'staff',
+          name: staff.name || staff.fullName || 'Staff',
+          email: staff.email || '',
+          phone: staff.phone || ''
+        };
+        migrated++;
+      }
+    });
+  }
+  
+  if (migrated > 0) {
+    writeDb(db);
+    console.log(`✅ Migrated ${migrated} existing users to login system`);
+  }
+}
+
+// Run migration
+migrateExistingUsers();
+
 app.listen(PORT, () => {
   console.log(`MoveIt247 API listening on http://localhost:${PORT}`);
   console.log(`🌐 Platform: ${useFileSystem ? 'File System' : 'Memory Only'}`);
   console.log(`💾 Database: ${useFileSystem ? 'db.json' : 'In-Memory'}`);
   console.log(`📁 File Storage: ${useFileSystem ? 'uploads/' : 'Memory'}`);
-  
-  // Debug: Check database on startup
-  console.log('📊 Database loaded on startup:');
-  console.log(`  - Users: ${Object.keys(db.users || {}).length}`);
-  console.log(`  - Jobs: ${(db.jobs || []).length}`);
-  console.log(`  - Notifications: ${(db.notifications || []).length}`);
-  console.log(`  - Supervisors: ${(db.supervisors || []).length}`);
-  console.log(`  - Team Leaders: ${(db.teamLeaders || []).length}`);
-  console.log(`  - Staff: ${(db.staff || []).length}`);
-  
-  if (db.notifications && db.notifications.length > 0) {
-    console.log('📢 Existing notifications:');
-    db.notifications.forEach(n => {
-      console.log(`   - [${n.id}] "${n.title}" for ${n.recipient}`);
-    });
-  }
+  console.log(`👥 Users: ${Object.keys(db.users || {}).length} | 📋 Jobs: ${(db.jobs || []).length} | 🔔 Notifications: ${(db.notifications || []).length}`);
 });
 
 

@@ -5266,35 +5266,56 @@
 
             saveData() {
                 // Save data to backend
+                console.log('Saving data to backend...');
+                console.log('Users data being saved:', this.data.users);
+                
                 return Promise.all([
                     fetch('/api/jobs', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.jobs)
+                    }).then(res => {
+                        console.log('Jobs save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save jobs');
                     }).catch(err => console.error('Failed to save jobs:', err)),
                     
                     fetch('/api/supervisors', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.supervisors)
+                    }).then(res => {
+                        console.log('Supervisors save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save supervisors');
                     }).catch(err => console.error('Failed to save supervisors:', err)),
                     
                     fetch('/api/teamleaders', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.teamLeaders)
+                    }).then(res => {
+                        console.log('Team leaders save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save team leaders');
                     }).catch(err => console.error('Failed to save team leaders:', err)),
                     
                     fetch('/api/staff', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.staff)
+                    }).then(res => {
+                        console.log('Staff save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save staff');
                     }).catch(err => console.error('Failed to save staff:', err)),
                     
                     fetch('/api/users', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.users)
+                    }).then(res => {
+                        console.log('Users save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save users');
+                        return res.json();
+                    }).then(data => {
+                        console.log('Users save success:', data);
                     }).catch(err => console.error('Failed to save users:', err))
                 ]);
             }
@@ -9138,23 +9159,32 @@
                     
                     // Get current user data
                     let userData;
+                    console.log('Current role:', this.currentRole);
+                    console.log('Current user:', this.currentUser);
+                    console.log('Available users:', this.data.users);
+                    
                     if (this.currentRole === 'admin') {
                         userData = this.data.users['admin'];
+                        console.log('Admin user data:', userData);
                     } else if (this.currentRole === 'supervisor') {
                         userData = this.data.supervisors.find(s => s.username === this.currentUser.username);
+                        console.log('Supervisor user data:', userData);
                     } else if (this.currentRole === 'teamleader') {
                         userData = this.data.teamLeaders.find(t => t.username === this.currentUser.username);
+                        console.log('Team leader user data:', userData);
                     } else if (this.currentRole === 'staff') {
                         userData = this.data.staff.find(s => s.username === this.currentUser.username);
+                        console.log('Staff user data:', userData);
                     }
                     
                     if (!userData) {
                         console.error('User data not found for role:', this.currentRole);
+                        console.error('Available data:', this.data);
                         this.showNotification('User data not found', 'error');
                         return;
                     }
 
-                    console.log('Found user data:', userData);
+                    console.log('Found user data before update:', userData);
 
                     // Validate inputs
                     const name = document.getElementById('profile-name').value?.trim();
@@ -9229,14 +9259,17 @@
                     }
                     
                     // Save data based on role
+                    console.log('User data after update:', userData);
+                    
                     if (this.currentRole === 'admin') {
                         // For admin, update both users collection and save
                         this.data.users['admin'] = userData;
-                        await this.saveData();
-                    } else {
-                        // For other roles, save their collection
-                        await this.saveData();
+                        console.log('Updated admin in users collection:', this.data.users['admin']);
                     }
+                    
+                    console.log('About to save data...');
+                    await this.saveData();
+                    console.log('Data saved successfully');
                     
                     // Update UI
                     this.updateUserAvatar();

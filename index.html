@@ -7452,7 +7452,7 @@
                             ${job.completionData.signature ? `
                                 <div class="signature-display">
                                     <h5>Client Signature:</h5>
-                                    <img src="${job.completionData.signature}" alt="Client Signature" style="max-width: 300px; border: 1px solid #ddd; border-radius: 8px;">
+                                    <img src="${app.getImageUrl(job.completionData.signature)}" alt="Client Signature" style="max-width: 300px; border: 1px solid #ddd; border-radius: 8px;">
                                 </div>
                             ` : ''}
                         </div>
@@ -7998,16 +7998,24 @@
             // Helper function to get correct image URL for current platform
             getImageUrl(imageSrc) {
                 if (!imageSrc) return '';
+                
+                // Debug logging
+                console.log('getImageUrl input:', imageSrc);
+                
                 // If it's already a full URL or starts with /api/file/, return as is
                 if (imageSrc.startsWith('http') || imageSrc.startsWith('/api/file/')) {
+                    console.log('getImageUrl: Using existing URL:', imageSrc);
                     return imageSrc;
                 }
                 // If it starts with /uploads/, it's from file system, return as is
                 if (imageSrc.startsWith('/uploads/')) {
+                    console.log('getImageUrl: Using file system URL:', imageSrc);
                     return imageSrc;
                 }
                 // Otherwise, assume it's a filename and use the API endpoint
-                return `/api/file/${imageSrc}`;
+                const apiUrl = `/api/file/${imageSrc}`;
+                console.log('getImageUrl: Using API URL:', apiUrl);
+                return apiUrl;
             }
 
             showImageModal(imageSrc) {
@@ -8556,7 +8564,7 @@
                             <div class="image-gallery">
                                 ${job.moveOutPermit ? `
                                     <div class="image-item" onclick="app.showImageModal('${job.moveOutPermit}')">
-                                        <img src="${job.moveOutPermit}" alt="Move Out Permit" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(job.moveOutPermit)}" alt="Move Out Permit" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No image available'}
                             </div>
@@ -8568,7 +8576,7 @@
                             <div class="image-gallery">
                                 ${job.moveInPermit ? `
                                     <div class="image-item" onclick="app.showImageModal('${job.moveInPermit}')">
-                                        <img src="${job.moveInPermit}" alt="Move In Permit" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(job.moveInPermit)}" alt="Move In Permit" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No image available'}
                             </div>
@@ -8580,7 +8588,7 @@
                             <div class="image-gallery">
                                 ${job.itemImages && job.itemImages.length > 0 ? job.itemImages.map((img, index) => `
                                     <div class="image-item" onclick="app.showImageModal('${img}')">
-                                        <img src="${img}" alt="Item Image" onerror="this.style.display='none'">
+                                        <img src="${app.getImageUrl(img)}" alt="Item Image" onerror="this.style.display='none'">
                                         ${this.currentRole === 'admin' && job.status === 'completed' ? `
                                             <button class="delete-image-btn" onclick="event.stopPropagation(); app.deleteItemImage(${job.id}, ${index}, '${img}')" title="Delete Image">
                                                 <i class="fas fa-trash-alt"></i>
@@ -9542,7 +9550,7 @@
                                 <div class="${itemClass}">
                                     <div class="history-status">${this.formatStatus(entry.status)}${isDelayed ? ' ⚠️' : ''}</div>
                                 <div class="history-time">${new Date(entry.at).toLocaleString()}</div>
-                                    ${entry.image ? `<img src="${entry.image}" class="history-image" alt="Status image" onclick="app.showImageModal('${entry.image}')">` : ''}
+                                    ${entry.image ? `<img src="${app.getImageUrl(entry.image)}" class="history-image" alt="Status image" onclick="app.showImageModal('${entry.image}')">` : ''}
                                 ${entry.notes ? `<p class="history-notes">${entry.notes}</p>` : ''}
                                 </div>
                             `;

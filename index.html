@@ -7995,12 +7995,28 @@
                 if (completionModal) completionModal.style.display = 'none';
             }
 
+            // Helper function to get correct image URL for current platform
+            getImageUrl(imageSrc) {
+                if (!imageSrc) return '';
+                // If it's already a full URL or starts with /api/file/, return as is
+                if (imageSrc.startsWith('http') || imageSrc.startsWith('/api/file/')) {
+                    return imageSrc;
+                }
+                // If it starts with /uploads/, it's from file system, return as is
+                if (imageSrc.startsWith('/uploads/')) {
+                    return imageSrc;
+                }
+                // Otherwise, assume it's a filename and use the API endpoint
+                return `/api/file/${imageSrc}`;
+            }
+
             showImageModal(imageSrc) {
                 if (!imageSrc) {
                     this.showNotification('No image available', 'error');
                     return;
                 }
-                document.getElementById('modal-image').src = imageSrc;
+                const correctUrl = this.getImageUrl(imageSrc);
+                document.getElementById('modal-image').src = correctUrl;
                 document.getElementById('image-modal').style.display = 'flex';
             }
 
@@ -8482,13 +8498,13 @@
                                                     ${teamLeader.emiratesIdFront ? `
                                                         <div class="emirates-id-item">
                                                             <h4>Emirates ID Front</h4>
-                                                            <img src="${teamLeader.emiratesIdFront}" alt="Emirates ID Front" onclick="app.showImageModal('${teamLeader.emiratesIdFront}')">
+                                                            <img src="${app.getImageUrl(teamLeader.emiratesIdFront)}" alt="Emirates ID Front" onclick="app.showImageModal('${teamLeader.emiratesIdFront}')">
                                                         </div>
                                                     ` : ''}
                                                     ${teamLeader.emiratesIdBack ? `
                                                         <div class="emirates-id-item">
                                                             <h4>Emirates ID Back</h4>
-                                                            <img src="${teamLeader.emiratesIdBack}" alt="Emirates ID Back" onclick="app.showImageModal('${teamLeader.emiratesIdBack}')">
+                                                            <img src="${app.getImageUrl(teamLeader.emiratesIdBack)}" alt="Emirates ID Back" onclick="app.showImageModal('${teamLeader.emiratesIdBack}')">
                                                         </div>
                                                     ` : ''}
                                                 </div>

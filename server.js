@@ -194,6 +194,19 @@ function createRoute(key, idField = 'id') {
         item[idField] = nextId;
       }
       db[key].push(item);
+      
+      // Add user to users collection for login (for people collections)
+      if (['supervisors', 'teamLeaders', 'staff'].includes(key) && item.username && item.password) {
+        db.users[item.username] = {
+          username: item.username,
+          password: item.password,
+          role: key === 'supervisors' ? 'supervisor' : key === 'teamLeaders' ? 'teamLeader' : 'staff',
+          name: item.name || item.fullName || 'User',
+          email: item.email || '',
+          phone: item.phone || ''
+        };
+      }
+      
       // post-create hooks
       if (key === 'jobs') {
         // initialize defaults

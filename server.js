@@ -501,6 +501,11 @@ app.delete('/api/jobs/:id/images/:imageIndex', (req, res) => {
 });
 
 // Users (admin/profile) - minimal API for updating a user in users map
+app.get('/api/users', (req, res) => {
+  const db = readDb();
+  res.json(db.users);
+});
+
 app.get('/api/users/:username', (req, res) => {
   const db = readDb();
   const username = String(req.params.username);

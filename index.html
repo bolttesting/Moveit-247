@@ -5082,8 +5082,17 @@
                     instructions: document.getElementById('job-instructions')?.value || ''
                 };
 
+                console.log('Job form data:', jobData);
+
                 // Validate required fields
                 if (!jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
+                    console.error('Validation failed - missing required fields:', {
+                        clientName: jobData.clientName,
+                        date: jobData.date,
+                        time: jobData.time,
+                        moveFrom: jobData.moveFrom,
+                        moveTo: jobData.moveTo
+                    });
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
                 }
@@ -5097,12 +5106,19 @@
                     Object.assign(jobData, uploadedData);
                     
                     // Create job via API
+                    console.log('Sending job data to API:', jobData);
                     fetch('/api/jobs', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(jobData)
                     })
-                    .then(res => res.json())
+                    .then(res => {
+                        console.log('Job API response status:', res.status);
+                        if (!res.ok) {
+                            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                        }
+                        return res.json();
+                    })
                     .then(newJob => {
                         console.log('Job added successfully:', newJob);
                         this.showNotification('Job added successfully!', 'success');
@@ -5113,7 +5129,7 @@
                     })
                     .catch(err => {
                         console.error('Error adding job:', err);
-                        this.showNotification('Error adding job', 'error');
+                        this.showNotification('Error adding job: ' + err.message, 'error');
                     });
                 })
                 .catch(err => {

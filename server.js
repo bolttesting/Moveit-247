@@ -21,41 +21,119 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Universal Database System - Works on any platform
 const dbPath = path.join(__dirname, 'db.json');
+let inMemoryDb = null;
+let useFileSystem = true;
 
-function readDb() {
+// Check if we can use file system (works on VPS, not on Vercel/Railway)
+function canUseFileSystem() {
+  try {
+    // Try to write a test file
+    const testPath = path.join(__dirname, '.test-write');
+    fs.writeFileSync(testPath, 'test');
+    fs.unlinkSync(testPath);
+    return true;
+  } catch (error) {
+    console.log('File system not available, using in-memory database');
+    return false;
+  }
+}
+
+// Initialize database system
+function initDatabase() {
+  useFileSystem = canUseFileSystem();
+  
+  if (useFileSystem) {
+    console.log('Using file-based database (db.json)');
+    return readDbFromFile();
+  } else {
+    console.log('Using in-memory database (platform compatible)');
+    return readDbFromMemory();
+  }
+}
+
+function readDbFromFile() {
   if (!fs.existsSync(dbPath)) {
-    const seed = {
-      users: { admin: { username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User' } },
-      jobs: [],
-      notifications: [],
-      supervisors: [],
-      teamLeaders: [],
-      staff: []
-    };
+    const seed = getSeedData();
     fs.writeFileSync(dbPath, JSON.stringify(seed, null, 2));
     return seed;
   }
   return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
-function writeDb(db) {
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+function readDbFromMemory() {
+  if (!inMemoryDb) {
+    inMemoryDb = getSeedData();
+  }
+  return inMemoryDb;
 }
 
-// Multer storage
-const storage = multer.diskStorage({
+function getSeedData() {
+  return {
+    users: { 
+      admin: { 
+        username: 'admin', 
+        password: 'admin123', 
+        role: 'admin', 
+        name: 'Admin User',
+        email: 'admin@moveit247.com',
+        phone: '+1234567890'
+      } 
+    },
+    jobs: [],
+    notifications: [],
+    supervisors: [],
+    teamLeaders: [],
+    staff: [],
+    tracking: {}
+  };
+}
+
+function readDb() {
+  if (useFileSystem) {
+    return readDbFromFile();
+  } else {
+    return readDbFromMemory();
+  }
+}
+
+function writeDb(db) {
+  if (useFileSystem) {
+    try {
+      fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+    } catch (error) {
+      console.error('Failed to write to file system, switching to in-memory:', error.message);
+      useFileSystem = false;
+      inMemoryDb = db;
+    }
+  } else {
+    inMemoryDb = db;
+  }
+}
+
+// Universal file storage - works on any platform
+const storage = multer.memoryStorage(); // Use memory storage for universal compatibility
+
+// Alternative disk storage for platforms that support it
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dest = path.join(__dirname, 'uploads');
-    fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
+    try {
+      fs.mkdirSync(dest, { recursive: true });
+      cb(null, dest);
+    } catch (error) {
+      cb(error);
+    }
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || '.bin';
     cb(null, `${Date.now()}-${nanoid(8)}${ext}`);
   }
 });
-const upload = multer({ storage });
+
+// Use memory storage by default (works everywhere)
+const upload = multer({ storage: storage });
 
 // Auth
 app.post('/api/auth/login', (req, res) => {
@@ -456,15 +534,55 @@ app.put('/api/staff', (req, res) => {
 app.put('/api/staff/:id', updateRoute('staff'));
 app.delete('/api/staff/:id', deleteRoute('staff'));
 
+// Universal file storage system
+let fileStorage = new Map(); // In-memory file storage for platforms without file system
+
 // Uploads
 app.post('/api/upload', upload.single('file'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    const publicUrl = `/uploads/${req.file.filename}`;
-    res.json({ url: publicUrl });
+    
+    const filename = `${Date.now()}-${nanoid(8)}${path.extname(req.file.originalname) || '.bin'}`;
+    
+    if (useFileSystem) {
+      // Save to file system if available
+      const dest = path.join(__dirname, 'uploads');
+      fs.mkdirSync(dest, { recursive: true });
+      fs.writeFileSync(path.join(dest, filename), req.file.buffer);
+      const publicUrl = `/uploads/${filename}`;
+      res.json({ url: publicUrl });
+    } else {
+      // Store in memory for platforms without file system
+      fileStorage.set(filename, {
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname
+      });
+      const publicUrl = `/api/file/${filename}`;
+      res.json({ url: publicUrl });
+    }
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// Serve files from memory storage
+app.get('/api/file/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const file = fileStorage.get(filename);
+    
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    res.setHeader('Content-Type', file.mimetype);
+    res.setHeader('Content-Disposition', `inline; filename="${file.originalname}"`);
+    res.send(file.buffer);
+  } catch (error) {
+    console.error('File serve error:', error);
+    res.status(500).json({ error: 'File serve failed' });
   }
 });
 
@@ -698,11 +816,16 @@ app.post('/api/notifications/:id/read', (req, res) => {
   }
 });
 
+// Initialize database system
+const db = initDatabase();
+
 app.listen(PORT, () => {
   console.log(`MoveIt247 API listening on http://localhost:${PORT}`);
+  console.log(`🌐 Platform: ${useFileSystem ? 'File System' : 'Memory Only'}`);
+  console.log(`💾 Database: ${useFileSystem ? 'db.json' : 'In-Memory'}`);
+  console.log(`📁 File Storage: ${useFileSystem ? 'uploads/' : 'Memory'}`);
   
   // Debug: Check database on startup
-  const db = readDb();
   console.log('📊 Database loaded on startup:');
   console.log(`  - Users: ${Object.keys(db.users || {}).length}`);
   console.log(`  - Jobs: ${(db.jobs || []).length}`);

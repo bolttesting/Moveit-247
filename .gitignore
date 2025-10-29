@@ -114,3 +114,6 @@ build/
 
 # Git files
 .git/
+
+# Platform test files
+.test-write

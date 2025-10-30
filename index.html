@@ -9348,6 +9348,10 @@
                     
                     // Handle Emirates ID uploads (Front/Back)
                     const emiratesFrontInput = document.getElementById('emirates-id-front');
+                    if (emiratesFrontInput && emiratesFrontInput.files && emiratesFrontInput.files[0] && !emiratesFrontInput.dataset.uploadUrl) {
+                        this.showNotification('Uploading Emirates ID Front... please wait then click Update again', 'warning');
+                        return;
+                    }
                     if (emiratesFrontInput && emiratesFrontInput.files && emiratesFrontInput.files[0]) {
                         try {
                             const form = new FormData();
@@ -9369,6 +9373,10 @@
                     }
 
                     const emiratesBackInput = document.getElementById('emirates-id-back');
+                    if (emiratesBackInput && emiratesBackInput.files && emiratesBackInput.files[0] && !emiratesBackInput.dataset.uploadUrl) {
+                        this.showNotification('Uploading Emirates ID Back... please wait then click Update again', 'warning');
+                        return;
+                    }
                     if (emiratesBackInput && emiratesBackInput.files && emiratesBackInput.files[0]) {
                         try {
                             const form = new FormData();

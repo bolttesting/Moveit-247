@@ -9320,6 +9320,41 @@
                         }
                     }
                     
+                    // Handle Emirates ID uploads (Front/Back)
+                    const emiratesFrontInput = document.getElementById('emirates-id-front');
+                    if (emiratesFrontInput && emiratesFrontInput.files && emiratesFrontInput.files[0]) {
+                        try {
+                            const form = new FormData();
+                            form.append('file', emiratesFrontInput.files[0]);
+                            const res = await fetch('/api/upload', { method: 'POST', body: form });
+                            const data = await res.json();
+                            if (data && data.url) {
+                                userData.emiratesIdFront = data.url;
+                                console.log('Emirates ID Front uploaded:', data.url);
+                            }
+                        } catch (error) {
+                            console.error('Failed to upload Emirates ID Front:', error);
+                            this.showNotification('Failed to upload Emirates ID Front', 'error');
+                        }
+                    }
+
+                    const emiratesBackInput = document.getElementById('emirates-id-back');
+                    if (emiratesBackInput && emiratesBackInput.files && emiratesBackInput.files[0]) {
+                        try {
+                            const form = new FormData();
+                            form.append('file', emiratesBackInput.files[0]);
+                            const res = await fetch('/api/upload', { method: 'POST', body: form });
+                            const data = await res.json();
+                            if (data && data.url) {
+                                userData.emiratesIdBack = data.url;
+                                console.log('Emirates ID Back uploaded:', data.url);
+                            }
+                        } catch (error) {
+                            console.error('Failed to upload Emirates ID Back:', error);
+                            this.showNotification('Failed to upload Emirates ID Back', 'error');
+                        }
+                    }
+                    
                     // Update current user in localStorage
                     if (this.currentUser && this.currentUser.username === userData.username) {
                         this.currentUser.name = userData.name;

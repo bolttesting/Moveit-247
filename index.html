@@ -8858,7 +8858,9 @@
                 this.showModal('supervisor-details-modal');
             }
 
-            showTeamLeaderDetails(teamLeaderId) {
+            async showTeamLeaderDetails(teamLeaderId) {
+                // Always refresh from backend to avoid stale data across roles/sessions
+                await this.fetchPeople('teamLeaders');
                 const teamLeader = this.data.teamLeaders.find(t => t.id === teamLeaderId);
                 if (!teamLeader) return;
 
@@ -8937,7 +8939,9 @@
                 this.showModal('teamleader-details-modal');
             }
 
-            showStaffDetails(staffId) {
+            async showStaffDetails(staffId) {
+                // Always refresh from backend to avoid stale data across roles/sessions
+                await this.fetchPeople('staff');
                 const staff = this.data.staff.find(s => s.id === staffId);
                 if (!staff) return;
 

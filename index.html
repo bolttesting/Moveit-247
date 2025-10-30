@@ -5347,7 +5347,16 @@
                     }).then(data => {
                         console.log('Users save success:', data);
                     }).catch(err => console.error('Failed to save users:', err))
-                ]);
+                ])
+                .then(() => {
+                    // Single success toast for any aggregated updates
+                    this.showNotification('Changes saved successfully', 'success');
+                })
+                .catch((err) => {
+                    // Already logged per-request; surface a single error toast
+                    this.showNotification('Failed to save some changes', 'error');
+                    throw err;
+                });
             }
 
             setupEventListeners() {

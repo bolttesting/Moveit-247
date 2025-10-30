@@ -8808,6 +8808,10 @@
                 if (!supervisor) return;
 
                 const body = document.getElementById('supervisor-details-body');
+                const userFallback = this.data.users && this.data.users[supervisor.username] ? this.data.users[supervisor.username] : {};
+                const supProfileImage = supervisor.profileImage || userFallback.profileImage || '';
+                const supEmiFront = supervisor.emiratesIdFront || userFallback.emiratesIdFront || '';
+                const supEmiBack = supervisor.emiratesIdBack || userFallback.emiratesIdBack || '';
                 body.innerHTML = `
                     <div class="detail-row">
                         <div class="detail-label">Name:</div>
@@ -8837,9 +8841,9 @@
                         <div class="detail-label">Profile Image:</div>
                         <div class="detail-value">
                             <div class="image-gallery">
-                                ${supervisor.profileImage ? `
-                                    <div class="image-item" onclick="app.showImageModal('${supervisor.profileImage}')">
-                                        <img src="${app.getImageUrl(supervisor.profileImage)}" alt="Profile Image" onerror="this.style.display='none'">
+                                ${supProfileImage ? `
+                                    <div class="image-item" onclick="app.showImageModal('${supProfileImage}')">
+                                        <img src="${app.getImageUrl(supProfileImage)}" alt="Profile Image" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No profile image available'}
                             </div>
@@ -8849,9 +8853,9 @@
                         <div class="detail-label">Emirates ID (Front):</div>
                         <div class="detail-value">
                             <div class="image-gallery">
-                                ${supervisor.emiratesIdFront ? `
-                                    <div class="image-item" onclick="app.showImageModal('${supervisor.emiratesIdFront}')">
-                                        <img src="${app.getImageUrl(supervisor.emiratesIdFront)}" alt="Emirates ID Front" onerror="this.style.display='none'">
+                                ${supEmiFront ? `
+                                    <div class="image-item" onclick="app.showImageModal('${supEmiFront}')">
+                                        <img src="${app.getImageUrl(supEmiFront)}" alt="Emirates ID Front" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID front image available'}
                             </div>
@@ -8861,9 +8865,9 @@
                         <div class="detail-label">Emirates ID (Back):</div>
                         <div class="detail-value">
                             <div class="image-gallery">
-                                ${supervisor.emiratesIdBack ? `
-                                    <div class="image-item" onclick="app.showImageModal('${supervisor.emiratesIdBack}')">
-                                        <img src="${app.getImageUrl(supervisor.emiratesIdBack)}" alt="Emirates ID Back" onerror="this.style.display='none'">
+                                ${supEmiBack ? `
+                                    <div class="image-item" onclick="app.showImageModal('${supEmiBack}')">
+                                        <img src="${app.getImageUrl(supEmiBack)}" alt="Emirates ID Back" onerror="this.style.display='none'">
                                     </div>
                                 ` : 'No Emirates ID back image available'}
                             </div>
@@ -9352,6 +9356,10 @@
                             const data = await res.json();
                             if (data && data.url) {
                                 userData.emiratesIdFront = data.url;
+                                // Also mirror into users map for redundancy
+                                if (this.data.users[userData.username]) {
+                                    this.data.users[userData.username].emiratesIdFront = data.url;
+                                }
                                 console.log('Emirates ID Front uploaded:', data.url);
                             }
                         } catch (error) {
@@ -9369,6 +9377,10 @@
                             const data = await res.json();
                             if (data && data.url) {
                                 userData.emiratesIdBack = data.url;
+                                // Also mirror into users map for redundancy
+                                if (this.data.users[userData.username]) {
+                                    this.data.users[userData.username].emiratesIdBack = data.url;
+                                }
                                 console.log('Emirates ID Back uploaded:', data.url);
                             }
                         } catch (error) {

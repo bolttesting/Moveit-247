@@ -5574,8 +5574,11 @@
 
             loginUser(user) {
                 console.log('loginUser called with:', user);
+                const normalizedRole = (user.role || '').toLowerCase();
+                // Persist normalized role to avoid 'teamLeader' vs 'teamleader' mismatches
+                user.role = normalizedRole;
                 this.currentUser = user;
-                this.currentRole = user.role;
+                this.currentRole = normalizedRole;
                 console.log('Current role set to:', this.currentRole);
                 localStorage.setItem('currentUser', JSON.stringify(user));
 
@@ -5588,7 +5591,7 @@
                 // Update user avatar with role-specific styling
                 const avatar = document.getElementById('user-avatar');
                 if (avatar) {
-                    avatar.className = `user-avatar ${user.role}`;
+                    avatar.className = `user-avatar ${this.currentRole}`;
                 }
 
                 console.log('Calling updateMenuForRole...');

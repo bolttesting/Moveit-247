@@ -270,7 +270,7 @@ function createRoute(key, idField = 'id') {
           db.users[item.username] = { 
             username: item.username, 
             password: item.password, 
-            role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamleader' : 'supervisor', 
+            role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamLeader' : 'supervisor', 
             name: item.name,
             phone: item.phone || '',
             email: item.email || '',
@@ -303,7 +303,7 @@ function updateRoute(key, idField = 'id') {
       db.users[updated.username] = {
         username: updated.username,
         password: updated.password || db.users[updated.username]?.password || old.password,
-        role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamleader' : 'supervisor',
+        role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamLeader' : 'supervisor',
         name: updated.name
       };
     }

@@ -2,7 +2,7 @@
   "users": {
     "admin": {
       "username": "admin",
-      "password": "Dubai@DXB",
+      "password": "admin123",
       "role": "admin",
       "name": "Admin User"
     }

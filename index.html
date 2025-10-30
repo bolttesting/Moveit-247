@@ -5299,44 +5299,49 @@
                 console.log('Saving data to backend...');
                 console.log('Users data being saved:', this.data.users);
                 
-                return Promise.all([
-                    fetch('/api/jobs', {
+                const requests = [];
+                if (Array.isArray(this.data.jobs)) {
+                    requests.push(fetch('/api/jobs', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.jobs)
                     }).then(res => {
                         console.log('Jobs save response:', res.status);
                         if (!res.ok) throw new Error('Failed to save jobs');
-                    }).catch(err => console.error('Failed to save jobs:', err)),
-                    
-                    fetch('/api/supervisors', {
+                    }).catch(err => console.error('Failed to save jobs:', err)));
+                }
+                if (Array.isArray(this.data.supervisors)) {
+                    requests.push(fetch('/api/supervisors', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.supervisors)
                     }).then(res => {
                         console.log('Supervisors save response:', res.status);
                         if (!res.ok) throw new Error('Failed to save supervisors');
-                    }).catch(err => console.error('Failed to save supervisors:', err)),
-                    
-                    fetch('/api/teamleaders', {
+                    }).catch(err => console.error('Failed to save supervisors:', err)));
+                }
+                if (Array.isArray(this.data.teamLeaders)) {
+                    requests.push(fetch('/api/teamleaders', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.teamLeaders)
                     }).then(res => {
                         console.log('Team leaders save response:', res.status);
                         if (!res.ok) throw new Error('Failed to save team leaders');
-                    }).catch(err => console.error('Failed to save team leaders:', err)),
-                    
-                    fetch('/api/staff', {
+                    }).catch(err => console.error('Failed to save team leaders:', err)));
+                }
+                if (Array.isArray(this.data.staff)) {
+                    requests.push(fetch('/api/staff', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.staff)
                     }).then(res => {
                         console.log('Staff save response:', res.status);
                         if (!res.ok) throw new Error('Failed to save staff');
-                    }).catch(err => console.error('Failed to save staff:', err)),
-                    
-                    fetch('/api/users', {
+                    }).catch(err => console.error('Failed to save staff:', err)));
+                }
+                if (this.data.users && typeof this.data.users === 'object') {
+                    requests.push(fetch('/api/users', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.data.users)
@@ -5346,8 +5351,10 @@
                         return res.json();
                     }).then(data => {
                         console.log('Users save success:', data);
-                    }).catch(err => console.error('Failed to save users:', err))
-                ])
+                    }).catch(err => console.error('Failed to save users:', err)));
+                }
+
+                return Promise.all(requests)
                 .then(() => {
                     // Single success toast for any aggregated updates
                     this.showNotification('Changes saved successfully', 'success');

@@ -9391,6 +9391,14 @@
                     console.log('About to save data...');
                     await this.saveData();
                     console.log('Data saved successfully');
+                    // Refresh latest data for the current role so other views see the updates immediately
+                    if (this.currentRole === 'supervisor') {
+                        await this.fetchPeople('supervisors');
+                    } else if (this.currentRole === 'teamleader') {
+                        await this.fetchPeople('teamLeaders');
+                    } else if (this.currentRole === 'staff') {
+                        await this.fetchPeople('staff');
+                    }
                     
                     // Update UI
                     this.updateUserAvatar();

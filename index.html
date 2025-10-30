@@ -5363,6 +5363,12 @@
                     });
                 });
 
+                // Handle back/forward and manual hash changes
+                window.addEventListener('hashchange', () => {
+                    const section = location.hash ? location.hash.substring(1) : 'dashboard';
+                    this.navigateTo(section);
+                });
+
                 // Logout
                 document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
 
@@ -5590,9 +5596,10 @@
                 console.log('Switching to app container...');
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
-
-                console.log('Loading dashboard...');
-                this.loadDashboard();
+                // Navigate to section from URL hash (or dashboard by default)
+                const sectionFromHash = location.hash ? location.hash.substring(1) : 'dashboard';
+                console.log('Navigating after login to section:', sectionFromHash);
+                this.navigateTo(sectionFromHash);
                 this.showNotification(`Welcome back, ${user.name}!`, 'success');
                 
                 // Initialize location tracking for team leaders
@@ -5697,6 +5704,13 @@
 
             async navigateTo(section) {
                 console.log(`🔄 Navigating to: ${section}`);
+                // Keep URL in sync and close mobile sidebar overlay
+                if (location.hash !== `#${section}`) {
+                    location.hash = `#${section}`;
+                }
+                if (document && document.body && document.body.classList) {
+                    document.body.classList.remove('sidebar-open');
+                }
                 
                 // Update active menu - with error handling
                 document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));

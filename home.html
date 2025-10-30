@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoveIt 247 - Moving Company</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --accent: #4facfe;
+            --dark: #0f172a;
+        }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:#0b1220; }
+        header { position: sticky; top:0; background: #ffffffb3; backdrop-filter: blur(8px); border-bottom:1px solid #eef2f7; z-index:10; }
+        .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+        .nav { display:flex; align-items:center; justify-content:space-between; height:64px; }
+        .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+        .brand i { color: var(--primary); }
+        .nav a.btn { padding:10px 16px; border-radius:10px; text-decoration:none; color:#fff; background: linear-gradient(135deg, var(--primary), var(--accent)); font-weight:700; }
+        .hero { background: radial-gradient(1200px 600px at 0% 0%, #eef2ff, #fff); padding: 72px 0; }
+        .hero-grid { display:grid; grid-template-columns: 1.2fr 0.8fr; gap:40px; align-items:center; }
+        h1 { font-size: 44px; line-height:1.1; margin:0 0 16px; color: var(--dark); }
+        p.lead { font-size: 18px; color:#4b5563; margin:0 0 24px; }
+        .cta { display:flex; gap:12px; flex-wrap:wrap; }
+        .btn-primary { padding:14px 22px; border-radius:12px; border:none; background: linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; font-weight:800; text-decoration:none; }
+        .btn-outline { padding:14px 22px; border-radius:12px; border:2px solid #e2e8f0; color:#0f172a; background:#fff; text-decoration:none; font-weight:700; }
+        .card { background:#fff; border:1px solid #eef2f7; border-radius:16px; padding:18px; box-shadow: 0 10px 25px rgba(2,6,23,0.04); }
+        .hero-illus { display:grid; gap:14px; }
+        .features { padding: 56px 0; background:#fff; }
+        .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
+        .feature h3 { margin:10px 0 6px; font-size:18px; }
+        .feature p { margin:0; color:#475569; font-size:14px; }
+        footer { padding:40px 0; background:#0f172a; color:#94a3b8; }
+        footer a { color:#e2e8f0; text-decoration:none; }
+        @media (max-width: 900px){ .hero-grid{ grid-template-columns:1fr; } .grid{ grid-template-columns:1fr; } }
+    </style>
+    <script>
+        function goToPortal(){ location.href = '/portal'; }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <div class="brand"><i class="fa-solid fa-truck-moving"></i> MoveIt 247</div>
+            <nav>
+                <a class="btn" href="/portal">Login to Portal</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container hero-grid">
+            <div>
+                <h1>Stress‑free moving services, managed end‑to‑end</h1>
+                <p class="lead">Book, track, and complete your move with live updates, digital documents, and a dedicated moving team. Transparent pricing and professional service—24/7.</p>
+                <div class="cta">
+                    <a class="btn-primary" href="/portal">Login to Portal</a>
+                    <a class="btn-outline" href="#features">Explore Features</a>
+                </div>
+                <div style="display:flex; gap:18px; align-items:center; margin-top:20px; color:#475569;">
+                    <div><i class="fa-solid fa-shield-halved" style="color:#16a34a"></i> Insured</div>
+                    <div><i class="fa-solid fa-clock" style="color:#2563eb"></i> On‑time</div>
+                    <div><i class="fa-solid fa-star" style="color:#f59e0b"></i> 4.9 Rated</div>
+                </div>
+            </div>
+            <div class="hero-illus">
+                <div class="card">
+                    <strong>Book & Track</strong>
+                    <div style="height:8px"></div>
+                    Create jobs, assign teams, and get live status updates from pickup to completion.
+                </div>
+                <div class="card">
+                    <strong>Digital Documents</strong>
+                    <div style="height:8px"></div>
+                    Upload permits, IDs, and signatures directly in the portal.
+                </div>
+                <div class="card">
+                    <strong>Live GPS</strong>
+                    <div style="height:8px"></div>
+                    Track your moving team on the map in real‑time.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2 style="margin:0 0 16px;">Why MoveIt 247</h2>
+            <div class="grid">
+                <div class="feature card">
+                    <i class="fa-solid fa-list-check" style="color:var(--primary);"></i>
+                    <h3>Job Management</h3>
+                    <p>Create jobs, assign teams, manage status & history.</p>
+                </div>
+                <div class="feature card">
+                    <i class="fa-solid fa-bell" style="color:var(--primary);"></i>
+                    <h3>Realtime Notifications</h3>
+                    <p>Stay in sync with instant updates across roles.</p>
+                </div>
+                <div class="feature card">
+                    <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i>
+                    <h3>Reports & Insights</h3>
+                    <p>Performance dashboards, exports, and analytics.</p>
+                </div>
+            </div>
+            <div style="margin-top:24px; text-align:center;">
+                <a class="btn-primary" href="/portal">Go to Portal</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div>© <span id="y"></span> MoveIt 247. All rights reserved.</div>
+            <div style="display:flex; gap:12px;">
+                <a href="/portal">Portal</a>
+                <a href="#features">Features</a>
+            </div>
+        </div>
+        <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+    </footer>
+</body>
+</html>
+
+

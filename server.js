@@ -17,7 +17,17 @@ app.use(express.json({ limit: '5mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static frontend (index.html) from project root
 app.use(express.static(__dirname));
+// Landing page at root
 app.get('/', (req, res) => {
+  const homePath = path.join(__dirname, 'home.html');
+  if (fs.existsSync(homePath)) {
+    res.sendFile(homePath);
+  } else {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  }
+});
+// Portal (original app)
+app.get(['/portal', '/app', '/dashboard'], (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 

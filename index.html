@@ -9407,6 +9407,28 @@
                         console.log('Updated admin in users collection:', this.data.users['admin']);
                     }
                     
+                    // Persist directly to the specific collection first to avoid race conditions
+                    if (this.currentRole === 'supervisor' && userData.id != null) {
+                        await fetch(`/api/supervisors/${encodeURIComponent(userData.id)}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(userData)
+                        });
+                    } else if (this.currentRole === 'teamleader' && userData.id != null) {
+                        await fetch(`/api/teamleaders/${encodeURIComponent(userData.id)}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(userData)
+                        });
+                    } else if (this.currentRole === 'staff' && userData.id != null) {
+                        await fetch(`/api/staff/${encodeURIComponent(userData.id)}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(userData)
+                        });
+                    }
+
+                    // Also persist aggregate maps
                     console.log('About to save data...');
                     await this.saveData();
                     console.log('Data saved successfully');

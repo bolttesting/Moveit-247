@@ -15,9 +15,7 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// Serve static frontend (index.html) from project root
-app.use(express.static(__dirname));
-// Landing page at root
+// Landing page at root (register BEFORE static so it isn't shadowed by index.html)
 app.get('/', (req, res) => {
   const homePath = path.join(__dirname, 'home.html');
   if (fs.existsSync(homePath)) {
@@ -26,6 +24,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
   }
 });
+// Serve static frontend from project root but do NOT auto-serve index.html at '/'
+app.use(express.static(__dirname, { index: false }));
 // Portal (original app)
 app.get(['/portal', '/app', '/dashboard'], (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

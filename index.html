@@ -8785,7 +8785,9 @@
                 }
             }
 
-            showSupervisorDetails(supervisorId) {
+            async showSupervisorDetails(supervisorId) {
+                // Always refresh from backend to avoid stale data across roles/sessions
+                await this.fetchPeople('supervisors');
                 const supervisor = this.data.supervisors.find(s => s.id === supervisorId);
                 if (!supervisor) return;
 

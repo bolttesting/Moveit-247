@@ -527,10 +527,28 @@ app.put('/api/users/:username', (req, res) => {
 });
 
 app.put('/api/users', (req, res) => {
-  const db = readDb();
-  db.users = req.body;
-  writeDb(db);
-  res.json({ success: true });
+  try {
+    const db = readDb();
+    const incoming = req.body || {};
+    // Merge incoming users onto existing to avoid accidentally removing accounts (e.g., admin)
+    db.users = { ...(db.users || {}), ...incoming };
+    // Ensure admin user always exists
+    if (!db.users.admin) {
+      db.users.admin = {
+        username: 'admin',
+        password: 'admin123',
+        role: 'admin',
+        name: 'Admin User',
+        email: db.users.admin?.email || 'admin@moveit247.com',
+        phone: db.users.admin?.phone || ''
+      };
+    }
+    writeDb(db);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to save users:', error);
+    res.status(500).json({ error: 'Failed to save users' });
+  }
 });
 
 // People collections
@@ -851,6 +869,19 @@ app.post('/api/notifications/:id/read', (req, res) => {
 
 // Initialize database system
 const db = initDatabase();
+// Ensure admin user exists at startup (in case of previous overwrites)
+if (!db.users || !db.users.admin) {
+  db.users = db.users || {};
+  db.users.admin = {
+    username: 'admin',
+    password: 'admin123',
+    role: 'admin',
+    name: 'Admin User',
+    email: db.users.admin?.email || 'admin@moveit247.com',
+    phone: db.users.admin?.phone || ''
+  };
+  writeDb(db);
+}
 
 // Migration: Fix existing users who can't login
 function migrateExistingUsers() {

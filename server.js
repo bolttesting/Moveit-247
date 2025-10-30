@@ -164,6 +164,30 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
+// Emergency admin restore endpoint
+// POST /api/admin/reset { password?: string, name?: string }
+app.post('/api/admin/reset', (req, res) => {
+  try {
+    const db = readDb();
+    const password = (req.body && typeof req.body.password === 'string' && req.body.password.trim()) || 'admin123';
+    const name = (req.body && typeof req.body.name === 'string' && req.body.name.trim()) || 'Admin User';
+    db.users = db.users || {};
+    db.users.admin = {
+      username: 'admin',
+      password,
+      role: 'admin',
+      name,
+      email: db.users.admin?.email || 'admin@moveit247.com',
+      phone: db.users.admin?.phone || ''
+    };
+    writeDb(db);
+    res.json({ success: true, user: { username: 'admin' } });
+  } catch (error) {
+    console.error('Admin reset failed:', error);
+    res.status(500).json({ error: 'Admin reset failed' });
+  }
+});
+
 // Generic helpers
 function listRoute(key) {
   return (req, res) => {

@@ -8888,6 +8888,18 @@
                     this.handleNewSurveyApartmentSizeChange();
                 }
                 this.showModal('add-survey-modal');
+
+                // Re-sync after modal paints to catch browser autofill timing
+                setTimeout(() => {
+                    if (typeof this.handleNewSurveyApartmentSizeChange === 'function') {
+                        this.handleNewSurveyApartmentSizeChange();
+                        const select = document.getElementById('new-survey-apartment-size');
+                        const customField = document.getElementById('new-survey-apartment-size-custom');
+                        if (select && select.value === 'custom' && customField) {
+                            customField.focus();
+                        }
+                    }
+                }, 250);
             }
 
             addSurvey() {

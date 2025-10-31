@@ -5149,6 +5149,7 @@
                 this.initTooltips();
                 this.initAutoSave();
                 this.setupGlobalErrorHandling();
+                this.createMobileAppHeader();
             }
 
             setupGlobalErrorHandling() {
@@ -5849,6 +5850,41 @@
                         this.hideImageModal();
                     }
                 });
+            }
+
+            // Mobile (APK) header to avoid content under status bar and provide brand space
+            createMobileAppHeader() {
+                const isMobile = window.innerWidth <= 768;
+                if (!isMobile) return;
+
+                // Styles for header and safe-area
+                const styleId = 'mobile-app-header-style';
+                if (!document.getElementById(styleId)) {
+                    const s = document.createElement('style');
+                    s.id = styleId;
+                    s.innerHTML = `
+                        .mobile-app-header{position:sticky;top:0;left:0;right:0;height:56px;padding-top:env(safe-area-inset-top);background:#0f172a;color:#e2e8f0;display:flex;align-items:center;gap:10px;padding-left:16px;z-index:1000;border-bottom:1px solid #1f2937}
+                        .mobile-app-header img{height:28px;width:auto;display:block}
+                        .mobile-app-header .title{font-weight:800;letter-spacing:.2px}
+                        body{padding-top:calc(env(safe-area-inset-top));}
+                    `;
+                    document.head.appendChild(s);
+                }
+
+                if (document.querySelector('.mobile-app-header')) return;
+
+                const header = document.createElement('div');
+                header.className = 'mobile-app-header';
+                header.innerHTML = `
+                    <img id="app-logo" alt="MoveIt 24/7" onerror="this.style.display='none'" />
+                    <div class="title">MoveIt 24/7</div>
+                `;
+                const storedLogo = localStorage.getItem('moveit_logo_url');
+                if (storedLogo) {
+                    const img = header.querySelector('#app-logo');
+                    img.src = this.getImageUrl(storedLogo);
+                }
+                document.body.prepend(header);
             }
 
             setupImagePreviews() {

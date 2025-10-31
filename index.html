@@ -6245,10 +6245,10 @@
                     }
                 } else if (role === 'staff') {
                     console.log('Setting up staff menu...');
-                    // Staff can only see their assigned jobs and profile
+                    // Staff can see their assigned jobs, profile, and job history (including jobs they completed as promoted team leader)
                     if (addJobCard) addJobCard.style.display = 'none';
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
-                    if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'none'; // Staff don't see history
+                    if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block'; // Staff can see their completed jobs
                 }
                 console.log('Menu setup complete for role:', role);
             }
@@ -6553,6 +6553,13 @@
                     // Team leaders see only their completed jobs
                     if (this.currentRole === 'teamleader') {
                         completedJobs = completedJobs.filter(job => job.teamLeader === this.currentUser.name);
+                    } 
+                    // Staff see jobs they completed as team leader (even if now demoted) OR jobs they were assigned to as staff
+                    else if (this.currentRole === 'staff') {
+                        completedJobs = completedJobs.filter(job => 
+                            job.teamLeader === this.currentUser.name || // Jobs they completed as promoted team leader
+                            (job.assignedStaff && job.assignedStaff.includes(this.currentUser.name)) // Jobs they were assigned to as staff
+                        );
                     }
                     // Admin and supervisor see all completed jobs
                     

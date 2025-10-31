@@ -8955,15 +8955,20 @@
                     });
                 }
 
-                // Populate staff dropdown (with designation)
+                // Populate staff dropdown (with designation only for admin)
                 const staffSelect = document.getElementById('edit-assign-staff');
                 if (staffSelect) {
                     staffSelect.innerHTML = '';
+                    const showDesignation = this.currentRole === 'admin';
                     this.data.staff.forEach(staff => {
                         const option = document.createElement('option');
                         option.value = staff.name;
-                        const designation = staff.designation || 'N/A';
-                        option.textContent = `${staff.name} - ${designation}`;
+                        if (showDesignation) {
+                            const designation = staff.designation || 'N/A';
+                            option.textContent = `${staff.name} - ${designation}`;
+                        } else {
+                            option.textContent = staff.name;
+                        }
                         if (job.assignedStaff && job.assignedStaff.includes(staff.name)) {
                             option.selected = true;
                         }

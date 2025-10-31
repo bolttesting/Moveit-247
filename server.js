@@ -882,10 +882,21 @@ app.get('/api/tracking', (req, res) => {
     const db = readDb();
     const tracking = db.tracking || {};
     const teamLeaders = db.teamLeaders || [];
+    const staff = db.staff || [];
     const jobs = db.jobs || [];
     
+    // Get all team leaders including promoted staff
+    const allTeamLeaders = [
+      ...teamLeaders.map(tl => ({ ...tl, isPromoted: false })),
+      ...staff.filter(s => s.isTeamLeader === true).map(s => ({ 
+        username: s.username, 
+        name: s.name, 
+        isPromoted: true 
+      }))
+    ];
+    
     // Build tracking data with team leader info
-    const trackingData = teamLeaders.map(tl => {
+    const trackingData = allTeamLeaders.map(tl => {
       const locationData = tracking[tl.username] || {};
       
       // Find current active job for this team leader
@@ -900,7 +911,8 @@ app.get('/api/tracking', (req, res) => {
         latitude: locationData.latitude || null,
         longitude: locationData.longitude || null,
         lastUpdate: locationData.lastUpdate || null,
-        currentJob: activeJob ? activeJob.id : null
+        currentJob: activeJob ? activeJob.id : null,
+        isPromoted: tl.isPromoted || false
       };
     });
     

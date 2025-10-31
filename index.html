@@ -6646,10 +6646,11 @@
                 }
                 
                 try {
-                    // Fetch team leaders
+                    // Fetch team leaders and staff (to get promoted staff)
                     await this.fetchPeople('teamLeaders');
+                    await this.fetchPeople('staff');
                     
-                    // Fetch tracking data from backend
+                    // Fetch tracking data from backend (includes promoted staff)
                     const response = await fetch('/api/tracking');
                     const trackingData = await response.json();
                     
@@ -6683,13 +6684,14 @@
                 Object.values(this.trackingMarkers).forEach(marker => marker.remove());
                 this.trackingMarkers = {};
                 
-                // Add markers for each team leader
+                // Add markers for each team leader (including promoted staff)
                 trackingData.forEach(item => {
                     if (item.latitude && item.longitude) {
+                        const promotedLabel = item.isPromoted ? ' <span style="color: #f59e0b; font-size: 0.85em;">(Promoted)</span>' : '';
                         const marker = L.marker([item.latitude, item.longitude])
                             .bindPopup(`
                                 <div style="text-align: center;">
-                                    <strong>${item.name}</strong><br>
+                                    <strong>${item.name}${promotedLabel}</strong><br>
                                     <small>${item.lastUpdate}</small><br>
                                     ${item.currentJob ? `<span style="color: #48bb78;">📍 On Job #${item.currentJob}</span>` : '<span style="color: #a0aec0;">No active job</span>'}
                                 </div>

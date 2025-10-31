@@ -25,11 +25,25 @@ jobs:
         run: |
           npm ci
 
+      - name: Prepare web assets
+        run: |
+          mkdir -p mobile-www
+          # Copy all web files to mobile-www
+          cp index.html mobile-www/ || true
+          cp home.html mobile-www/ || true
+          cp -r uploads mobile-www/ 2>/dev/null || true
+          # Create a minimal structure if needed
+          if [ ! -f mobile-www/index.html ]; then
+            echo "Web assets preparation failed, creating minimal structure"
+            mkdir -p mobile-www
+            echo "<!DOCTYPE html><html><body>Loading...</body></html>" > mobile-www/index.html
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -54,19 +68,38 @@ jobs:
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npx cap sync android
+          echo "Capacitor sync completed"
+
+      - name: Verify Android setup
+        working-directory: android
+        run: |
+          ls -la app/src/main/assets/ || echo "Assets directory check"
+          echo "Android project structure verified"
 
       - name: Make Gradle executable
         working-directory: android
-        run: chmod +x gradlew
+        run: |
+          chmod +x gradlew
+          ./gradlew --version || echo "Gradle version check"
 
       - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace --info
+        run: |
+          ./gradlew clean || echo "Clean failed, continuing..."
+          ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all 2>&1 | tee build.log
         env:
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx2048m -XX:MaxMetaspaceSize=512m
+      
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: android/build.log
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

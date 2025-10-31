@@ -1,0 +1,13 @@
+{
+  "appId": "com.moveit247.portal",
+  "appName": "Moveit 24/7",
+  "webDir": "mobile-www",
+  "server": {
+    "url": "https://moveit-247-production.up.railway.app/",
+    "cleartext": true,
+    "allowNavigation": ["moveit-247-production.up.railway.app"]
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

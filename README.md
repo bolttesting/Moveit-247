@@ -1,3 +1,23 @@
+## Android (Capacitor) App
+
+This repo includes a Capacitor Android app wrapper that loads the hosted portal at `https://moveit-247-production.up.railway.app/`.
+
+### Build locally
+
+1. Install Android Studio + SDK (Java 17)
+2. Install deps:
+   - `npm ci`
+3. Sync Capacitor:
+   - `npx cap sync android`
+4. Open `android/` in Android Studio or build via CLI:
+   - `cd android && ./gradlew assembleDebug`
+5. The debug APK will be at:
+   - `android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Build via GitHub Actions
+
+Every push to `main` builds a Debug APK. Check Actions tab → latest run → Artifacts → `Moveit247-debug-apk` to download.
+
 # MoveIt 247 - Complete Management System
 
 A comprehensive management system for moving and logistics companies, built with Node.js and vanilla JavaScript.
@@ -384,5 +404,6 @@ Run `npm start` and access at `http://localhost:4000`
  
  #   M o v e i t - 2 4 7 
  
- #   M o v e i t - 2 4 7  
+ #   M o v e i t - 2 4 7 
+ 
  

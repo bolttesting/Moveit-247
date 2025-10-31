@@ -3711,7 +3711,7 @@
                                     <th>Name</th>
                                     <th>Username</th>
                                     <th>Phone</th>
-                                    <th>Designation</th>
+                                    <th id="staff-designation-header">Designation</th>
                                     <th>Team Leader</th>
                                     <th>Is Team Leader</th>
                                     <th>Status</th>
@@ -4544,7 +4544,7 @@
                             <label>Email</label>
                             <input type="email" class="form-control" id="edit-staff-email" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="edit-staff-designation-group">
                             <label>Designation</label>
                             <select class="form-control" id="edit-staff-designation" required>
                                 <option value="">Select Designation</option>
@@ -4708,7 +4708,7 @@
                             <label>Email</label>
                             <input type="email" class="form-control" id="new-staff-email" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="new-staff-designation-group">
                             <label>Designation</label>
                             <select class="form-control" id="new-staff-designation" required>
                                 <option value="">Select Designation</option>
@@ -7563,7 +7563,14 @@
 
             loadStaff() {
                 // Always fetch latest from backend
-                this.fetchPeople('staff').then(() => this.populateStaffTable());
+                this.fetchPeople('staff').then(() => {
+                    // Hide/show designation header based on role
+                    const designationHeader = document.getElementById('staff-designation-header');
+                    if (designationHeader) {
+                        designationHeader.style.display = this.currentRole === 'admin' ? '' : 'none';
+                    }
+                    this.populateStaffTable();
+                });
             }
 
             async loadSurveys() {
@@ -8080,19 +8087,23 @@
                 const tbody = document.querySelector('#staff-table tbody');
                 tbody.innerHTML = '';
 
+                const showDesignation = this.currentRole === 'admin';
+                const colCount = showDesignation ? 8 : 7;
+                
                 if (this.data.staff.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No staff members available</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="no-data">No staff members available</td></tr>`;
                     return;
                 }
 
                 this.data.staff.forEach(staff => {
                     const isPromoted = staff.isTeamLeader || false;
+                    const showDesignation = this.currentRole === 'admin';
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${staff.name}</td>
                         <td>${staff.username}</td>
                         <td>${staff.phone}</td>
-                        <td>${staff.designation || 'N/A'}</td>
+                        ${showDesignation ? `<td>${staff.designation || 'N/A'}</td>` : ''}
                         <td>${staff.teamLeader || 'N/A'}</td>
                         <td>
                             ${isPromoted ? '<span class="status-badge status-completed" style="background:#10b981;">Team Leader</span>' : '<span class="status-badge" style="background:#64748b;">Staff</span>'}
@@ -8883,6 +8894,20 @@
                     option.textContent = tl.name;
                     teamLeaderSelect.appendChild(option);
                 });
+                
+                // Hide designation field for supervisors (admin only)
+                const designationGroup = document.getElementById('new-staff-designation-group');
+                const designationField = document.getElementById('new-staff-designation');
+                if (designationGroup && designationField) {
+                    if (this.currentRole === 'admin') {
+                        designationGroup.style.display = 'block';
+                        designationField.required = true;
+                    } else {
+                        designationGroup.style.display = 'none';
+                        designationField.required = false;
+                    }
+                }
+                
                 this.showModal('add-staff-modal');
             }
 
@@ -10550,6 +10575,19 @@
                 document.getElementById('edit-staff-designation').value = staff.designation;
                 document.getElementById('edit-staff-username').value = staff.username;
                 document.getElementById('edit-staff-password').value = '';
+                
+                // Hide designation field for supervisors (admin only)
+                const designationGroup = document.getElementById('edit-staff-designation-group');
+                const designationField = document.getElementById('edit-staff-designation');
+                if (designationGroup && designationField) {
+                    if (this.currentRole === 'admin') {
+                        designationGroup.style.display = 'block';
+                        designationField.required = true;
+                    } else {
+                        designationGroup.style.display = 'none';
+                        designationField.required = false;
+                    }
+                }
 
                 // Populate team leaders dropdown
                 const teamLeaderSelect = document.getElementById('edit-staff-teamleader');
@@ -10652,7 +10690,10 @@
                     staff.name = document.getElementById('edit-staff-name').value;
                     staff.phone = document.getElementById('edit-staff-phone').value;
                     staff.email = document.getElementById('edit-staff-email').value;
-                    staff.designation = document.getElementById('edit-staff-designation').value;
+                    // Only admin can update designation
+                    if (this.currentRole === 'admin') {
+                        staff.designation = document.getElementById('edit-staff-designation').value;
+                    }
                     const newUsername = document.getElementById('edit-staff-username').value;
                     staff.username = newUsername;
                     staff.teamLeader = document.getElementById('edit-staff-teamleader').value;

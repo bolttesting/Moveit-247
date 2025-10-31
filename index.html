@@ -8970,17 +8970,13 @@
 
                 // Upload images
                 const uploadedImages = [];
-                if (imagesInput.files && imagesInput.files.length > 0) {
+                if (imagesInput && imagesInput.files && imagesInput.files.length > 0) {
                     try {
+                        // Use the centralized upload helper to ensure consistent URLs
                         for (let i = 0; i < imagesInput.files.length; i++) {
                             const file = imagesInput.files[i];
-                            const formData = new FormData();
-                            formData.append('file', file);
-                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                            const data = await res.json();
-                            if (data && data.url) {
-                                uploadedImages.push(data.url);
-                            }
+                            const url = await this.uploadFile(file);
+                            if (url) uploadedImages.push(url);
                         }
                     } catch (error) {
                         console.error('Error uploading images:', error);

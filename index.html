@@ -4859,9 +4859,12 @@
 
                     <!-- Items Table Section -->
                     <div class="card" style="margin-bottom: 20px; padding: 15px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                             <h4 style="margin:0;">Items List</h4>
-                            <button type="button" class="btn btn-sm btn-primary" id="add-custom-item-btn" onclick="app.showAddCustomItemModal()">Add Custom Item</button>
+                            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                <input type="text" id="packing-list-search" placeholder="Search items..." class="form-control" style="min-width:200px; max-width:300px;" onkeyup="app.filterPackingListItems()">
+                                <button type="button" class="btn btn-sm btn-primary" id="add-custom-item-btn" onclick="app.showAddCustomItemModal()">Add Custom Item</button>
+                            </div>
                         </div>
                         <div class="table-responsive" id="packing-list-table-wrapper" style="overflow-x:auto; overflow-y:auto; max-height:400px; -webkit-overflow-scrolling:touch;">
                             <table class="table" id="packing-list-items-table" style="font-size:13px; min-width:600px; width:100%;">
@@ -9504,6 +9507,20 @@
             removeItemFromTable(btn) {
                 btn.closest('tr').remove();
                 this.updatePackingListTotals();
+            }
+
+            filterPackingListItems() {
+                const searchTerm = document.getElementById('packing-list-search')?.value.toLowerCase() || '';
+                const rows = document.querySelectorAll('#packing-list-items-tbody tr');
+                
+                rows.forEach(row => {
+                    const itemName = row.querySelector('.item-name')?.textContent.toLowerCase() || '';
+                    if (itemName.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             }
 
             updatePackingListTotals() {

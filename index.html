@@ -8877,8 +8877,16 @@
                 
                 // Reset form
                 document.getElementById('add-survey-form').reset();
+                const sizeSelect = document.getElementById('new-survey-apartment-size');
                 const customGroup = document.getElementById('new-survey-apartment-size-custom-group');
+                if (sizeSelect) {
+                    sizeSelect.value = '';
+                }
                 if (customGroup) customGroup.style.display = 'none';
+                // Ensure visibility matches current selection (handles autofill selecting Custom)
+                if (typeof this.handleNewSurveyApartmentSizeChange === 'function') {
+                    this.handleNewSurveyApartmentSizeChange();
+                }
                 this.showModal('add-survey-modal');
             }
 

@@ -4833,14 +4833,12 @@
                             <button type="button" class="btn btn-sm btn-primary" id="add-custom-item-btn" onclick="app.showAddCustomItemModal()">Add Custom Item</button>
                         </div>
                         <div class="table-responsive" id="packing-list-table-wrapper" style="overflow-x:auto; overflow-y:auto; max-height:400px; -webkit-overflow-scrolling:touch;">
-                            <table class="table" id="packing-list-items-table" style="font-size:13px; min-width:800px; width:100%;">
+                            <table class="table" id="packing-list-items-table" style="font-size:13px; min-width:600px; width:100%;">
                                 <thead>
                                     <tr>
                                         <th style="width:200px; min-width:200px; white-space:nowrap;">Items</th>
                                         <th style="width:80px; min-width:80px; white-space:nowrap;">CBM</th>
                                         <th style="width:100px; min-width:100px; white-space:nowrap;">Nos. of Pcs</th>
-                                        <th style="width:80px; min-width:80px; white-space:nowrap;">D/A</th>
-                                        <th style="width:60px; min-width:60px; white-space:nowrap;">A</th>
                                         <th style="width:100px; min-width:100px; white-space:nowrap;">Total CBM</th>
                                         <th style="width:100px; min-width:100px; white-space:nowrap;">Action</th>
                                     </tr>
@@ -9259,15 +9257,11 @@
                     const itemName = row.querySelector('.item-name')?.textContent || '';
                     const cbm = parseFloat(row.querySelector('.item-cbm')?.textContent || 0);
                     const pieces = parseInt(row.querySelector('.item-pieces')?.value || 0);
-                    const disassemble = row.querySelector('.item-da')?.checked || false;
-                    const assemble = row.querySelector('.item-a')?.checked || false;
                     if (pieces > 0 || itemName) {
                         items.push({
                             name: itemName,
                             cbm: cbm,
                             pieces: pieces,
-                            disassemble: disassemble,
-                            assemble: assemble,
                             totalCbm: (cbm * pieces).toFixed(2)
                         });
                     }
@@ -9395,15 +9389,11 @@
             createItemRow(item, index) {
                 const row = document.createElement('tr');
                 const existingPieces = item.pieces || 0;
-                const existingDa = item.disassemble || false;
-                const existingA = item.assemble || false;
                 
                 row.innerHTML = `
                     <td class="item-name" style="white-space:nowrap; min-width:200px;">${item.name || ''}</td>
                     <td class="item-cbm" style="white-space:nowrap; text-align:center; min-width:80px;">${(item.cbm || 0).toFixed(2)}</td>
                     <td style="white-space:nowrap; min-width:100px;"><input type="number" class="form-control item-pieces" min="0" value="${existingPieces}" onchange="app.updatePackingListTotals()" style="width:80px; max-width:100px;"></td>
-                    <td style="white-space:nowrap; text-align:center; min-width:80px;"><input type="checkbox" class="item-da" ${existingDa ? 'checked' : ''} onchange="app.updatePackingListTotals()"></td>
-                    <td style="white-space:nowrap; text-align:center; min-width:60px;"><input type="checkbox" class="item-a" ${existingA ? 'checked' : ''} onchange="app.updatePackingListTotals()"></td>
                     <td class="item-total-cbm" style="white-space:nowrap; text-align:center; min-width:100px;">${((item.cbm || 0) * existingPieces).toFixed(2)}</td>
                     <td style="white-space:nowrap; min-width:100px;"><button type="button" class="btn btn-sm btn-danger" onclick="app.removeItemFromTable(this)">Remove</button></td>
                 `;
@@ -9697,13 +9687,11 @@
                 const pl = survey.packingList || null;
                 const itemsTable = pl && pl.items && pl.items.length ? `
                     <table style="width:100%; border-collapse:collapse; font-size:12px;">
-                        <thead>
+                                <thead>
                             <tr>
                                 <th style="border:1px solid #e5e7eb; padding:6px; text-align:left;">Items</th>
                                 <th style="border:1px solid #e5e7eb; padding:6px;">CBM</th>
                                 <th style="border:1px solid #e5e7eb; padding:6px;">Nos. of Pcs</th>
-                                <th style="border:1px solid #e5e7eb; padding:6px;">D/A</th>
-                                <th style="border:1px solid #e5e7eb; padding:6px;">A</th>
                                 <th style="border:1px solid #e5e7eb; padding:6px;">Total CBM</th>
                             </tr>
                         </thead>
@@ -9713,8 +9701,6 @@
                                     <td style=\"border:1px solid #e5e7eb; padding:6px;\">${it.name || ''}</td>
                                     <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${Number(it.cbm || 0).toFixed(2)}</td>
                                     <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.pieces || 0}</td>
-                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.disassemble ? 'Yes' : ''}</td>
-                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.assemble ? 'Yes' : ''}</td>
                                     <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${Number(it.totalCbm || (it.cbm||0)*(it.pieces||0)).toFixed(2)}</td>
                                 </tr>
                             `).join('')}

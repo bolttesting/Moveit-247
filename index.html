@@ -4758,38 +4758,239 @@
         </div>
     </div>
 
-    <!-- Complete Survey Modal -->
+    <!-- Complete Survey Modal - Packing List Form -->
     <div class="modal" id="complete-survey-modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 1200px; max-height: 95vh; overflow-y: auto;">
             <div class="modal-header">
-                <h3>Complete Survey</h3>
+                <h3>Packing List - Complete Survey</h3>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="complete-survey-form">
                     <input type="hidden" id="complete-survey-id">
-                    <div class="card" style="margin-bottom: 20px;">
-                        <h4>Survey Details</h4>
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <h4 style="margin:0 0 10px;">Survey Details</h4>
                         <div id="survey-details-preview"></div>
                     </div>
-                    <div class="form-group">
-                        <label>Upload Apartment Images</label>
-                        <input type="file" class="form-control" id="survey-images" accept="image/*" multiple>
-                        <div class="image-preview" id="survey-images-preview" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+
+                    <!-- Customer & Move Details Section -->
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <h4 style="margin:0 0 15px;">Customer & Move Details</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Company Name</label>
+                                <input type="text" class="form-control" id="pl-company-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Person Name *</label>
+                                <input type="text" class="form-control" id="pl-person-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile No. *</label>
+                                <input type="tel" class="form-control" id="pl-mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" id="pl-email">
+                            </div>
+                            <div class="form-group">
+                                <label>Source</label>
+                                <input type="text" class="form-control" id="pl-source">
+                            </div>
+                            <div class="form-group">
+                                <label>Service Type</label>
+                                <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:8px;">
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-cargo" value="Cargo"> Cargo</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-commercial" value="Commercial"> Commercial</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-local" value="Local"> Local</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-international" value="International"> International</label>
+                                    <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-storage" value="Storage"> Storage</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Origin Address</label>
+                                <input type="text" class="form-control" id="pl-origin">
+                                <div style="display:flex; gap:10px; margin-top:8px;">
+                                    <input type="date" class="form-control" id="pl-origin-date" style="flex:1;">
+                                    <input type="time" class="form-control" id="pl-origin-time" style="flex:1;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Destination Address</label>
+                                <input type="text" class="form-control" id="pl-destination">
+                                <div style="display:flex; gap:10px; margin-top:8px;">
+                                    <input type="date" class="form-control" id="pl-dest-date" style="flex:1;">
+                                    <input type="time" class="form-control" id="pl-dest-time" style="flex:1;">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Comments/Notes</label>
-                        <textarea class="form-control" id="survey-comments" rows="4" placeholder="Add any comments or notes about the apartment, items, condition, etc."></textarea>
+
+                    <!-- Items Table Section -->
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="margin:0;">Items List</h4>
+                            <button type="button" class="btn btn-sm btn-primary" id="add-custom-item-btn" onclick="app.showAddCustomItemModal()">Add Custom Item</button>
+                        </div>
+                        <div class="table-responsive" style="max-height:400px; overflow-y:auto;">
+                            <table class="table" id="packing-list-items-table" style="font-size:13px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40%;">Items</th>
+                                        <th style="width:10%;">CBM</th>
+                                        <th style="width:15%;">Nos. of Pcs</th>
+                                        <th style="width:15%;">D/A</th>
+                                        <th style="width:10%;">A</th>
+                                        <th style="width:10%;">Total CBM</th>
+                                        <th style="width:5%;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="packing-list-items-tbody">
+                                    <!-- Items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Client Instructions</label>
-                        <textarea class="form-control" id="survey-client-instructions" rows="4" placeholder="Any special instructions or requirements from the client"></textarea>
+
+                    <!-- Totals Section -->
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <h4 style="margin:0 0 15px;">Totals</h4>
+                        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="form-group">
+                                <label>Total Curtains/Blinds</label>
+                                <input type="number" class="form-control" id="pl-total-curtains" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Wall Fixtures</label>
+                                <input type="number" class="form-control" id="pl-total-fixtures" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>BLDG. PERMIT</label>
+                                <input type="text" class="form-control" id="pl-permit">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Boxes</label>
+                                <input type="number" class="form-control" id="pl-total-boxes" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Packages</label>
+                                <input type="number" class="form-control" id="pl-total-packages" min="0" value="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Commodity</label>
+                                <input type="text" class="form-control" id="pl-commodity">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Value of Goods</label>
+                                <input type="number" class="form-control" id="pl-total-value" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Working Days</label>
+                                <input type="number" class="form-control" id="pl-working-days" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>No. of Trips</label>
+                                <input type="number" class="form-control" id="pl-trips" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Total CBM</label>
+                                <input type="number" class="form-control" id="pl-total-cbm" min="0" step="0.01" value="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Estimated KG</label>
+                                <input type="number" class="form-control" id="pl-estimated-kg" min="0" step="0.01" value="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount of the Move</label>
+                                <input type="number" class="form-control" id="pl-amount" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Images, Comments, Signatures Section -->
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <h4 style="margin:0 0 15px;">Additional Information</h4>
+                        <div class="form-group">
+                            <label>Upload Apartment Images</label>
+                            <input type="file" class="form-control" id="survey-images" accept="image/*" multiple>
+                            <div class="image-preview" id="survey-images-preview" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Comments/Notes</label>
+                            <textarea class="form-control" id="survey-comments" rows="4" placeholder="Add any comments or notes about the apartment, items, condition, etc."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Client Instructions</label>
+                            <textarea class="form-control" id="survey-client-instructions" rows="4" placeholder="Any special instructions or requirements from the client"></textarea>
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); margin-top:15px;">
+                            <div class="form-group">
+                                <label>Estimator Name</label>
+                                <input type="text" class="form-control" id="pl-estimator">
+                            </div>
+                            <div class="form-group">
+                                <label>Stamp/Seal</label>
+                                <input type="file" class="form-control" id="pl-stamp" accept="image/*">
+                                <div id="pl-stamp-preview" style="margin-top:10px;"></div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>Terms & Conditions</label>
+                            <textarea class="form-control" id="pl-terms" rows="3" placeholder="Terms and conditions..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Signatures Section -->
+                    <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                        <h4 style="margin:0 0 15px;">Signatures</h4>
+                        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="form-group">
+                                <label>Customer Signature</label>
+                                <canvas id="pl-customer-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
+                                <div style="margin-top:10px;">
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="app.clearSignature('pl-customer-signature')">Clear</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>MoveIt Signature</label>
+                                <canvas id="pl-moveit-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
+                                <div style="margin-top:10px;">
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="app.clearSignature('pl-moveit-signature')">Clear</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancel-complete-survey">Cancel</button>
-                <button class="btn btn-primary" id="submit-survey">Submit Survey</button>
+                <button class="btn btn-primary" id="submit-survey">Submit Packing List</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Custom Item Modal -->
+    <div class="modal" id="add-custom-item-modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Add Custom Item</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-custom-item-form">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" class="form-control" id="custom-item-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CBM (Cubic Meter) *</label>
+                        <input type="number" class="form-control" id="custom-item-cbm" step="0.01" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-custom-item">Cancel</button>
+                <button class="btn btn-primary" id="save-custom-item">Add Item</button>
             </div>
         </div>
     </div>
@@ -8918,7 +9119,7 @@
                 });
             }
 
-            showCompleteSurveyModal(surveyId) {
+            async showCompleteSurveyModal(surveyId) {
                 const survey = this.data.surveys.find(s => s.id === surveyId);
                 if (!survey) {
                     this.showNotification('Survey not found', 'error');
@@ -8952,12 +9153,38 @@
                     </div>
                 `;
 
-                // Reset form
+                // Reset packing list form
+                document.getElementById('complete-survey-form').reset();
                 document.getElementById('survey-images').value = '';
                 document.getElementById('survey-comments').value = '';
                 document.getElementById('survey-client-instructions').value = '';
                 document.getElementById('survey-images-preview').innerHTML = '';
-
+                document.getElementById('pl-stamp-preview').innerHTML = '';
+                
+                // Reset checkboxes
+                ['pl-type-cargo', 'pl-type-commercial', 'pl-type-local', 'pl-type-international', 'pl-type-storage'].forEach(id => {
+                    document.getElementById(id).checked = false;
+                });
+                
+                // Clear signature canvases
+                this.clearSignature('pl-customer-signature');
+                this.clearSignature('pl-moveit-signature');
+                
+                // Load item catalog and populate items table
+                await this.loadItemCatalog();
+                this.populateItemsTable([]);
+                
+                // If survey already has packing list data, populate it
+                if (survey.packingList) {
+                    this.populatePackingListForm(survey.packingList);
+                }
+                
+                // Initialize signature canvases
+                this.initSignatureCanvases();
+                
+                // Reset totals
+                this.updatePackingListTotals();
+                
                 this.showModal('complete-survey-modal');
             }
 

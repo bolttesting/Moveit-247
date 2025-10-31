@@ -3711,7 +3711,9 @@
                                     <th>Name</th>
                                     <th>Username</th>
                                     <th>Phone</th>
+                                    <th>Designation</th>
                                     <th>Team Leader</th>
+                                    <th>Is Team Leader</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -4544,7 +4546,13 @@
                         </div>
                         <div class="form-group">
                             <label>Designation</label>
-                            <input type="text" class="form-control" id="edit-staff-designation" required>
+                            <select class="form-control" id="edit-staff-designation" required>
+                                <option value="">Select Designation</option>
+                                <option value="Packer">Packer</option>
+                                <option value="Loader">Loader</option>
+                                <option value="Driver">Driver</option>
+                                <option value="HandyMan">HandyMan</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Username</label>
@@ -4702,7 +4710,13 @@
                         </div>
                         <div class="form-group">
                             <label>Designation</label>
-                            <input type="text" class="form-control" id="new-staff-designation" required>
+                            <select class="form-control" id="new-staff-designation" required>
+                                <option value="">Select Designation</option>
+                                <option value="Packer">Packer</option>
+                                <option value="Loader">Loader</option>
+                                <option value="Driver">Driver</option>
+                                <option value="HandyMan">HandyMan</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Username</label>
@@ -8014,21 +8028,34 @@
                 tbody.innerHTML = '';
 
                 if (this.data.staff.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No staff members available</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No staff members available</td></tr>';
                     return;
                 }
 
                 this.data.staff.forEach(staff => {
+                    const isPromoted = staff.isTeamLeader || false;
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${staff.name}</td>
                         <td>${staff.username}</td>
                         <td>${staff.phone}</td>
-                        <td>${staff.teamLeader}</td>
+                        <td>${staff.designation || 'N/A'}</td>
+                        <td>${staff.teamLeader || 'N/A'}</td>
+                        <td>
+                            ${isPromoted ? '<span class="status-badge status-completed" style="background:#10b981;">Team Leader</span>' : '<span class="status-badge" style="background:#64748b;">Staff</span>'}
+                        </td>
                         <td><span class="status-badge status-${staff.status}">${this.formatStatus(staff.status)}</span></td>
                         <td>
                             <button class="btn btn-primary btn-sm view-staff-btn" data-id="${staff.id}">View</button>
-                            ${this.currentRole !== 'teamleader' ? `
+                            ${(this.currentRole === 'admin' || this.currentRole === 'supervisor') ? `
+                                <button class="btn btn-warning btn-sm edit-staff-btn" data-id="${staff.id}">Edit</button>
+                                <button class="btn btn-${isPromoted ? 'secondary' : 'info'} btn-sm toggle-teamleader-promotion" data-id="${staff.id}" data-promoted="${isPromoted}">
+                                    ${isPromoted ? 'Demote from TL' : 'Promote to TL'}
+                                </button>
+                                <button class="btn btn-${staff.status === 'available' ? 'danger' : 'success'} btn-sm toggle-staff-status" data-id="${staff.id}">
+                                    ${staff.status === 'available' ? 'Day Off' : 'Available'}
+                                </button>
+                            ` : this.currentRole !== 'teamleader' ? `
                                 <button class="btn btn-warning btn-sm edit-staff-btn" data-id="${staff.id}">Edit</button>
                                 <button class="btn btn-${staff.status === 'available' ? 'danger' : 'success'} btn-sm toggle-staff-status" data-id="${staff.id}">
                                     ${staff.status === 'available' ? 'Day Off' : 'Available'}
@@ -8048,6 +8075,13 @@
                         });
                     }
 
+                    const promoteBtn = row.querySelector('.toggle-teamleader-promotion');
+                    if (promoteBtn && (this.currentRole === 'admin' || this.currentRole === 'supervisor')) {
+                        promoteBtn.addEventListener('click', (e) => {
+                            this.toggleStaffTeamLeaderPromotion(parseInt(e.target.dataset.id));
+                        });
+                    }
+
                     const toggleBtn = row.querySelector('.toggle-staff-status');
                     if (toggleBtn) {
                         toggleBtn.addEventListener('click', (e) => {
@@ -8057,6 +8091,35 @@
 
                     tbody.appendChild(row);
                 });
+            }
+            
+            toggleStaffTeamLeaderPromotion(staffId) {
+                const staff = this.data.staff.find(s => s.id === staffId);
+                if (!staff) return;
+                
+                const isPromoted = staff.isTeamLeader || false;
+                const newStatus = !isPromoted;
+                
+                fetch(`/api/staff/${encodeURIComponent(staffId)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...staff, isTeamLeader: newStatus })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(() => {
+                    // Update local data
+                    staff.isTeamLeader = newStatus;
+                    // Update users collection if exists
+                    if (this.data.users && this.data.users[staff.username]) {
+                        this.data.users[staff.username].isTeamLeader = newStatus;
+                    }
+                    this.loadStaff();
+                    this.showNotification(`Staff ${newStatus ? 'promoted to' : 'demoted from'} Team Leader successfully`, 'success');
+                })
+                .catch(() => this.showNotification('Failed to update promotion status', 'error'));
             }
 
             populatePendingApprovalTable() {
@@ -9134,6 +9197,7 @@
                     teamLeader: teamLeader || '',
                     status: 'available',
                     profileImage: '',
+                    isTeamLeader: false,
                     emiratesIdFront: emiratesFrontInput?.dataset.uploadUrl || '',
                     emiratesIdBack: emiratesBackInput?.dataset.uploadUrl || ''
                 };

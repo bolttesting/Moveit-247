@@ -241,11 +241,41 @@ app.post('/api/auth/login', (req, res) => {
     
     // Case-insensitive username lookup to improve UX
     const matchedKey = Object.keys(db.users).find(k => k.toLowerCase() === username.toLowerCase());
-    const user = matchedKey ? db.users[matchedKey] : undefined;
+    let user = matchedKey ? db.users[matchedKey] : undefined;
+    
+    // If not found in users, check staff array (for staff members)
+    if (!user && db.staff && Array.isArray(db.staff)) {
+      const staffMember = db.staff.find(s => s.username && s.username.toLowerCase() === username.toLowerCase());
+      if (staffMember && staffMember.password === password) {
+        // Check if staff is promoted to team leader
+        const role = (staffMember.isTeamLeader === true) ? 'teamleader' : 'staff';
+        return res.json({ 
+          user: { 
+            username: staffMember.username, 
+            role: role, 
+            name: staffMember.name, 
+            phone: staffMember.phone || '', 
+            email: staffMember.email || '', 
+            profileImage: staffMember.profileImage || '' 
+          } 
+        });
+      }
+    }
+    
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    res.json({ user: { username: user.username, role: user.role, name: user.name, phone: user.phone || '', email: user.email || '', profileImage: user.profileImage || '' } });
+    
+    // Check if user is staff and promoted to team leader
+    let finalRole = user.role;
+    if (user.role === 'staff' && db.staff && Array.isArray(db.staff)) {
+      const staffMember = db.staff.find(s => s.username === user.username);
+      if (staffMember && staffMember.isTeamLeader === true) {
+        finalRole = 'teamleader';
+      }
+    }
+    
+    res.json({ user: { username: user.username, role: finalRole, name: user.name, phone: user.phone || '', email: user.email || '', profileImage: user.profileImage || '' } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });

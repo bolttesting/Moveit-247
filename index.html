@@ -1339,8 +1339,16 @@
             
             /* === QUICK ACTIONS === */
             .quick-actions {
-                grid-template-columns: 1fr !important;
-                gap: 14px;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 14px !important;
+                justify-content: center !important;
+            }
+            
+            .quick-action-btn {
+                flex: 1 1 calc(50% - 7px) !important;
+                min-width: 120px !important;
+                max-width: none !important;
             }
             
             .quick-action-card {
@@ -3240,6 +3248,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
+                <img id="sidebar-logo" alt="MoveIt 24/7" style="height:40px; width:auto; margin-bottom:8px; display:none;" onerror="this.style.display='none'" />
                 <h2>MoveIt 247</h2>
                 <button class="sidebar-close" onclick="document.body.classList.remove('sidebar-open')">
                     <i class="fas fa-times"></i>
@@ -3346,6 +3355,11 @@
                         <i class="fas fa-user-tie"></i>
                         <h3 id="total-supervisors">0</h3>
                         <p>Supervisors</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3 id="total-teamleaders">0</h3>
+                        <p>Team Leaders</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-chart-line"></i>
@@ -5150,6 +5164,29 @@
                 this.initAutoSave();
                 this.setupGlobalErrorHandling();
                 this.createMobileAppHeader();
+                this.loadBrandingLogo();
+            }
+            
+            loadBrandingLogo() {
+                // Load branding logo for sidebar and mobile header
+                fetch('/api/branding').then(r=>r.json()).then(b=>{
+                    if (b && b.logoUrl) {
+                        const url = this.getImageUrl(b.logoUrl);
+                        localStorage.setItem('moveit_logo_url', b.logoUrl);
+                        // Update sidebar logo
+                        const sidebarLogo = document.getElementById('sidebar-logo');
+                        if (sidebarLogo) {
+                            sidebarLogo.src = url;
+                            sidebarLogo.style.display = 'block';
+                        }
+                        // Update mobile header logo if it exists
+                        const appLogo = document.getElementById('app-logo');
+                        if (appLogo) {
+                            appLogo.src = url;
+                            appLogo.style.display = 'block';
+                        }
+                    }
+                }).catch(()=>{});
             }
 
             setupGlobalErrorHandling() {
@@ -6285,6 +6322,7 @@
                 const pendingApproval = jobs.filter(j => j.status === 'waiting-approval').length;
                 const totalStaff = this.data.staff.length;
                 const totalSupervisors = this.data.supervisors.length;
+                const totalTeamLeaders = this.data.teamLeaders.length;
                 const totalJobs = jobs.length;
                 const completionRate = totalJobs > 0 ? Math.round((completed / totalJobs) * 100) : 0;
                 const delayedJobs = jobs.filter(j => j.status === 'delayed').length;
@@ -6314,6 +6352,7 @@
                 document.getElementById('pending-approval-count').textContent = pendingApproval;
                 document.getElementById('total-staff').textContent = totalStaff;
                 document.getElementById('total-supervisors').textContent = totalSupervisors;
+                document.getElementById('total-teamleaders').textContent = totalTeamLeaders;
                 document.getElementById('completion-rate').textContent = completionRate + '%';
                 document.getElementById('delayed-jobs').textContent = delayedJobs;
 

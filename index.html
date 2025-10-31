@@ -81,7 +81,7 @@
                     console.log(`✅ Wrapped table #${index + 1}`);
                 });
             }
-            
+
             // Add scroll hints to ALL tables automatically
             function addScrollHints() {
                 // First, wrap all bare tables
@@ -4732,7 +4732,7 @@
                         </div>
                         <div class="form-group">
                             <label>Apartment Size</label>
-                            <select class="form-control" id="new-survey-apartment-size" required>
+                            <select class="form-control" id="new-survey-apartment-size" required onchange="app.handleNewSurveyApartmentSizeChange()">
                                 <option value="">Select Size</option>
                                 <option value="studio">Studio</option>
                                 <option value="1br">1 Bedroom</option>
@@ -4741,6 +4741,10 @@
                                 <option value="villa">Villa</option>
                                 <option value="custom">Custom</option>
                             </select>
+                        </div>
+                        <div class="form-group" id="new-survey-apartment-size-custom-group" style="display: none;">
+                            <label>Custom Apartment Size</label>
+                            <input type="text" class="form-control" id="new-survey-apartment-size-custom" placeholder="E.g., 4 Bedroom Villa, Studio, Penthouse">
                         </div>
                         <div class="form-group">
                             <label>Survey Date</label>
@@ -4814,6 +4818,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="close-survey-details">Close</button>
+                <button class="btn btn-primary" id="download-survey-report">Download Report</button>
             </div>
         </div>
     </div>
@@ -7594,7 +7599,7 @@
                         <td>${survey.clientName || 'N/A'}</td>
                         <td>${survey.clientNumber || 'N/A'}</td>
                         <td>${survey.location || 'N/A'}</td>
-                        <td>${this.formatApartmentSize(survey.apartmentSize) || 'N/A'}</td>
+                        <td>${this.formatApartmentSize(survey.apartmentSize, survey.apartmentSizeCustom) || 'N/A'}</td>
                         <td>${surveyTime}</td>
                         <td>${assignedToName}</td>
                         <td><span class="status-badge status-${survey.status || 'pending'}">${this.formatStatus(survey.status || 'pending')}</span></td>
@@ -7628,7 +7633,7 @@
                 });
             }
 
-            formatApartmentSize(size) {
+            formatApartmentSize(size, customText) {
                 const sizeMap = {
                     'studio': 'Studio',
                     '1br': '1 Bedroom',
@@ -7637,6 +7642,9 @@
                     'villa': 'Villa',
                     'custom': 'Custom'
                 };
+                if (size === 'custom') {
+                    return customText && customText.trim() ? customText : 'Custom';
+                }
                 return sizeMap[size] || size;
             }
 
@@ -8869,6 +8877,8 @@
                 
                 // Reset form
                 document.getElementById('add-survey-form').reset();
+                const customGroup = document.getElementById('new-survey-apartment-size-custom-group');
+                if (customGroup) customGroup.style.display = 'none';
                 this.showModal('add-survey-modal');
             }
 
@@ -8877,6 +8887,7 @@
                 const clientNumber = document.getElementById('new-survey-client-number').value.trim();
                 const location = document.getElementById('new-survey-location').value.trim();
                 const apartmentSize = document.getElementById('new-survey-apartment-size').value;
+                const apartmentSizeCustom = document.getElementById('new-survey-apartment-size-custom') ? document.getElementById('new-survey-apartment-size-custom').value.trim() : '';
                 const surveyDate = document.getElementById('new-survey-date').value;
                 const surveyTime = document.getElementById('new-survey-time').value;
                 const assignedTo = document.getElementById('new-survey-assigned-to').value;
@@ -8886,11 +8897,17 @@
                     return;
                 }
 
+                if (apartmentSize === 'custom' && !apartmentSizeCustom) {
+                    this.showNotification('Please specify the custom apartment size', 'error');
+                    return;
+                }
+
                 const newSurvey = {
                     clientName,
                     clientNumber,
                     location,
                     apartmentSize,
+                    apartmentSizeCustom: apartmentSize === 'custom' ? apartmentSizeCustom : undefined,
                     surveyDate,
                     surveyTime,
                     assignedTo,
@@ -8945,7 +8962,7 @@
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Apartment Size:</div>
-                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize)}</div>
+                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize, survey.apartmentSizeCustom)}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Survey Time:</div>
@@ -9040,7 +9057,7 @@
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Apartment Size:</div>
-                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize) || 'N/A'}</div>
+                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize, survey.apartmentSizeCustom) || 'N/A'}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Survey Time:</div>
@@ -9089,6 +9106,41 @@
                 `;
 
                 this.showModal('survey-details-modal');
+
+                const downloadBtn = document.getElementById('download-survey-report');
+                if (downloadBtn) {
+                    downloadBtn.onclick = () => this.downloadSurveyReport(surveyId);
+                }
+            }
+
+            downloadSurveyReport(surveyId) {
+                const survey = this.data.surveys.find(s => s.id === surveyId);
+                if (!survey) return;
+                const container = document.createElement('div');
+                const surveyData = survey.surveyData || {};
+                const images = surveyData.images || [];
+                container.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; padding: 16px; color:#111827;">
+                        <h2 style="margin:0 0 12px;">Survey Report #${survey.id}</h2>
+                        <div style="margin:8px 0;"><strong>Client:</strong> ${survey.clientName} (${survey.clientNumber})</div>
+                        <div style="margin:8px 0;"><strong>Location:</strong> ${survey.location}</div>
+                        <div style="margin:8px 0;"><strong>Apartment Size:</strong> ${this.formatApartmentSize(survey.apartmentSize, survey.apartmentSizeCustom)}</div>
+                        <div style="margin:8px 0;"><strong>Survey Time:</strong> ${survey.surveyDate} ${survey.surveyTime}</div>
+                        <div style="margin:8px 0;"><strong>Assigned To:</strong> ${survey.assignedTo || 'Unassigned'}</div>
+                        <div style="margin:8px 0;"><strong>Status:</strong> ${this.formatStatus(survey.status)}</div>
+                        ${survey.completedAt ? `<div style=\"margin:8px 0;\"><strong>Completed At:</strong> ${new Date(survey.completedAt).toLocaleString()}</div>` : ''}
+                        ${surveyData.comments ? `<div style=\"margin:12px 0;\"><strong>Comments/Notes:</strong><div style=\"white-space:pre-wrap; background:#f0f9ff; padding:10px; border-radius:8px;\">${surveyData.comments}</div></div>` : ''}
+                        ${surveyData.clientInstructions ? `<div style=\"margin:12px 0;\"><strong>Client Instructions:</strong><div style=\"white-space:pre-wrap; background:#fef3c7; padding:10px; border-radius:8px;\">${surveyData.clientInstructions}</div></div>` : ''}
+                        ${images.length ? `<div style=\"margin:12px 0;\"><strong>Images:</strong><div style=\"display:flex; flex-wrap:wrap; gap:10px;\">${images.map(u => `<img src=\"${this.getImageUrl(u)}\" style=\"width:180px; height:auto; border:1px solid #e5e7eb; border-radius:6px;\"/>`).join('')}</div></div>` : ''}
+                    </div>
+                `;
+                const w = window.open('', '_blank');
+                if (!w) return;
+                w.document.write('<html><head><title>Survey Report</title><style>@page{size:auto; margin:12mm;} body{margin:0;}</style></head><body>' + container.innerHTML + '</body></html>');
+                w.document.close();
+                w.focus();
+                // Give images a moment to load before printing
+                setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
             }
 
             filterSurveys() {

@@ -6144,7 +6144,9 @@
                 this.navigateTo(sectionFromHash);
                 this.showNotification(`Welcome back, ${user.name}!`, 'success');
                 
-                // Initialize location tracking for team leaders
+                // Initialize location tracking for team leaders (including promoted staff)
+                // When staff is promoted (isTeamLeader: true), login sets role to 'teamleader'
+                // So promoted staff will automatically get location tracking enabled
                 if (user.role === 'teamleader') {
                     this.initializeLocationTracking();
                 }
@@ -7085,45 +7087,85 @@
             }
 
             async requestNotificationPermission() {
-                if (!('Notification' in window)) {
-                    console.log('Browser does not support notifications');
+                // Check if we're in Capacitor (mobile) environment
+                const isCapacitor = window.Capacitor !== undefined;
+                const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifications;
+                
+                if (LocalNotifications) {
+                    // Use Capacitor Local Notifications API (better for mobile)
+                    try {
+                        const permissionStatus = await LocalNotifications.checkPermissions();
+                        console.log('Local Notifications permission status:', permissionStatus);
+                        if (permissionStatus.display !== 'granted') {
+                            const requestStatus = await LocalNotifications.requestPermissions();
+                            console.log('Local Notifications request status:', requestStatus);
+                            return requestStatus.display === 'granted';
+                        }
+                        return true;
+                    } catch (error) {
+                        console.error('Local Notifications permission request failed:', error);
+                        return false;
+                    }
+                } else if ('Notification' in window) {
+                    // Fallback to web Notification API
+                    if (Notification.permission === 'granted') {
+                        return true;
+                    }
+                    
+                    if (Notification.permission !== 'denied') {
+                        const permission = await Notification.requestPermission();
+                        return permission === 'granted';
+                    }
+                } else {
+                    console.log('Notifications not supported');
                     return false;
-                }
-                
-                if (Notification.permission === 'granted') {
-                    return true;
-                }
-                
-                if (Notification.permission !== 'denied') {
-                    const permission = await Notification.requestPermission();
-                    return permission === 'granted';
                 }
                 
                 return false;
             }
 
-            showBrowserNotification(title, message) {
-                // Check if notifications are supported and permitted
-                if (!('Notification' in window) || Notification.permission !== 'granted') {
+            async showBrowserNotification(title, message) {
+                // Check if we're in Capacitor (mobile) environment
+                const isCapacitor = window.Capacitor !== undefined;
+                const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifications;
+                
+                if (LocalNotifications) {
+                    // Use Capacitor Local Notifications API (better for mobile)
+                    try {
+                        await LocalNotifications.schedule({
+                            notifications: [{
+                                title: title,
+                                body: message,
+                                id: Date.now(),
+                                schedule: { at: new Date(Date.now() + 1000) }, // Show immediately
+                                sound: 'default',
+                                attachments: null,
+                                actionTypeId: '',
+                                extra: null
+                            }]
+                        });
+                        console.log('Local notification shown:', title);
+                    } catch (error) {
+                        console.error('Failed to show local notification:', error);
+                        // Fallback to in-app notification
+                        this.showInAppNotification(title, message);
+                    }
+                } else if ('Notification' in window && Notification.permission === 'granted') {
+                    // Fallback to web Notification API
+                    const notification = new Notification(title, {
+                        body: message,
+                        icon: '/favicon.ico',
+                        badge: '/favicon.ico',
+                        tag: 'moveit247-notification',
+                        requireInteraction: false
+                    });
+                    
+                    // Auto-close after 10 seconds
+                    setTimeout(() => notification.close(), 10000);
+                } else {
                     // Fallback to in-app notification
                     this.showInAppNotification(title, message);
-                    return;
                 }
-                
-                // Show browser notification
-                const notification = new Notification(title, {
-                    body: message,
-                    icon: '/favicon.ico',
-                    badge: '/favicon.ico',
-                    tag: 'moveit247-notification',
-                    requireInteraction: false
-                });
-                
-                // Auto-close after 10 seconds
-                setTimeout(() => notification.close(), 10000);
-                
-                // Also show in-app notification
-                this.showInAppNotification(title, message);
             }
 
             showInAppNotification(title, message) {

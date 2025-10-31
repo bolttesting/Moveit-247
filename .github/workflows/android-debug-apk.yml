@@ -34,12 +34,29 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Set up Android environment
+        run: |
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH || true
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH || true
+
+      - name: Accept Android Licenses
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | sdkmanager --licenses || true
+
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Make Gradle executable
+        working-directory: android
+        run: chmod +x gradlew
+
       - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

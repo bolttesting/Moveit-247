@@ -5074,6 +5074,7 @@
                 this.currentUser = null;
                 this.currentRole = null;
                 this.data = this.initializeData();
+                this.itemCatalog = []; // Will be loaded when needed
                 this.initializeApp();
             }
 
@@ -5787,6 +5788,22 @@
                 document.getElementById('submit-survey')?.addEventListener('click', () => this.completeSurvey());
                 document.getElementById('cancel-complete-survey')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('close-survey-details')?.addEventListener('click', () => this.hideModals());
+                
+                // Packing List Custom Item Modal
+                document.getElementById('save-custom-item')?.addEventListener('click', () => this.addCustomItem());
+                document.getElementById('cancel-custom-item')?.addEventListener('click', () => this.hideModals());
+                
+                // Stamp preview
+                document.getElementById('pl-stamp')?.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const preview = document.getElementById('pl-stamp-preview');
+                            preview.innerHTML = `<img src="${event.target.result}" style="max-width:200px; max-height:200px; border:1px solid #ddd; border-radius:4px;">`;
+                        };
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
 
                 // Template form
                 document.getElementById('template-form').addEventListener('submit', (e) => {
@@ -9194,11 +9211,54 @@
                 const clientInstructions = document.getElementById('survey-client-instructions').value.trim();
                 const imagesInput = document.getElementById('survey-images');
 
+                // Collect packing list data
+                const serviceTypes = [];
+                ['pl-type-cargo', 'pl-type-commercial', 'pl-type-local', 'pl-type-international', 'pl-type-storage'].forEach(id => {
+                    if (document.getElementById(id).checked) {
+                        serviceTypes.push(document.getElementById(id).value);
+                    }
+                });
+
+                // Collect items from table
+                const items = [];
+                const rows = document.querySelectorAll('#packing-list-items-tbody tr');
+                rows.forEach(row => {
+                    const itemName = row.querySelector('.item-name')?.textContent || '';
+                    const cbm = parseFloat(row.querySelector('.item-cbm')?.textContent || 0);
+                    const pieces = parseInt(row.querySelector('.item-pieces')?.value || 0);
+                    const disassemble = row.querySelector('.item-da')?.checked || false;
+                    const assemble = row.querySelector('.item-a')?.checked || false;
+                    if (pieces > 0 || itemName) {
+                        items.push({
+                            name: itemName,
+                            cbm: cbm,
+                            pieces: pieces,
+                            disassemble: disassemble,
+                            assemble: assemble,
+                            totalCbm: (cbm * pieces).toFixed(2)
+                        });
+                    }
+                });
+
+                // Collect signatures as base64
+                const customerSig = document.getElementById('pl-customer-signature')?.toDataURL() || '';
+                const moveitSig = document.getElementById('pl-moveit-signature')?.toDataURL() || '';
+
+                // Upload stamp if provided
+                let stampUrl = '';
+                const stampInput = document.getElementById('pl-stamp');
+                if (stampInput && stampInput.files && stampInput.files[0]) {
+                    try {
+                        stampUrl = await this.uploadFile(stampInput.files[0]);
+                    } catch (error) {
+                        console.error('Error uploading stamp:', error);
+                    }
+                }
+
                 // Upload images
                 const uploadedImages = [];
                 if (imagesInput && imagesInput.files && imagesInput.files.length > 0) {
                     try {
-                        // Use the centralized upload helper to ensure consistent URLs
                         for (let i = 0; i < imagesInput.files.length; i++) {
                             const file = imagesInput.files[i];
                             const url = await this.uploadFile(file);
@@ -9210,10 +9270,45 @@
                     }
                 }
 
+                // Build packing list object
+                const packingList = {
+                    companyName: document.getElementById('pl-company-name').value.trim(),
+                    personName: document.getElementById('pl-person-name').value.trim(),
+                    mobile: document.getElementById('pl-mobile').value.trim(),
+                    email: document.getElementById('pl-email').value.trim(),
+                    source: document.getElementById('pl-source').value.trim(),
+                    serviceTypes: serviceTypes,
+                    origin: document.getElementById('pl-origin').value.trim(),
+                    originDate: document.getElementById('pl-origin-date').value,
+                    originTime: document.getElementById('pl-origin-time').value,
+                    destination: document.getElementById('pl-destination').value.trim(),
+                    destDate: document.getElementById('pl-dest-date').value,
+                    destTime: document.getElementById('pl-dest-time').value,
+                    items: items,
+                    totalCurtains: parseInt(document.getElementById('pl-total-curtains').value || 0),
+                    totalFixtures: parseInt(document.getElementById('pl-total-fixtures').value || 0),
+                    permit: document.getElementById('pl-permit').value.trim(),
+                    totalBoxes: parseInt(document.getElementById('pl-total-boxes').value || 0),
+                    totalPackages: parseInt(document.getElementById('pl-total-packages').value || 0),
+                    commodity: document.getElementById('pl-commodity').value.trim(),
+                    totalValue: parseFloat(document.getElementById('pl-total-value').value || 0),
+                    workingDays: parseInt(document.getElementById('pl-working-days').value || 0),
+                    trips: parseInt(document.getElementById('pl-trips').value || 0),
+                    totalCbm: parseFloat(document.getElementById('pl-total-cbm').value || 0),
+                    estimatedKg: parseFloat(document.getElementById('pl-estimated-kg').value || 0),
+                    amount: parseFloat(document.getElementById('pl-amount').value || 0),
+                    estimator: document.getElementById('pl-estimator').value.trim(),
+                    stamp: stampUrl,
+                    terms: document.getElementById('pl-terms').value.trim(),
+                    customerSignature: customerSig,
+                    moveitSignature: moveitSig
+                };
+
                 const surveyData = {
                     images: uploadedImages,
                     comments: comments || '',
-                    clientInstructions: clientInstructions || ''
+                    clientInstructions: clientInstructions || '',
+                    packingList: packingList
                 };
 
                 fetch(`/api/surveys/${surveyId}/complete`, {
@@ -9228,12 +9323,236 @@
                 .then((data) => {
                     this.hideModals();
                     this.loadSurveys();
-                    this.showNotification('Survey completed successfully!', 'success');
+                    this.showNotification('Packing list completed successfully!', 'success');
                 })
                 .catch((error) => {
                     console.error('Error completing survey:', error);
                     this.showNotification('Failed to complete survey: ' + error.message, 'error');
                 });
+            }
+
+            // Packing List Helper Functions
+            async loadItemCatalog() {
+                try {
+                    const res = await fetch('/api/item-catalog');
+                    const catalog = await res.json();
+                    this.itemCatalog = catalog || [];
+                } catch (error) {
+                    console.error('Error loading item catalog:', error);
+                    this.itemCatalog = [];
+                }
+            }
+
+            populateItemsTable(existingItems = []) {
+                const tbody = document.getElementById('packing-list-items-tbody');
+                tbody.innerHTML = '';
+                
+                // Add all items from catalog
+                const catalogToAdd = existingItems.length > 0 ? existingItems : this.itemCatalog || [];
+                
+                catalogToAdd.forEach((item, index) => {
+                    const row = this.createItemRow(item, index);
+                    tbody.appendChild(row);
+                });
+                
+                // Update totals
+                this.updatePackingListTotals();
+            }
+
+            createItemRow(item, index) {
+                const row = document.createElement('tr');
+                const existingPieces = item.pieces || 0;
+                const existingDa = item.disassemble || false;
+                const existingA = item.assemble || false;
+                
+                row.innerHTML = `
+                    <td class="item-name">${item.name || ''}</td>
+                    <td class="item-cbm">${(item.cbm || 0).toFixed(2)}</td>
+                    <td><input type="number" class="form-control item-pieces" min="0" value="${existingPieces}" onchange="app.updatePackingListTotals()" style="width:80px;"></td>
+                    <td><input type="checkbox" class="item-da" ${existingDa ? 'checked' : ''} onchange="app.updatePackingListTotals()"></td>
+                    <td><input type="checkbox" class="item-a" ${existingA ? 'checked' : ''} onchange="app.updatePackingListTotals()"></td>
+                    <td class="item-total-cbm">${((item.cbm || 0) * existingPieces).toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="app.removeItemFromTable(this)">Remove</button></td>
+                `;
+                return row;
+            }
+
+            removeItemFromTable(btn) {
+                btn.closest('tr').remove();
+                this.updatePackingListTotals();
+            }
+
+            updatePackingListTotals() {
+                let totalCbm = 0;
+                let totalPackages = 0;
+                
+                const rows = document.querySelectorAll('#packing-list-items-tbody tr');
+                rows.forEach(row => {
+                    const cbm = parseFloat(row.querySelector('.item-cbm')?.textContent || 0);
+                    const pieces = parseInt(row.querySelector('.item-pieces')?.value || 0);
+                    const totalRowCbm = cbm * pieces;
+                    totalCbm += totalRowCbm;
+                    totalPackages += pieces;
+                    
+                    // Update row total
+                    const totalCell = row.querySelector('.item-total-cbm');
+                    if (totalCell) totalCell.textContent = totalRowCbm.toFixed(2);
+                });
+                
+                // Update totals fields
+                document.getElementById('pl-total-cbm').value = totalCbm.toFixed(2);
+                document.getElementById('pl-total-packages').value = totalPackages;
+                
+                // Estimated KG (rough calculation: 1 CBM ≈ 300 KG)
+                const estimatedKg = totalCbm * 300;
+                document.getElementById('pl-estimated-kg').value = estimatedKg.toFixed(2);
+            }
+
+            initSignatureCanvases() {
+                ['pl-customer-signature', 'pl-moveit-signature'].forEach(canvasId => {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    let isDrawing = false;
+                    
+                    function startDrawing(e) {
+                        isDrawing = true;
+                        const rect = canvas.getBoundingClientRect();
+                        ctx.beginPath();
+                        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+                    }
+                    
+                    function draw(e) {
+                        if (!isDrawing) return;
+                        const rect = canvas.getBoundingClientRect();
+                        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                        ctx.stroke();
+                    }
+                    
+                    function stopDrawing() {
+                        isDrawing = false;
+                    }
+                    
+                    // Clear existing listeners by cloning
+                    const newCanvas = canvas.cloneNode(true);
+                    canvas.parentNode.replaceChild(newCanvas, canvas);
+                    const newCtx = newCanvas.getContext('2d');
+                    newCtx.strokeStyle = '#000';
+                    newCtx.lineWidth = 2;
+                    
+                    newCanvas.addEventListener('mousedown', startDrawing);
+                    newCanvas.addEventListener('mousemove', draw);
+                    newCanvas.addEventListener('mouseup', stopDrawing);
+                    newCanvas.addEventListener('mouseout', stopDrawing);
+                    
+                    // Touch events for mobile
+                    newCanvas.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        startDrawing(e.touches[0]);
+                    });
+                    newCanvas.addEventListener('touchmove', (e) => {
+                        e.preventDefault();
+                        draw(e.touches[0]);
+                    });
+                    newCanvas.addEventListener('touchend', stopDrawing);
+                });
+            }
+
+            clearSignature(canvasId) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            showAddCustomItemModal() {
+                document.getElementById('add-custom-item-form').reset();
+                this.showModal('add-custom-item-modal');
+            }
+
+            addCustomItem() {
+                const name = document.getElementById('custom-item-name').value.trim();
+                const cbm = parseFloat(document.getElementById('custom-item-cbm').value || 0);
+                
+                if (!name || cbm <= 0) {
+                    this.showNotification('Please enter item name and valid CBM', 'error');
+                    return;
+                }
+                
+                // Add to table
+                const tbody = document.getElementById('packing-list-items-tbody');
+                const row = this.createItemRow({ name, cbm }, tbody.children.length);
+                tbody.appendChild(row);
+                
+                this.hideModals();
+                this.updatePackingListTotals();
+                this.showNotification('Custom item added', 'success');
+            }
+
+            populatePackingListForm(data) {
+                // Populate customer details
+                if (data.companyName) document.getElementById('pl-company-name').value = data.companyName;
+                if (data.personName) document.getElementById('pl-person-name').value = data.personName;
+                if (data.mobile) document.getElementById('pl-mobile').value = data.mobile;
+                if (data.email) document.getElementById('pl-email').value = data.email;
+                if (data.source) document.getElementById('pl-source').value = data.source;
+                
+                // Populate service types
+                (data.serviceTypes || []).forEach(type => {
+                    const checkbox = document.getElementById(`pl-type-${type.toLowerCase()}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                
+                // Populate origin/destination
+                if (data.origin) document.getElementById('pl-origin').value = data.origin;
+                if (data.originDate) document.getElementById('pl-origin-date').value = data.originDate;
+                if (data.originTime) document.getElementById('pl-origin-time').value = data.originTime;
+                if (data.destination) document.getElementById('pl-destination').value = data.destination;
+                if (data.destDate) document.getElementById('pl-dest-date').value = data.destDate;
+                if (data.destTime) document.getElementById('pl-dest-time').value = data.destTime;
+                
+                // Populate items
+                if (data.items && data.items.length > 0) {
+                    this.populateItemsTable(data.items);
+                }
+                
+                // Populate totals
+                if (data.totalCurtains) document.getElementById('pl-total-curtains').value = data.totalCurtains;
+                if (data.totalFixtures) document.getElementById('pl-total-fixtures').value = data.totalFixtures;
+                if (data.permit) document.getElementById('pl-permit').value = data.permit;
+                if (data.totalBoxes) document.getElementById('pl-total-boxes').value = data.totalBoxes;
+                if (data.commodity) document.getElementById('pl-commodity').value = data.commodity;
+                if (data.totalValue) document.getElementById('pl-total-value').value = data.totalValue;
+                if (data.workingDays) document.getElementById('pl-working-days').value = data.workingDays;
+                if (data.trips) document.getElementById('pl-trips').value = data.trips;
+                if (data.amount) document.getElementById('pl-amount').value = data.amount;
+                if (data.estimator) document.getElementById('pl-estimator').value = data.estimator;
+                if (data.terms) document.getElementById('pl-terms').value = data.terms;
+                
+                // Load signatures if they exist
+                if (data.customerSignature) {
+                    const canvas = document.getElementById('pl-customer-signature');
+                    if (canvas) {
+                        const img = new Image();
+                        img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
+                        img.src = data.customerSignature;
+                    }
+                }
+                if (data.moveitSignature) {
+                    const canvas = document.getElementById('pl-moveit-signature');
+                    if (canvas) {
+                        const img = new Image();
+                        img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
+                        img.src = data.moveitSignature;
+                    }
+                }
+                
+                // Load stamp if exists
+                if (data.stamp) {
+                    const preview = document.getElementById('pl-stamp-preview');
+                    preview.innerHTML = `<img src="${this.getImageUrl(data.stamp)}" style="max-width:200px; max-height:200px; border:1px solid #ddd; border-radius:4px;">`;
+                }
             }
 
             showSurveyDetails(surveyId) {

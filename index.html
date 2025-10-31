@@ -7181,16 +7181,39 @@
             async initializeLocationTracking() {
                 console.log('🌍 Initializing location tracking for team leader...');
                 
+                // Check if we're in Capacitor (mobile) environment
+                const isCapacitor = window.Capacitor !== undefined;
+                const Geolocation = isCapacitor && window.Capacitor?.Plugins?.Geolocation;
+                
                 // Check if geolocation is supported
-                if (!navigator.geolocation) {
-                    console.warn('Geolocation is not supported by this browser');
+                if (!navigator.geolocation && !Geolocation) {
+                    console.warn('Geolocation is not supported');
+                    this.showNotification('Location services not available', 'error');
                     return;
                 }
                 
                 // Request location permission
                 try {
+                    // Request permission first (for Capacitor/mobile)
+                    if (Geolocation) {
+                        try {
+                            const permissionStatus = await Geolocation.checkPermissions();
+                            console.log('Permission status:', permissionStatus);
+                            if (permissionStatus.location !== 'granted') {
+                                const requestStatus = await Geolocation.requestPermissions();
+                                console.log('Request status:', requestStatus);
+                                if (requestStatus.location !== 'granted') {
+                                    throw new Error('Location permission denied. Please enable location in app settings.');
+                                }
+                            }
+                        } catch (permError) {
+                            console.error('Permission request failed:', permError);
+                            throw new Error('Permission request failed: ' + permError.message);
+                        }
+                    }
+                    
                     const position = await this.getCurrentPosition();
-                    console.log('✅ Location permission granted');
+                    console.log('✅ Location permission granted, position:', position);
                     
                     // Show location indicator
                     const locationStatus = document.getElementById('location-status');
@@ -7210,7 +7233,7 @@
                     this.showNotification('Location sharing started', 'success');
                 } catch (error) {
                     console.error('Location permission denied:', error);
-                    this.showNotification('Location sharing is required for team leaders', 'warning');
+                    this.showNotification('Location permission is required. Please enable in app settings.', 'warning');
                     
                     // Show disabled indicator
                     const locationStatus = document.getElementById('location-status');
@@ -7222,14 +7245,48 @@
                 }
             }
 
-            getCurrentPosition() {
-                return new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
+            async getCurrentPosition() {
+                // Check if we're in Capacitor (mobile) environment
+                const isCapacitor = window.Capacitor !== undefined;
+                const Geolocation = isCapacitor && window.Capacitor?.Plugins?.Geolocation;
+                
+                if (Geolocation) {
+                    // Use Capacitor Geolocation API (better for mobile)
+                    try {
+                        const position = await Geolocation.getCurrentPosition({
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        });
+                        // Capacitor returns position in same format, but ensure compatibility
+                        return {
+                            coords: {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy,
+                                altitude: position.coords.altitude || null,
+                                altitudeAccuracy: position.coords.altitudeAccuracy || null,
+                                heading: position.coords.heading || null,
+                                speed: position.coords.speed || null
+                            },
+                            timestamp: position.timestamp || Date.now()
+                        };
+                    } catch (error) {
+                        console.error('Capacitor Geolocation error:', error);
+                        throw error;
+                    }
+                } else if (navigator.geolocation) {
+                    // Fallback to web geolocation API
+                    return new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        });
                     });
-                });
+                } else {
+                    throw new Error('Geolocation not supported');
+                }
             }
 
             async updateLocation() {

@@ -96,6 +96,7 @@ function getSeedData() {
     supervisors: [],
     teamLeaders: [],
     staff: [],
+    surveys: [],
     tracking: {}
   };
 }
@@ -618,6 +619,44 @@ app.put('/api/staff', (req, res) => {
 });
 app.put('/api/staff/:id', updateRoute('staff'));
 app.delete('/api/staff/:id', deleteRoute('staff'));
+
+// Surveys
+app.get('/api/surveys', listRoute('surveys'));
+app.post('/api/surveys', createRoute('surveys', 'id'));
+app.put('/api/surveys', (req, res) => {
+  const db = readDb();
+  db.surveys = req.body;
+  writeDb(db);
+  res.json({ success: true });
+});
+app.put('/api/surveys/:id', updateRoute('surveys', 'id'));
+app.delete('/api/surveys/:id', deleteRoute('surveys', 'id'));
+
+// Complete survey endpoint
+app.post('/api/surveys/:id/complete', (req, res) => {
+  try {
+    const db = readDb();
+    const id = String(req.params.id);
+    const survey = db.surveys.find(s => String(s.id) === id);
+    if (!survey) return res.status(404).json({ error: 'Survey not found' });
+    
+    const { images, comments, clientInstructions } = req.body || {};
+    
+    survey.status = 'completed';
+    survey.completedAt = new Date().toISOString();
+    survey.surveyData = {
+      images: Array.isArray(images) ? images : [],
+      comments: comments || '',
+      clientInstructions: clientInstructions || ''
+    };
+    
+    writeDb(db);
+    res.json(survey);
+  } catch (error) {
+    console.error('Error completing survey:', error);
+    res.status(500).json({ error: 'Failed to complete survey' });
+  }
+});
 
 // Universal file storage system
 let fileStorage = new Map(); // In-memory file storage for platforms without file system

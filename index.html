@@ -3252,6 +3252,7 @@
                     <li id="supervisors-menu-item"><a href="#supervisors"><i class="fas fa-user-tie"></i> Supervisors</a></li>
                     <li id="teamleaders-menu-item"><a href="#teamleaders"><i class="fas fa-users"></i> Team Leaders</a></li>
                     <li id="staff-menu-item"><a href="#staff"><i class="fas fa-user-friends"></i> Staff</a></li>
+                    <li id="surveys-menu-item"><a href="#surveys"><i class="fas fa-clipboard-check"></i> Surveys</a></li>
                     <li><a href="#job-history"><i class="fas fa-history"></i> Job History</a></li>
                     <li id="live-tracking-menu-item"><a href="#live-tracking"><i class="fas fa-map-marker-alt"></i> Live Tracking</a></li>
                     <li id="pending-approval-menu-item"><a href="#pending-approval"><i class="fas fa-clock"></i> Pending Approval</a></li>
@@ -3708,6 +3709,45 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Surveys -->
+            <div class="tab-content" id="surveys-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Surveys</h3>
+                        <div class="header-controls">
+                            <div class="search-box">
+                                <input type="text" id="surveys-search" placeholder="Search surveys..." class="form-control" onkeyup="app.filterSurveys()">
+                            </div>
+                            <button class="btn btn-primary" id="add-survey-btn" style="display: none;">Create Survey</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="surveys-table">
+                                <thead>
+                                    <tr>
+                                        <th>Survey ID</th>
+                                        <th>Client Name</th>
+                                        <th>Client Number</th>
+                                        <th>Location</th>
+                                        <th>Apartment Size</th>
+                                        <th>Survey Time</th>
+                                        <th>Assigned To</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="9" class="no-data">No surveys available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4668,6 +4708,116 @@
         </div>
     </div>
 
+    <!-- Create Survey Modal -->
+    <div class="modal" id="add-survey-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Survey</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-survey-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Client Name</label>
+                            <input type="text" class="form-control" id="new-survey-client-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Client Number</label>
+                            <input type="tel" class="form-control" id="new-survey-client-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Location/Address</label>
+                            <input type="text" class="form-control" id="new-survey-location" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apartment Size</label>
+                            <select class="form-control" id="new-survey-apartment-size" required>
+                                <option value="">Select Size</option>
+                                <option value="studio">Studio</option>
+                                <option value="1br">1 Bedroom</option>
+                                <option value="2br">2 Bedrooms</option>
+                                <option value="3br">3 Bedrooms</option>
+                                <option value="villa">Villa</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Survey Date</label>
+                            <input type="date" class="form-control" id="new-survey-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Survey Time</label>
+                            <input type="time" class="form-control" id="new-survey-time" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Assign To</label>
+                            <select class="form-control" id="new-survey-assigned-to" required>
+                                <option value="">Select Person</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-add-survey">Cancel</button>
+                <button class="btn btn-primary" id="save-survey">Create Survey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Survey Modal -->
+    <div class="modal" id="complete-survey-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>Complete Survey</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="complete-survey-form">
+                    <input type="hidden" id="complete-survey-id">
+                    <div class="card" style="margin-bottom: 20px;">
+                        <h4>Survey Details</h4>
+                        <div id="survey-details-preview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Apartment Images</label>
+                        <input type="file" class="form-control" id="survey-images" accept="image/*" multiple>
+                        <div class="image-preview" id="survey-images-preview" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comments/Notes</label>
+                        <textarea class="form-control" id="survey-comments" rows="4" placeholder="Add any comments or notes about the apartment, items, condition, etc."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Client Instructions</label>
+                        <textarea class="form-control" id="survey-client-instructions" rows="4" placeholder="Any special instructions or requirements from the client"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-complete-survey">Cancel</button>
+                <button class="btn btn-primary" id="submit-survey">Submit Survey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Survey Details Modal -->
+    <div class="modal" id="survey-details-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>Survey Details</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="survey-details-body">
+                <!-- Survey details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="close-survey-details">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Templates Modal -->
     <div class="modal" id="templates-modal">
         <div class="modal-content">
@@ -4747,6 +4897,7 @@
                     supervisors: [],
                     teamLeaders: [],
                     staff: [],
+                    surveys: [],
                     users: {},
                     templates: JSON.parse(localStorage.getItem('moveit_templates')) || this.getDefaultTemplates()
                 };
@@ -5272,7 +5423,8 @@
                     'unpacking-start': 'Unpacking Start',
                     'waiting-approval': 'Waiting Approval',
                     'completed': 'Completed',
-                    'delayed': 'Delayed'
+                    'delayed': 'Delayed',
+                    'pending': 'Pending'
                 };
                 return statusMap[status] || status;
             }
@@ -5289,7 +5441,8 @@
                     'pending-approval': 'Pending Approval',
                     'reports': 'Reports',
                     'notifications': 'Notifications',
-                    'profile': 'Profile'
+                    'profile': 'Profile',
+                    'surveys': 'Surveys'
                 };
                 return sectionMap[section] || section;
             }
@@ -5339,6 +5492,16 @@
                         console.log('Staff save response:', res.status);
                         if (!res.ok) throw new Error('Failed to save staff');
                     }).catch(err => console.error('Failed to save staff:', err)));
+                }
+                if (Array.isArray(this.data.surveys)) {
+                    requests.push(fetch('/api/surveys', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.data.surveys)
+                    }).then(res => {
+                        console.log('Surveys save response:', res.status);
+                        if (!res.ok) throw new Error('Failed to save surveys');
+                    }).catch(err => console.error('Failed to save surveys:', err)));
                 }
                 if (this.data.users && typeof this.data.users === 'object') {
                     requests.push(fetch('/api/users', {
@@ -5422,6 +5585,14 @@
                 document.getElementById('save-supervisor').addEventListener('click', () => this.addSupervisor());
                 document.getElementById('save-teamleader').addEventListener('click', () => this.addTeamLeader());
                 document.getElementById('save-staff').addEventListener('click', () => this.addStaff());
+                document.getElementById('save-survey').addEventListener('click', () => this.addSurvey());
+                
+                // Survey buttons
+                document.getElementById('add-survey-btn')?.addEventListener('click', () => this.showAddSurveyModal());
+                document.getElementById('cancel-add-survey')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('submit-survey')?.addEventListener('click', () => this.completeSurvey());
+                document.getElementById('cancel-complete-survey')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('close-survey-details')?.addEventListener('click', () => this.hideModals());
 
                 // Template form
                 document.getElementById('template-form').addEventListener('submit', (e) => {
@@ -5541,6 +5712,30 @@
                 // Emirates ID previews for staff
                 setupPreview('new-staff-emirates-front', 'staff-emirates-front-preview');
                 setupPreview('new-staff-emirates-back', 'staff-emirates-back-preview');
+                
+                // Survey image preview (multiple files)
+                const surveyImagesInput = document.getElementById('survey-images');
+                const surveyImagesPreview = document.getElementById('survey-images-preview');
+                if (surveyImagesInput && surveyImagesPreview) {
+                    surveyImagesInput.addEventListener('change', function() {
+                        surveyImagesPreview.innerHTML = '';
+                        if (this.files && this.files.length > 0) {
+                            Array.from(this.files).forEach(file => {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    const imgDiv = document.createElement('div');
+                                    imgDiv.style.cssText = 'position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;';
+                                    const img = document.createElement('img');
+                                    img.src = e.target.result;
+                                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                                    imgDiv.appendChild(img);
+                                    surveyImagesPreview.appendChild(imgDiv);
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        }
+                    });
+                }
             }
 
             async uploadFile(file) {
@@ -5650,8 +5845,10 @@
                 const supervisorsItem = document.getElementById('supervisors-menu-item');
                 const teamLeadersItem = document.getElementById('teamleaders-menu-item');
                 const staffItem = document.getElementById('staff-menu-item');
+                const surveysItem = document.getElementById('surveys-menu-item');
                 const reportsItem = document.getElementById('reports-menu-item');
                 const addJobCard = document.getElementById('add-job-card');
+                const addSurveyBtn = document.getElementById('add-survey-btn');
                 const pendingApprovalItem = document.getElementById('pending-approval-menu-item');
                 const jobsMenuItem = document.querySelector('a[href="#jobs"]')?.parentElement;
                 const jobHistoryMenuItem = document.querySelector('a[href="#job-history"]')?.parentElement;
@@ -5659,9 +5856,12 @@
                 const clearDataBtn = document.getElementById('clear-data-btn');
 
                 // Hide all management items first
-                [supervisorsItem, teamLeadersItem, staffItem, reportsItem, pendingApprovalItem, liveTrackingMenuItem].forEach(item => {
+                [supervisorsItem, teamLeadersItem, staffItem, surveysItem, reportsItem, pendingApprovalItem, liveTrackingMenuItem].forEach(item => {
                     if (item) item.style.display = 'none';
                 });
+                
+                // Hide add survey button by default
+                if (addSurveyBtn) addSurveyBtn.style.display = 'none';
                 
                 // Hide Clear Data button (only show for admin)
                 if (clearDataBtn) clearDataBtn.style.display = 'none';
@@ -5669,33 +5869,37 @@
                 // Show based on role
                 if (role === 'admin') {
                     console.log('Setting up admin menu...');
-                    [supervisorsItem, teamLeadersItem, staffItem, reportsItem, pendingApprovalItem].forEach(item => {
+                    [supervisorsItem, teamLeadersItem, staffItem, surveysItem, reportsItem, pendingApprovalItem].forEach(item => {
                         if (item) item.style.display = 'block';
                     });
                     if (addJobCard) addJobCard.style.display = 'block';
+                    if (addSurveyBtn) addSurveyBtn.style.display = 'block'; // Only admin can create surveys
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
                     if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block';
                     if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'block'; // Admin sees live tracking
                     if (clearDataBtn) clearDataBtn.style.display = 'block'; // Only admin sees Clear Data button
                 } else if (role === 'supervisor') {
                     console.log('Setting up supervisor menu...');
-                    [teamLeadersItem, staffItem, pendingApprovalItem].forEach(item => {
+                    [teamLeadersItem, staffItem, surveysItem, pendingApprovalItem].forEach(item => {
                         if (item) item.style.display = 'block';
                     });
                     // Supervisor does NOT see reports (only admin)
                     if (reportsItem) reportsItem.style.display = 'none';
                     if (addJobCard) addJobCard.style.display = 'none';
+                    if (addSurveyBtn) addSurveyBtn.style.display = 'none'; // Supervisors can't create surveys
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
                     if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block';
                     if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'block'; // Supervisor sees live tracking
                 } else if (role === 'teamleader') {
                     console.log('Setting up team leader menu...');
-                    // Team leaders can see jobs, pending approvals, and manage their job workflow
+                    // Team leaders can see jobs, pending approvals, surveys, and manage their job workflow
+                    if (surveysItem) surveysItem.style.display = 'block'; // Team leaders can see assigned surveys
                     if (pendingApprovalItem) {
                         pendingApprovalItem.style.display = 'block';
                         console.log('Showing pending approval menu for team leader');
                     }
                     if (addJobCard) addJobCard.style.display = 'none';
+                    if (addSurveyBtn) addSurveyBtn.style.display = 'none'; // Team leaders can't create surveys
                     if (jobsMenuItem) {
                         jobsMenuItem.style.display = 'block';
                         console.log('Showing jobs menu for team leader');
@@ -5765,6 +5969,9 @@
                         break;
                     case 'staff': 
                         this.loadStaff(); 
+                        break;
+                    case 'surveys': 
+                        this.loadSurveys(); 
                         break;
                     case 'job-history': 
                         this.loadJobHistory(); 
@@ -7003,6 +7210,19 @@
                 this.fetchPeople('staff').then(() => this.populateStaffTable());
             }
 
+            async loadSurveys() {
+                try {
+                    const response = await fetch('/api/surveys');
+                    if (!response.ok) throw new Error('Failed to fetch surveys');
+                    const data = await response.json();
+                    this.data.surveys = data || [];
+                    this.populateSurveysTable();
+                } catch (error) {
+                    console.error('Error fetching surveys:', error);
+                    this.showNotification('Failed to load surveys', 'error');
+                }
+            }
+
             populateTeamLeadersDropdown() {
                 const select = document.getElementById('team-leader-assign');
                 if (!select) return;
@@ -7338,6 +7558,86 @@
 
                     tbody.appendChild(row);
                 });
+            }
+
+            populateSurveysTable() {
+                const tbody = document.querySelector('#surveys-table tbody');
+                tbody.innerHTML = '';
+
+                if (this.data.surveys.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="no-data">No surveys available</td></tr>';
+                    return;
+                }
+
+                // Filter surveys based on role
+                let surveysToShow = this.data.surveys;
+                if (this.currentRole === 'supervisor' || this.currentRole === 'teamleader') {
+                    // Show only surveys assigned to current user
+                    const assignedName = this.currentUser.name;
+                    surveysToShow = this.data.surveys.filter(s => s.assignedTo === assignedName);
+                }
+
+                if (surveysToShow.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="no-data">No surveys available</td></tr>';
+                    return;
+                }
+
+                surveysToShow.forEach(survey => {
+                    const row = document.createElement('tr');
+                    const assignedToName = survey.assignedTo || 'Unassigned';
+                    const surveyTime = survey.surveyDate && survey.surveyTime 
+                        ? `${survey.surveyDate} ${survey.surveyTime}` 
+                        : 'Not set';
+                    
+                    row.innerHTML = `
+                        <td>#${survey.id}</td>
+                        <td>${survey.clientName || 'N/A'}</td>
+                        <td>${survey.clientNumber || 'N/A'}</td>
+                        <td>${survey.location || 'N/A'}</td>
+                        <td>${this.formatApartmentSize(survey.apartmentSize) || 'N/A'}</td>
+                        <td>${surveyTime}</td>
+                        <td>${assignedToName}</td>
+                        <td><span class="status-badge status-${survey.status || 'pending'}">${this.formatStatus(survey.status || 'pending')}</span></td>
+                        <td>
+                            ${survey.status === 'completed' ? `
+                                <button class="btn btn-primary btn-sm view-survey-btn" data-id="${survey.id}">View</button>
+                            ` : (this.currentRole === 'admin' || survey.assignedTo === this.currentUser.name) ? `
+                                <button class="btn btn-success btn-sm complete-survey-btn" data-id="${survey.id}">Complete</button>
+                                ${this.currentRole === 'admin' ? `
+                                    <button class="btn btn-primary btn-sm view-survey-btn" data-id="${survey.id}">View</button>
+                                ` : ''}
+                            ` : ''}
+                        </td>
+                    `;
+
+                    const completeBtn = row.querySelector('.complete-survey-btn');
+                    if (completeBtn) {
+                        completeBtn.addEventListener('click', (e) => {
+                            this.showCompleteSurveyModal(parseInt(e.target.dataset.id));
+                        });
+                    }
+
+                    const viewBtn = row.querySelector('.view-survey-btn');
+                    if (viewBtn) {
+                        viewBtn.addEventListener('click', (e) => {
+                            this.showSurveyDetails(parseInt(e.target.dataset.id));
+                        });
+                    }
+
+                    tbody.appendChild(row);
+                });
+            }
+
+            formatApartmentSize(size) {
+                const sizeMap = {
+                    'studio': 'Studio',
+                    '1br': '1 Bedroom',
+                    '2br': '2 Bedrooms',
+                    '3br': '3 Bedrooms',
+                    'villa': 'Villa',
+                    'custom': 'Custom'
+                };
+                return sizeMap[size] || size;
             }
 
             populateTeamLeadersTable() {
@@ -8545,6 +8845,266 @@
                 });
             }
 
+            // Survey Methods
+            showAddSurveyModal() {
+                // Populate assigned to dropdown with supervisors and team leaders
+                const assignedToSelect = document.getElementById('new-survey-assigned-to');
+                assignedToSelect.innerHTML = '<option value="">Select Person</option>';
+                
+                // Add supervisors
+                this.data.supervisors.forEach(sup => {
+                    const option = document.createElement('option');
+                    option.value = sup.name;
+                    option.textContent = `${sup.name} (Supervisor)`;
+                    assignedToSelect.appendChild(option);
+                });
+                
+                // Add team leaders
+                this.data.teamLeaders.forEach(tl => {
+                    const option = document.createElement('option');
+                    option.value = tl.name;
+                    option.textContent = `${tl.name} (Team Leader)`;
+                    assignedToSelect.appendChild(option);
+                });
+                
+                // Reset form
+                document.getElementById('add-survey-form').reset();
+                this.showModal('add-survey-modal');
+            }
+
+            addSurvey() {
+                const clientName = document.getElementById('new-survey-client-name').value.trim();
+                const clientNumber = document.getElementById('new-survey-client-number').value.trim();
+                const location = document.getElementById('new-survey-location').value.trim();
+                const apartmentSize = document.getElementById('new-survey-apartment-size').value;
+                const surveyDate = document.getElementById('new-survey-date').value;
+                const surveyTime = document.getElementById('new-survey-time').value;
+                const assignedTo = document.getElementById('new-survey-assigned-to').value;
+
+                if (!clientName || !clientNumber || !location || !apartmentSize || !surveyDate || !surveyTime || !assignedTo) {
+                    this.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const newSurvey = {
+                    clientName,
+                    clientNumber,
+                    location,
+                    apartmentSize,
+                    surveyDate,
+                    surveyTime,
+                    assignedTo,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+
+                fetch('/api/surveys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newSurvey)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then((data) => {
+                    this.hideModals();
+                    this.loadSurveys();
+                    this.showNotification('Survey created successfully!', 'success');
+                    document.getElementById('add-survey-form').reset();
+                })
+                .catch((error) => {
+                    console.error('Error adding survey:', error);
+                    this.showNotification('Failed to create survey: ' + error.message, 'error');
+                });
+            }
+
+            showCompleteSurveyModal(surveyId) {
+                const survey = this.data.surveys.find(s => s.id === surveyId);
+                if (!survey) {
+                    this.showNotification('Survey not found', 'error');
+                    return;
+                }
+
+                document.getElementById('complete-survey-id').value = surveyId;
+                
+                // Show survey details in preview
+                const preview = document.getElementById('survey-details-preview');
+                preview.innerHTML = `
+                    <div class="detail-row">
+                        <div class="detail-label">Client Name:</div>
+                        <div class="detail-value">${survey.clientName}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Client Number:</div>
+                        <div class="detail-value">${survey.clientNumber}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Location:</div>
+                        <div class="detail-value">${survey.location}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Apartment Size:</div>
+                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Survey Time:</div>
+                        <div class="detail-value">${survey.surveyDate} ${survey.surveyTime}</div>
+                    </div>
+                `;
+
+                // Reset form
+                document.getElementById('survey-images').value = '';
+                document.getElementById('survey-comments').value = '';
+                document.getElementById('survey-client-instructions').value = '';
+                document.getElementById('survey-images-preview').innerHTML = '';
+
+                this.showModal('complete-survey-modal');
+            }
+
+            async completeSurvey() {
+                const surveyId = parseInt(document.getElementById('complete-survey-id').value);
+                const comments = document.getElementById('survey-comments').value.trim();
+                const clientInstructions = document.getElementById('survey-client-instructions').value.trim();
+                const imagesInput = document.getElementById('survey-images');
+
+                // Upload images
+                const uploadedImages = [];
+                if (imagesInput.files && imagesInput.files.length > 0) {
+                    try {
+                        for (let i = 0; i < imagesInput.files.length; i++) {
+                            const file = imagesInput.files[i];
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data && data.url) {
+                                uploadedImages.push(data.url);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error uploading images:', error);
+                        this.showNotification('Failed to upload some images', 'warning');
+                    }
+                }
+
+                const surveyData = {
+                    images: uploadedImages,
+                    comments: comments || '',
+                    clientInstructions: clientInstructions || ''
+                };
+
+                fetch(`/api/surveys/${surveyId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(surveyData)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then((data) => {
+                    this.hideModals();
+                    this.loadSurveys();
+                    this.showNotification('Survey completed successfully!', 'success');
+                })
+                .catch((error) => {
+                    console.error('Error completing survey:', error);
+                    this.showNotification('Failed to complete survey: ' + error.message, 'error');
+                });
+            }
+
+            showSurveyDetails(surveyId) {
+                const survey = this.data.surveys.find(s => s.id === surveyId);
+                if (!survey) {
+                    this.showNotification('Survey not found', 'error');
+                    return;
+                }
+
+                const body = document.getElementById('survey-details-body');
+                const surveyData = survey.surveyData || {};
+                const images = surveyData.images || [];
+
+                body.innerHTML = `
+                    <div class="detail-row">
+                        <div class="detail-label">Survey ID:</div>
+                        <div class="detail-value">#${survey.id}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Client Name:</div>
+                        <div class="detail-value">${survey.clientName || 'N/A'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Client Number:</div>
+                        <div class="detail-value">${survey.clientNumber || 'N/A'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Location:</div>
+                        <div class="detail-value">${survey.location || 'N/A'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Apartment Size:</div>
+                        <div class="detail-value">${this.formatApartmentSize(survey.apartmentSize) || 'N/A'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Survey Time:</div>
+                        <div class="detail-value">${survey.surveyDate || 'N/A'} ${survey.surveyTime || ''}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Assigned To:</div>
+                        <div class="detail-value">${survey.assignedTo || 'Unassigned'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value"><span class="status-badge status-${survey.status}">${this.formatStatus(survey.status)}</span></div>
+                    </div>
+                    ${survey.status === 'completed' ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Completed At:</div>
+                            <div class="detail-value">${survey.completedAt ? new Date(survey.completedAt).toLocaleString() : 'N/A'}</div>
+                        </div>
+                        ${images.length > 0 ? `
+                            <div class="detail-row">
+                                <div class="detail-label">Apartment Images:</div>
+                                <div class="detail-value">
+                                    <div class="image-gallery">
+                                        ${images.map(img => `
+                                            <div class="image-item" onclick="app.showImageModal('${img}')">
+                                                <img src="${app.getImageUrl(img)}" alt="Apartment Image" onerror="this.style.display='none'">
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${surveyData.comments ? `
+                            <div class="detail-row">
+                                <div class="detail-label">Comments/Notes:</div>
+                                <div class="detail-value" style="white-space: pre-wrap; background: #f0f9ff; padding: 12px; border-radius: 8px;">${surveyData.comments}</div>
+                            </div>
+                        ` : ''}
+                        ${surveyData.clientInstructions ? `
+                            <div class="detail-row">
+                                <div class="detail-label">Client Instructions:</div>
+                                <div class="detail-value" style="white-space: pre-wrap; background: #fef3c7; padding: 12px; border-radius: 8px;">${surveyData.clientInstructions}</div>
+                            </div>
+                        ` : ''}
+                    ` : ''}
+                `;
+
+                this.showModal('survey-details-modal');
+            }
+
+            filterSurveys() {
+                const searchTerm = document.getElementById('surveys-search').value.toLowerCase();
+                const rows = document.querySelectorAll('#surveys-table tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            }
+
             // View Details Methods
             showJobDetails(jobId) {
                 const job = this.data.jobs.find(j => j.id === jobId);
@@ -9494,6 +10054,7 @@
                     supervisors: [],
                     teamLeaders: [],
                     staff: [],
+                    surveys: [],
                     users: {}
                 };
                 localStorage.removeItem('moveit247_data');

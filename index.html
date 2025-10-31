@@ -7615,14 +7615,20 @@
 
             populateStaffDropdown() {
                 const select = document.getElementById('assign-staff');
-                if (!select) return;
+                const editSelect = document.getElementById('edit-assign-staff');
+                const selects = [select, editSelect].filter(s => s);
                 
-                select.innerHTML = '';
-                this.data.staff.forEach(staff => {
-                    const option = document.createElement('option');
-                    option.value = staff.name;
-                    option.textContent = staff.name;
-                    select.appendChild(option);
+                if (selects.length === 0) return;
+                
+                selects.forEach(sel => {
+                    sel.innerHTML = '';
+                    this.data.staff.forEach(staff => {
+                        const option = document.createElement('option');
+                        option.value = staff.name;
+                        const designation = staff.designation || 'N/A';
+                        option.textContent = `${staff.name} - ${designation}`;
+                        sel.appendChild(option);
+                    });
                 });
             }
 
@@ -8917,14 +8923,15 @@
                     });
                 }
 
-                // Populate staff dropdown
+                // Populate staff dropdown (with designation)
                 const staffSelect = document.getElementById('edit-assign-staff');
                 if (staffSelect) {
                     staffSelect.innerHTML = '';
                     this.data.staff.forEach(staff => {
                         const option = document.createElement('option');
                         option.value = staff.name;
-                        option.textContent = staff.name;
+                        const designation = staff.designation || 'N/A';
+                        option.textContent = `${staff.name} - ${designation}`;
                         if (job.assignedStaff && job.assignedStaff.includes(staff.name)) {
                             option.selected = true;
                         }

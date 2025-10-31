@@ -4732,19 +4732,7 @@
                         </div>
                         <div class="form-group">
                             <label>Apartment Size</label>
-                            <select class="form-control" id="new-survey-apartment-size" required onchange="app.handleNewSurveyApartmentSizeChange()">
-                                <option value="">Select Size</option>
-                                <option value="studio">Studio</option>
-                                <option value="1br">1 Bedroom</option>
-                                <option value="2br">2 Bedrooms</option>
-                                <option value="3br">3 Bedrooms</option>
-                                <option value="villa">Villa</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="new-survey-apartment-size-custom-group" style="display: none;">
-                            <label>Custom Apartment Size</label>
-                            <input type="text" class="form-control" id="new-survey-apartment-size-custom" placeholder="E.g., 4 Bedroom Villa, Studio, Penthouse">
+                            <input type="text" class="form-control" id="new-survey-apartment-size" placeholder="E.g., Studio, 1BR, 3BR, 4BR Villa" required>
                         </div>
                         <div class="form-group">
                             <label>Survey Date</label>
@@ -8877,37 +8865,17 @@
                 
                 // Reset form
                 document.getElementById('add-survey-form').reset();
-                const sizeSelect = document.getElementById('new-survey-apartment-size');
-                const customGroup = document.getElementById('new-survey-apartment-size-custom-group');
-                if (sizeSelect) {
-                    sizeSelect.value = '';
-                }
-                if (customGroup) customGroup.style.display = 'none';
-                // Ensure visibility matches current selection (handles autofill selecting Custom)
-                if (typeof this.handleNewSurveyApartmentSizeChange === 'function') {
-                    this.handleNewSurveyApartmentSizeChange();
-                }
+                const sizeInput = document.getElementById('new-survey-apartment-size');
+                if (sizeInput) sizeInput.value = '';
                 this.showModal('add-survey-modal');
 
-                // Re-sync after modal paints to catch browser autofill timing
-                setTimeout(() => {
-                    if (typeof this.handleNewSurveyApartmentSizeChange === 'function') {
-                        this.handleNewSurveyApartmentSizeChange();
-                        const select = document.getElementById('new-survey-apartment-size');
-                        const customField = document.getElementById('new-survey-apartment-size-custom');
-                        if (select && select.value === 'custom' && customField) {
-                            customField.focus();
-                        }
-                    }
-                }, 250);
             }
 
             addSurvey() {
                 const clientName = document.getElementById('new-survey-client-name').value.trim();
                 const clientNumber = document.getElementById('new-survey-client-number').value.trim();
                 const location = document.getElementById('new-survey-location').value.trim();
-                const apartmentSize = document.getElementById('new-survey-apartment-size').value;
-                const apartmentSizeCustom = document.getElementById('new-survey-apartment-size-custom') ? document.getElementById('new-survey-apartment-size-custom').value.trim() : '';
+                const apartmentSize = document.getElementById('new-survey-apartment-size').value.trim();
                 const surveyDate = document.getElementById('new-survey-date').value;
                 const surveyTime = document.getElementById('new-survey-time').value;
                 const assignedTo = document.getElementById('new-survey-assigned-to').value;
@@ -8917,17 +8885,11 @@
                     return;
                 }
 
-                if (apartmentSize === 'custom' && !apartmentSizeCustom) {
-                    this.showNotification('Please specify the custom apartment size', 'error');
-                    return;
-                }
-
                 const newSurvey = {
                     clientName,
                     clientNumber,
                     location,
                     apartmentSize,
-                    apartmentSizeCustom: apartmentSize === 'custom' ? apartmentSizeCustom : undefined,
                     surveyDate,
                     surveyTime,
                     assignedTo,

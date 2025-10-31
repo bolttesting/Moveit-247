@@ -4061,6 +4061,24 @@
                         </form>
                     </div>
                 </div>
+                
+                <!-- Branding Section (Admin Only) -->
+                <div class="card" id="branding-card" style="display: none; margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Company Branding</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="branding-form">
+                            <div class="form-group">
+                                <label>Company Logo</label>
+                                <p style="color: #64748b; font-size: 14px; margin-bottom: 10px;">Upload your logo to display on the app header, sidebar, and PDF reports.</p>
+                                <input type="file" class="form-control" id="branding-logo" accept="image/*">
+                                <div class="image-preview" id="branding-logo-preview" style="margin-top: 15px;"></div>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="app.saveBranding()">Save Logo</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -10799,6 +10817,105 @@
                         initialsEl.textContent = this.currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
                         avatarEl.style.backgroundImage = '';
                     }
+                }
+            }
+
+            // Load Profile
+            async loadProfile() {
+                if (!this.currentUser) return;
+                
+                // Populate profile form
+                document.getElementById('profile-name').value = this.currentUser.name || '';
+                document.getElementById('profile-phone').value = this.currentUser.phone || '';
+                document.getElementById('profile-email').value = this.currentUser.email || '';
+                document.getElementById('profile-password').value = '';
+                document.getElementById('profile-confirm-password').value = '';
+                
+                // Show profile image preview
+                if (this.currentUser.profileImage) {
+                    const preview = document.getElementById('profile-image-preview');
+                    preview.innerHTML = `<img src="${this.getImageUrl(this.currentUser.profileImage)}" style="max-width:200px; max-height:200px; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">`;
+                }
+                
+                // Show Emirates ID previews
+                if (this.currentUser.emiratesIdFront) {
+                    const preview = document.getElementById('emirates-front-preview');
+                    preview.innerHTML = `<img src="${this.getImageUrl(this.currentUser.emiratesIdFront)}" style="max-width:200px; max-height:200px; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">`;
+                }
+                if (this.currentUser.emiratesIdBack) {
+                    const preview = document.getElementById('emirates-back-preview');
+                    preview.innerHTML = `<img src="${this.getImageUrl(this.currentUser.emiratesIdBack)}" style="max-width:200px; max-height:200px; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">`;
+                }
+                
+                // Show branding section only for admin
+                const brandingCard = document.getElementById('branding-card');
+                if (brandingCard) {
+                    brandingCard.style.display = this.currentRole === 'admin' ? 'block' : 'none';
+                    
+                    if (this.currentRole === 'admin') {
+                        // Load current branding
+                        fetch('/api/branding')
+                            .then(r => r.json())
+                            .then(b => {
+                                if (b && b.logoUrl) {
+                                    const preview = document.getElementById('branding-logo-preview');
+                                    preview.innerHTML = `<img src="${this.getImageUrl(b.logoUrl)}" style="max-width:300px; max-height:150px; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">`;
+                                }
+                            })
+                            .catch(() => {});
+                    }
+                }
+                
+                // Setup branding logo preview
+                const brandingLogoInput = document.getElementById('branding-logo');
+                if (brandingLogoInput) {
+                    brandingLogoInput.onchange = (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                const preview = document.getElementById('branding-logo-preview');
+                                preview.innerHTML = `<img src="${event.target.result}" style="max-width:300px; max-height:150px; border-radius:8px; margin-top:10px;">`;
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
+                        }
+                    };
+                }
+            }
+            
+            // Save Branding
+            async saveBranding() {
+                const logoInput = document.getElementById('branding-logo');
+                if (!logoInput || !logoInput.files || !logoInput.files[0]) {
+                    this.showNotification('Please select a logo file', 'error');
+                    return;
+                }
+                
+                try {
+                    // Upload logo
+                    const logoUrl = await this.uploadFile(logoInput.files[0]);
+                    
+                    // Save to backend
+                    const response = await fetch('/api/branding', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ logoUrl })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save branding');
+                    
+                    // Update localStorage and reload logos
+                    localStorage.setItem('moveit_logo_url', logoUrl);
+                    this.loadBrandingLogo();
+                    
+                    this.showNotification('Logo saved successfully! It will appear in sidebar, header, and PDF reports.', 'success');
+                    
+                    // Update preview
+                    const preview = document.getElementById('branding-logo-preview');
+                    preview.innerHTML = `<img src="${this.getImageUrl(logoUrl)}" style="max-width:300px; max-height:150px; border-radius:8px; margin-top:10px;">`;
+                    
+                } catch (error) {
+                    console.error('Error saving branding:', error);
+                    this.showNotification('Error saving logo: ' + error.message, 'error');
                 }
             }
 

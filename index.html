@@ -17,8 +17,8 @@
     
     <!-- FORCE MOBILE CSS & SCROLL HINTS - NO CACHE -->
     <script>
-        // Inject mobile CSS immediately
-        if (window.innerWidth <= 480) {
+        // Inject mobile CSS immediately (treat tablets/phones as mobile)
+        if (window.innerWidth <= 768) {
             const style = document.createElement('style');
             style.id = 'force-mobile-css';
             style.innerHTML = `

@@ -6721,13 +6721,14 @@
                 container.innerHTML = trackingData.map(item => {
                     const isOnline = item.latitude && item.longitude;
                     const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const promotedLabel = item.isPromoted ? ' <span style="color: #f59e0b; font-size: 0.85em;">(Promoted)</span>' : '';
                     
                     return `
                         <div class="tracking-card ${isOnline ? 'active' : ''}" onclick="app.focusOnTeamLeader('${item.username}')">
                             <div class="tracking-card-header">
                                 <div class="tracking-avatar">${initials}</div>
                                 <div class="tracking-info">
-                                    <h4>${item.name}</h4>
+                                    <h4>${item.name}${promotedLabel}</h4>
                                     <p>${item.currentJob ? `On Job #${item.currentJob}` : 'No active job'}</p>
                                 </div>
                             </div>

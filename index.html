@@ -9410,52 +9410,66 @@
 
             initSignatureCanvases() {
                 ['pl-customer-signature', 'pl-moveit-signature'].forEach(canvasId => {
-                    const canvas = document.getElementById(canvasId);
-                    if (!canvas) return;
-                    
+                    const oldCanvas = document.getElementById(canvasId);
+                    if (!oldCanvas) return;
+
+                    // Replace to remove old listeners
+                    const canvas = oldCanvas.cloneNode(true);
+                    oldCanvas.parentNode.replaceChild(canvas, oldCanvas);
+
+                    // Handle HiDPI scaling for crisp lines
+                    const dpr = window.devicePixelRatio || 1;
+                    const cssWidth = canvas.clientWidth || canvas.width;
+                    const cssHeight = canvas.clientHeight || canvas.height;
+                    canvas.width = Math.max(400, Math.round(cssWidth * dpr));
+                    canvas.height = Math.max(150, Math.round(cssHeight * dpr));
+                    canvas.style.width = (cssWidth || 400) + 'px';
+                    canvas.style.height = (cssHeight || 150) + 'px';
+
                     const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+
                     let isDrawing = false;
-                    
-                    function startDrawing(e) {
+                    const getPoint = (evt) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const x = (evt.clientX - rect.left);
+                        const y = (evt.clientY - rect.top);
+                        return { x, y };
+                    };
+
+                    const start = (evt) => {
                         isDrawing = true;
-                        const rect = canvas.getBoundingClientRect();
+                        const p = getPoint(evt);
                         ctx.beginPath();
-                        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-                    }
-                    
-                    function draw(e) {
+                        ctx.moveTo(p.x, p.y);
+                    };
+                    const move = (evt) => {
                         if (!isDrawing) return;
-                        const rect = canvas.getBoundingClientRect();
-                        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                        const p = getPoint(evt);
+                        ctx.lineTo(p.x, p.y);
                         ctx.stroke();
-                    }
-                    
-                    function stopDrawing() {
-                        isDrawing = false;
-                    }
-                    
-                    // Clear existing listeners by cloning
-                    const newCanvas = canvas.cloneNode(true);
-                    canvas.parentNode.replaceChild(newCanvas, canvas);
-                    const newCtx = newCanvas.getContext('2d');
-                    newCtx.strokeStyle = '#000';
-                    newCtx.lineWidth = 2;
-                    
-                    newCanvas.addEventListener('mousedown', startDrawing);
-                    newCanvas.addEventListener('mousemove', draw);
-                    newCanvas.addEventListener('mouseup', stopDrawing);
-                    newCanvas.addEventListener('mouseout', stopDrawing);
-                    
-                    // Touch events for mobile
-                    newCanvas.addEventListener('touchstart', (e) => {
+                    };
+                    const stop = () => { isDrawing = false; };
+
+                    // Mouse
+                    canvas.addEventListener('mousedown', (e) => start(e));
+                    canvas.addEventListener('mousemove', (e) => move(e));
+                    canvas.addEventListener('mouseup', stop);
+                    canvas.addEventListener('mouseleave', stop);
+
+                    // Touch
+                    canvas.addEventListener('touchstart', (e) => {
                         e.preventDefault();
-                        startDrawing(e.touches[0]);
-                    });
-                    newCanvas.addEventListener('touchmove', (e) => {
+                        if (e.touches && e.touches[0]) start(e.touches[0]);
+                    }, { passive: false });
+                    canvas.addEventListener('touchmove', (e) => {
                         e.preventDefault();
-                        draw(e.touches[0]);
-                    });
-                    newCanvas.addEventListener('touchend', stopDrawing);
+                        if (e.touches && e.touches[0]) move(e.touches[0]);
+                    }, { passive: false });
+                    canvas.addEventListener('touchend', stop);
+                    canvas.addEventListener('touchcancel', stop);
                 });
             }
 
@@ -9647,6 +9661,33 @@
                 const container = document.createElement('div');
                 const surveyData = survey.surveyData || {};
                 const images = surveyData.images || [];
+                const pl = survey.packingList || null;
+                const itemsTable = pl && pl.items && pl.items.length ? `
+                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th style="border:1px solid #e5e7eb; padding:6px; text-align:left;">Items</th>
+                                <th style="border:1px solid #e5e7eb; padding:6px;">CBM</th>
+                                <th style="border:1px solid #e5e7eb; padding:6px;">Nos. of Pcs</th>
+                                <th style="border:1px solid #e5e7eb; padding:6px;">D/A</th>
+                                <th style="border:1px solid #e5e7eb; padding:6px;">A</th>
+                                <th style="border:1px solid #e5e7eb; padding:6px;">Total CBM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pl.items.map(it => `
+                                <tr>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px;\">${it.name || ''}</td>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${Number(it.cbm || 0).toFixed(2)}</td>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.pieces || 0}</td>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.disassemble ? 'Yes' : ''}</td>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${it.assemble ? 'Yes' : ''}</td>
+                                    <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${Number(it.totalCbm || (it.cbm||0)*(it.pieces||0)).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '';
                 container.innerHTML = `
                     <div style="font-family: Arial, sans-serif; padding: 16px; color:#111827;">
                         <h2 style="margin:0 0 12px;">Survey Report #${survey.id}</h2>
@@ -9657,6 +9698,36 @@
                         <div style="margin:8px 0;"><strong>Assigned To:</strong> ${survey.assignedTo || 'Unassigned'}</div>
                         <div style="margin:8px 0;"><strong>Status:</strong> ${this.formatStatus(survey.status)}</div>
                         ${survey.completedAt ? `<div style=\"margin:8px 0;\"><strong>Completed At:</strong> ${new Date(survey.completedAt).toLocaleString()}</div>` : ''}
+                        ${pl ? `
+                        <hr style=\"margin:16px 0; border:none; border-top:1px solid #e5e7eb;\"/>
+                        <h3 style=\"margin:0 0 8px;\">Packing List ${pl.serialNo ? `- S.No. ${pl.serialNo}` : ''}</h3>
+                        <div style=\"display:grid; grid-template-columns:repeat(2,1fr); gap:8px;\">
+                            <div><strong>Company:</strong> ${pl.companyName || ''}</div>
+                            <div><strong>Person:</strong> ${pl.personName || ''}</div>
+                            <div><strong>Mobile:</strong> ${pl.mobile || ''}</div>
+                            <div><strong>Email:</strong> ${pl.email || ''}</div>
+                            <div><strong>Service:</strong> ${(pl.serviceTypes||[]).join(', ')}</div>
+                            <div><strong>Source:</strong> ${pl.source || ''}</div>
+                            <div><strong>Origin:</strong> ${pl.origin || ''} ${pl.originDate || ''} ${pl.originTime || ''}</div>
+                            <div><strong>Destination:</strong> ${pl.destination || ''} ${pl.destDate || ''} ${pl.destTime || ''}</div>
+                        </div>
+                        <div style=\"margin:10px 0;\">${itemsTable}</div>
+                        <div style=\"display:grid; grid-template-columns:repeat(3,1fr); gap:8px;\">
+                            <div><strong>Total Curtains/Blinds:</strong> ${pl.totalCurtains || 0}</div>
+                            <div><strong>Total Wall Fixtures:</strong> ${pl.totalFixtures || 0}</div>
+                            <div><strong>BLDG. PERMIT:</strong> ${pl.permit || ''}</div>
+                            <div><strong>Total Boxes:</strong> ${pl.totalBoxes || 0}</div>
+                            <div><strong>Total Packages:</strong> ${pl.totalPackages || 0}</div>
+                            <div><strong>Commodity:</strong> ${pl.commodity || ''}</div>
+                            <div><strong>Total Value:</strong> ${pl.totalValue || 0}</div>
+                            <div><strong>Working Days:</strong> ${pl.workingDays || 0}</div>
+                            <div><strong>No. of Trips:</strong> ${pl.trips || 0}</div>
+                            <div><strong>Total CBM:</strong> ${Number(pl.totalCbm || 0).toFixed(2)}</div>
+                            <div><strong>Estimated KG:</strong> ${Number(pl.estimatedKg || 0).toFixed(2)}</div>
+                            <div><strong>Amount:</strong> ${pl.amount || 0}</div>
+                        </div>
+                        ${pl.terms ? `<div style=\"margin:12px 0;\"><strong>Terms:</strong><div style=\"white-space:pre-wrap; background:#f8fafc; padding:10px; border-radius:8px;\">${pl.terms}</div></div>` : ''}
+                        ` : ''}
                         ${surveyData.comments ? `<div style=\"margin:12px 0;\"><strong>Comments/Notes:</strong><div style=\"white-space:pre-wrap; background:#f0f9ff; padding:10px; border-radius:8px;\">${surveyData.comments}</div></div>` : ''}
                         ${surveyData.clientInstructions ? `<div style=\"margin:12px 0;\"><strong>Client Instructions:</strong><div style=\"white-space:pre-wrap; background:#fef3c7; padding:10px; border-radius:8px;\">${surveyData.clientInstructions}</div></div>` : ''}
                         ${images.length ? `<div style=\"margin:12px 0;\"><strong>Images:</strong><div style=\"display:flex; flex-wrap:wrap; gap:10px;\">${images.map(u => `<img src=\"${this.getImageUrl(u)}\" style=\"width:180px; height:auto; border:1px solid #e5e7eb; border-radius:6px;\"/>`).join('')}</div></div>` : ''}

@@ -98,6 +98,7 @@ function getSeedData() {
     staff: [],
     surveys: [],
     tracking: {},
+    branding: { logoUrl: '' },
     itemCatalog: [
       { name: '1 Seater Sofa', cbm: 0.57 },
       { name: '2 Seater Sofa', cbm: 1 },
@@ -741,6 +742,28 @@ app.post('/api/surveys/:id/complete', (req, res) => {
   } catch (error) {
     console.error('Error completing survey:', error);
     res.status(500).json({ error: 'Failed to complete survey' });
+  }
+});
+
+// Branding endpoints
+app.get('/api/branding', (req, res) => {
+  try {
+    const db = readDb();
+    res.json(db.branding || { logoUrl: '' });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to read branding' });
+  }
+});
+
+app.put('/api/branding', (req, res) => {
+  try {
+    const db = readDb();
+    const { logoUrl } = req.body || {};
+    db.branding = { logoUrl: logoUrl || '' };
+    writeDb(db);
+    res.json(db.branding);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to update branding' });
   }
 });
 

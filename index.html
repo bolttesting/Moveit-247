@@ -5883,6 +5883,15 @@
                 if (storedLogo) {
                     const img = header.querySelector('#app-logo');
                     img.src = this.getImageUrl(storedLogo);
+                } else {
+                    // Try backend branding
+                    fetch('/api/branding').then(r=>r.json()).then(b=>{
+                        if (b && b.logoUrl) {
+                            localStorage.setItem('moveit_logo_url', b.logoUrl);
+                            const img = header.querySelector('#app-logo');
+                            img.src = this.getImageUrl(b.logoUrl);
+                        }
+                    }).catch(()=>{});
                 }
                 document.body.prepend(header);
             }
@@ -9714,7 +9723,7 @@
                 }
             }
 
-            downloadSurveyReport(surveyId) {
+            async downloadSurveyReport(surveyId) {
                 const survey = this.data.surveys.find(s => s.id === surveyId);
                 if (!survey) return;
                 const container = document.createElement('div');
@@ -9743,8 +9752,18 @@
                         </tbody>
                     </table>
                 ` : '';
+                // Branding logo (if set)
+                let logoHtml = '';
+                try {
+                    const branding = await fetch('/api/branding').then(r=>r.json());
+                    if (branding && branding.logoUrl) {
+                        logoHtml = `<div style=\\"margin-bottom:12px;\\"><img src=\\"${this.getImageUrl(branding.logoUrl)}\\" style=\\"height:36px; width:auto;\\"/></div>`;
+                    }
+                } catch(e) {}
+
                 container.innerHTML = `
                     <div style="font-family: Arial, sans-serif; padding: 16px; color:#111827;">
+                        ${logoHtml}
                         <h2 style="margin:0 0 12px;">Survey Report #${survey.id}</h2>
                         <div style="margin:8px 0;"><strong>Client:</strong> ${survey.clientName} (${survey.clientNumber})</div>
                         <div style="margin:8px 0;"><strong>Location:</strong> ${survey.location}</div>

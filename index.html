@@ -7627,13 +7627,20 @@
                 
                 if (selects.length === 0) return;
                 
+                // Only admin can see designation in job assignment dropdowns
+                const showDesignation = this.currentRole === 'admin';
+                
                 selects.forEach(sel => {
                     sel.innerHTML = '';
                     this.data.staff.forEach(staff => {
                         const option = document.createElement('option');
                         option.value = staff.name;
-                        const designation = staff.designation || 'N/A';
-                        option.textContent = `${staff.name} - ${designation}`;
+                        if (showDesignation) {
+                            const designation = staff.designation || 'N/A';
+                            option.textContent = `${staff.name} - ${designation}`;
+                        } else {
+                            option.textContent = staff.name;
+                        }
                         sel.appendChild(option);
                     });
                 });
@@ -9234,17 +9241,23 @@
                 const name = document.getElementById('new-staff-name').value.trim();
                 const phone = document.getElementById('new-staff-phone').value.trim();
                 const email = document.getElementById('new-staff-email').value.trim();
-                const designation = document.getElementById('new-staff-designation').value.trim();
+                const designation = this.currentRole === 'admin' ? document.getElementById('new-staff-designation').value.trim() : '';
                 const username = document.getElementById('new-staff-username').value.trim();
                 const password = document.getElementById('new-staff-password').value;
                 const teamLeader = document.getElementById('new-staff-teamleader').value;
 
                 console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty', teamLeader });
 
-                // Validate required fields
+                // Validate required fields (designation only required for admin)
                 if (!name || !phone || !email || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                // Validate designation for admin
+                if (this.currentRole === 'admin' && !designation) {
+                    this.showNotification('Please select a designation', 'error');
                     return;
                 }
 
@@ -9270,7 +9283,7 @@
                     name,
                     phone,
                     email,
-                    designation: designation || 'Staff',
+                    designation: this.currentRole === 'admin' ? (designation || 'Staff') : 'Staff', // Only admin can set designation
                     username,
                     password,
                     teamLeader: teamLeader || '',

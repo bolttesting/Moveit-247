@@ -7339,13 +7339,32 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
 
-                if (!this.data.teamLeaders || this.data.teamLeaders.length === 0) {
+                // Get all team leaders (regular + promoted staff)
+                const allTeamLeaders = [];
+                
+                // Add regular team leaders
+                if (this.data.teamLeaders && this.data.teamLeaders.length > 0) {
+                    this.data.teamLeaders.forEach(tl => {
+                        allTeamLeaders.push({ name: tl.name, isPromoted: false });
+                    });
+                }
+                
+                // Add promoted staff members
+                if (this.data.staff && this.data.staff.length > 0) {
+                    this.data.staff.forEach(staff => {
+                        if (staff.isTeamLeader === true) {
+                            allTeamLeaders.push({ name: staff.name, isPromoted: true });
+                        }
+                    });
+                }
+
+                if (allTeamLeaders.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No team leaders available</td></tr>';
                     return;
                 }
 
-                this.data.teamLeaders.forEach(tl => {
-                    const tlJobs = this.data.jobs.filter(j => j.teamLeader === tl.name);
+                allTeamLeaders.forEach(tlInfo => {
+                    const tlJobs = this.data.jobs.filter(j => j.teamLeader === tlInfo.name);
                     const completed = tlJobs.filter(j => j.status === 'completed').length;
                     const pending = tlJobs.filter(j => !['completed', 'delayed'].includes(j.status)).length;
                     const delayed = tlJobs.filter(j => j.status === 'delayed').length;
@@ -7360,7 +7379,7 @@
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td style="font-weight:bold;">${tl.name}</td>
+                        <td style="font-weight:bold;">${tlInfo.name}${tlInfo.isPromoted ? ' <span style="color:#10b981; font-size:0.85em;">(Promoted)</span>' : ''}</td>
                         <td>${total}</td>
                         <td>${completed}</td>
                         <td>${pending}</td>
@@ -7555,14 +7574,35 @@
 
             populateTeamLeadersDropdown() {
                 const select = document.getElementById('team-leader-assign');
-                if (!select) return;
+                const editSelect = document.getElementById('edit-team-leader-assign');
+                const selects = [select, editSelect].filter(s => s);
                 
-                select.innerHTML = '<option value="">Select Team Leader</option>';
-                this.data.teamLeaders.forEach(tl => {
-                    const option = document.createElement('option');
-                    option.value = tl.name;
-                    option.textContent = tl.name;
-                    select.appendChild(option);
+                if (selects.length === 0) return;
+                
+                selects.forEach(sel => {
+                    sel.innerHTML = '<option value="">Select Team Leader</option>';
+                    
+                    // Add regular team leaders
+                    if (this.data.teamLeaders) {
+                        this.data.teamLeaders.forEach(tl => {
+                            const option = document.createElement('option');
+                            option.value = tl.name;
+                            option.textContent = tl.name;
+                            sel.appendChild(option);
+                        });
+                    }
+                    
+                    // Add promoted staff members (staff with isTeamLeader: true)
+                    if (this.data.staff) {
+                        this.data.staff.forEach(staff => {
+                            if (staff.isTeamLeader === true) {
+                                const option = document.createElement('option');
+                                option.value = staff.name;
+                                option.textContent = `${staff.name} (Promoted Staff)`;
+                                sel.appendChild(option);
+                            }
+                        });
+                    }
                 });
             }
 

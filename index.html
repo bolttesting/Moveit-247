@@ -6247,6 +6247,11 @@
                     // Merge uploaded data
                     Object.assign(jobData, uploadedData);
                     
+                    // Add username for inventory tracking
+                    if (this.currentUser && this.currentUser.username) {
+                        jobData.username = this.currentUser.username;
+                    }
+                    
                     // Create job via API
                     console.log('Sending job data to API:', jobData);
                     fetch('/api/jobs', {

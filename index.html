@@ -3870,7 +3870,7 @@
                             <div class="search-box">
                                 <input type="text" id="inventorycontrollers-search" placeholder="Search..." class="form-control">
                             </div>
-                            <button class="btn btn-primary" id="add-inventorycontroller-btn" onclick="app.showAddInventoryControllerModal()">Add Inventory Controller</button>
+                            <button class="btn btn-primary" id="add-inventorycontroller-btn">Add Inventory Controller</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -6535,7 +6535,8 @@
                 });
 
                 // Logout
-                document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) logoutBtn.addEventListener('click', () => this.handleLogout());
 
                 // Job completion
                 const submitCompletion = document.getElementById('submit-completion');
@@ -6548,30 +6549,59 @@
                 if (cancelApproval) cancelApproval.addEventListener('click', () => this.hideModals());
 
                 // Job editing
-                document.getElementById('update-job').addEventListener('click', () => this.updateJob());
+                const updateJobBtn = document.getElementById('update-job');
+                if (updateJobBtn) updateJobBtn.addEventListener('click', () => this.updateJob());
+                
+                const cancelEditJobBtn = document.getElementById('cancel-edit-job');
+                if (cancelEditJobBtn) cancelEditJobBtn.addEventListener('click', () => this.hideModals());
 
                 // Supervisor editing
-                document.getElementById('update-supervisor').addEventListener('click', () => this.updateSupervisor());
-                document.getElementById('cancel-edit-supervisor').addEventListener('click', () => this.hideModals());
+                const updateSupervisorBtn = document.getElementById('update-supervisor');
+                if (updateSupervisorBtn) updateSupervisorBtn.addEventListener('click', () => this.updateSupervisor());
+                const cancelEditSupervisorBtn = document.getElementById('cancel-edit-supervisor');
+                if (cancelEditSupervisorBtn) cancelEditSupervisorBtn.addEventListener('click', () => this.hideModals());
 
                 // Team Leader editing
-                document.getElementById('update-teamleader').addEventListener('click', () => this.updateTeamLeader());
-                document.getElementById('cancel-edit-teamleader').addEventListener('click', () => this.hideModals());
+                const updateTeamLeaderBtn = document.getElementById('update-teamleader');
+                if (updateTeamLeaderBtn) updateTeamLeaderBtn.addEventListener('click', () => this.updateTeamLeader());
+                const cancelEditTeamLeaderBtn = document.getElementById('cancel-edit-teamleader');
+                if (cancelEditTeamLeaderBtn) cancelEditTeamLeaderBtn.addEventListener('click', () => this.hideModals());
 
                 // Staff editing
-                document.getElementById('update-staff').addEventListener('click', () => this.updateStaff());
-                document.getElementById('cancel-edit-staff').addEventListener('click', () => this.hideModals());
+                const updateStaffBtn = document.getElementById('update-staff');
+                if (updateStaffBtn) updateStaffBtn.addEventListener('click', () => this.updateStaff());
+                const cancelEditStaffBtn = document.getElementById('cancel-edit-staff');
+                if (cancelEditStaffBtn) cancelEditStaffBtn.addEventListener('click', () => this.hideModals());
 
-                // Add buttons
-                document.getElementById('add-supervisor-btn').addEventListener('click', () => this.showAddSupervisorModal());
-                document.getElementById('add-teamleader-btn').addEventListener('click', () => this.showAddTeamLeaderModal());
-                document.getElementById('add-staff-btn').addEventListener('click', () => this.showAddStaffModal());
+                // Add buttons (with null checking)
+                const addSupervisorBtn = document.getElementById('add-supervisor-btn');
+                if (addSupervisorBtn) addSupervisorBtn.addEventListener('click', () => this.showAddSupervisorModal());
+                
+                const addTeamLeaderBtn = document.getElementById('add-teamleader-btn');
+                if (addTeamLeaderBtn) addTeamLeaderBtn.addEventListener('click', () => this.showAddTeamLeaderModal());
+                
+                const addStaffBtn = document.getElementById('add-staff-btn');
+                if (addStaffBtn) addStaffBtn.addEventListener('click', () => this.showAddStaffModal());
+                
+                const addInventoryControllerBtn = document.getElementById('add-inventorycontroller-btn');
+                if (addInventoryControllerBtn) {
+                    // Remove inline onclick if present
+                    addInventoryControllerBtn.removeAttribute('onclick');
+                    addInventoryControllerBtn.addEventListener('click', () => this.showAddInventoryControllerModal());
+                }
 
-                // Save new items
-                document.getElementById('save-supervisor').addEventListener('click', () => this.addSupervisor());
-                document.getElementById('save-teamleader').addEventListener('click', () => this.addTeamLeader());
-                document.getElementById('save-staff').addEventListener('click', () => this.addStaff());
-                document.getElementById('save-survey').addEventListener('click', () => this.addSurvey());
+                // Save new items (with null checking)
+                const saveSupervisorBtn = document.getElementById('save-supervisor');
+                if (saveSupervisorBtn) saveSupervisorBtn.addEventListener('click', () => this.addSupervisor());
+                
+                const saveTeamLeaderBtn = document.getElementById('save-teamleader');
+                if (saveTeamLeaderBtn) saveTeamLeaderBtn.addEventListener('click', () => this.addTeamLeader());
+                
+                const saveStaffBtn = document.getElementById('save-staff');
+                if (saveStaffBtn) saveStaffBtn.addEventListener('click', () => this.addStaff());
+                
+                const saveSurveyBtn = document.getElementById('save-survey');
+                if (saveSurveyBtn) saveSurveyBtn.addEventListener('click', () => this.addSurvey());
                 
                 // Inventory Controller modals
                 document.getElementById('update-inventorycontroller')?.addEventListener('click', () => this.updateInventoryController());

@@ -5497,12 +5497,12 @@
 
     <!-- Survey Details Modal -->
     <div class="modal" id="survey-details-modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 1200px; max-height: 95vh; overflow-y: auto;">
             <div class="modal-header">
                 <h3>Survey Details</h3>
                 <span class="close">&times;</span>
             </div>
-            <div class="modal-body" id="survey-details-body">
+            <div class="modal-body" id="survey-details-body" style="max-height: calc(95vh - 150px); overflow-y: auto;">
                 <!-- Survey details will be populated here -->
             </div>
             <div class="modal-footer">
@@ -10969,6 +10969,31 @@
                 const body = document.getElementById('survey-details-body');
                 const surveyData = survey.surveyData || {};
                 const images = surveyData.images || [];
+                const pl = survey.packingList || null;
+                const itemsTable = pl && pl.items && pl.items.length ? `
+                    <div class="table-responsive" style="overflow-x: auto; margin-top: 15px;">
+                        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="border: 1px solid #e5e7eb; padding: 10px; text-align: left; font-weight: 600;">Items</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 10px; text-align: center; font-weight: 600;">CBM</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 10px; text-align: center; font-weight: 600;">Nos. of Pcs</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 10px; text-align: center; font-weight: 600;">Total CBM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pl.items.map(it => `
+                                    <tr>
+                                        <td style="border: 1px solid #e5e7eb; padding: 10px;">${it.name || ''}</td>
+                                        <td style="border: 1px solid #e5e7eb; padding: 10px; text-align: center;">${Number(it.cbm || 0).toFixed(2)}</td>
+                                        <td style="border: 1px solid #e5e7eb; padding: 10px; text-align: center;">${it.pieces || 0}</td>
+                                        <td style="border: 1px solid #e5e7eb; padding: 10px; text-align: center; font-weight: 600;">${Number(it.totalCbm || (it.cbm||0)*(it.pieces||0)).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '';
 
                 body.innerHTML = `
                     <div class="detail-row">
@@ -11008,6 +11033,75 @@
                             <div class="detail-label">Completed At:</div>
                             <div class="detail-value">${survey.completedAt ? new Date(survey.completedAt).toLocaleString() : 'N/A'}</div>
                         </div>
+                        ${pl ? `
+                            <div class="detail-row" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                                <div class="detail-label" style="font-size: 18px; font-weight: 700; margin-bottom: 15px; width: 100%;">Packing List ${pl.serialNo ? `- S.No. ${pl.serialNo}` : ''}</div>
+                                <div class="detail-value" style="width: 100%;">
+                                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+                                            <div><strong>Company:</strong> ${pl.companyName || 'N/A'}</div>
+                                            <div><strong>Person:</strong> ${pl.personName || 'N/A'}</div>
+                                            <div><strong>Mobile:</strong> ${pl.mobile || 'N/A'}</div>
+                                            <div><strong>Email:</strong> ${pl.email || 'N/A'}</div>
+                                            <div><strong>Service:</strong> ${(pl.serviceTypes || []).join(', ') || 'N/A'}</div>
+                                            <div><strong>Source:</strong> ${pl.source || 'N/A'}</div>
+                                            <div><strong>Origin:</strong> ${pl.origin || 'N/A'} ${pl.originDate ? `(${pl.originDate} ${pl.originTime || ''})` : ''}</div>
+                                            <div><strong>Destination:</strong> ${pl.destination || 'N/A'} ${pl.destDate ? `(${pl.destDate} ${pl.destTime || ''})` : ''}</div>
+                                        </div>
+                                    </div>
+                                    ${itemsTable || '<p style="color: #64748b; padding: 20px; text-align: center;">No items added yet</p>'}
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                        <div><strong>Total Curtains/Blinds:</strong> ${pl.totalCurtains || 0}</div>
+                                        <div><strong>Total Wall Fixtures:</strong> ${pl.totalFixtures || 0}</div>
+                                        <div><strong>BLDG. PERMIT:</strong> ${pl.permit || 'N/A'}</div>
+                                        <div><strong>Total Boxes:</strong> ${pl.totalBoxes || 0}</div>
+                                        <div><strong>Total Packages:</strong> ${pl.totalPackages || 0}</div>
+                                        <div><strong>Commodity:</strong> ${pl.commodity || 'N/A'}</div>
+                                        <div><strong>Total Value:</strong> ${pl.totalValue || 0}</div>
+                                        <div><strong>Working Days:</strong> ${pl.workingDays || 0}</div>
+                                        <div><strong>No. of Trips:</strong> ${pl.trips || 0}</div>
+                                        <div><strong>Total CBM:</strong> ${Number(pl.totalCbm || 0).toFixed(2)}</div>
+                                        <div><strong>Estimated KG:</strong> ${Number(pl.estimatedKg || 0).toFixed(2)}</div>
+                                        <div><strong>Amount:</strong> ${pl.amount || 0}</div>
+                                    </div>
+                                    ${pl.terms ? `
+                                        <div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                                            <strong>Terms & Conditions:</strong>
+                                            <div style="white-space: pre-wrap; margin-top: 8px; color: #64748b;">${pl.terms}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${pl.estimatorName ? `
+                                        <div style="margin-top: 10px;">
+                                            <strong>Estimator:</strong> ${pl.estimatorName}
+                                        </div>
+                                    ` : ''}
+                                    ${pl.stampImage ? `
+                                        <div style="margin-top: 15px;">
+                                            <strong>Stamp/Seal:</strong>
+                                            <div style="margin-top: 8px;">
+                                                <img src="${app.getImageUrl(pl.stampImage)}" alt="Stamp" style="max-width: 200px; border: 1px solid #e5e7eb; border-radius: 4px;" onclick="app.showImageModal('${pl.stampImage}')">
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${pl.customerSignature ? `
+                                        <div style="margin-top: 15px;">
+                                            <strong>Customer Signature:</strong>
+                                            <div style="margin-top: 8px;">
+                                                <img src="${pl.customerSignature.startsWith('data:') ? pl.customerSignature : app.getImageUrl(pl.customerSignature)}" alt="Customer Signature" style="max-width: 300px; border: 1px solid #e5e7eb; border-radius: 4px; background: white;">
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${pl.moveitSignature ? `
+                                        <div style="margin-top: 15px;">
+                                            <strong>MoveIt Signature:</strong>
+                                            <div style="margin-top: 8px;">
+                                                <img src="${pl.moveitSignature.startsWith('data:') ? pl.moveitSignature : app.getImageUrl(pl.moveitSignature)}" alt="MoveIt Signature" style="max-width: 300px; border: 1px solid #e5e7eb; border-radius: 4px; background: white;">
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                         ${images.length > 0 ? `
                             <div class="detail-row">
                                 <div class="detail-label">Apartment Images:</div>

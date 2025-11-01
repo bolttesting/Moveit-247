@@ -7140,6 +7140,11 @@
                 // Load section data (only if needed)
                 switch(section) {
                     case 'dashboard': 
+                        // Redirect team leaders and staff away from dashboard
+                        if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
+                            this.navigateTo('surveys');
+                            return;
+                        }
                         // Inventory controllers should not see dashboard - redirect to inventory
                         if (this.currentRole === 'inventoryController') {
                             this.navigateTo('inventory');
@@ -7147,8 +7152,13 @@
                         }
                         await this.loadDashboard(); 
                         break;
-                    case 'jobs': 
+                    case 'jobs':
                     case 'add-projects':
+                        // Redirect team leaders and staff away from add-projects
+                        if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
+                            this.navigateTo('surveys');
+                            return;
+                        }
                         // Show add projects tab
                         document.querySelectorAll('.tab-content').forEach(tab => {
                             tab.style.display = 'none';
@@ -7162,6 +7172,11 @@
                         this.loadJobs(); 
                         break;
                     case 'current-projects':
+                        // Redirect team leaders and staff away from current-projects
+                        if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
+                            this.navigateTo('surveys');
+                            return;
+                        }
                         // Show current projects tab
                         document.querySelectorAll('.tab-content').forEach(tab => {
                             tab.style.display = 'none';

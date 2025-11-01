@@ -521,30 +521,122 @@ function createRoute(key, idField = 'id') {
 
 function updateRoute(key, idField = 'id') {
   return (req, res) => {
-    const db = readDb();
-    const id = String(req.params.id);
-    const idx = db[key].findIndex(x => String(x[idField]) === id);
-    if (idx === -1) return res.status(404).json({ error: 'Not found' });
-    const old = db[key][idx];
-    const updated = { ...old, ...req.body };
-    db[key][idx] = updated;
-    if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key)) {
-      if (old.username && db.users[old.username] && old.username !== updated.username) {
-        delete db.users[old.username];
+    try {
+      const db = readDb();
+      const id = String(req.params.id);
+      const idx = db[key].findIndex(x => String(x[idField]) === id);
+      if (idx === -1) return res.status(404).json({ error: 'Not found' });
+      const old = db[key][idx];
+      const updated = { ...old, ...req.body };
+      
+      // Handle inventory deduction when updating job with packingMaterials
+      if (key === 'jobs' && updated.packingMaterials && Array.isArray(updated.packingMaterials)) {
+        if (!db.inventory) {
+          db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+        }
+        
+        const oldMaterials = old.packingMaterials || [];
+        const newMaterials = updated.packingMaterials || [];
+        
+        // First, restore old materials back to inventory
+        for (const oldMat of oldMaterials) {
+          const material = db.inventory.materials.find(m => m.id === oldMat.id);
+          if (!material) continue;
+          
+          const oldQuantity = parseInt(oldMat.quantity) || 0;
+          if (oldQuantity <= 0) continue;
+          
+          // Restore quantity back to inventory
+          material.quantity += oldQuantity;
+          
+          // Log transaction for restoration
+          db.inventory.transactions.push({
+            id: Date.now() + Math.random(),
+            type: 'return',
+            materialId: oldMat.id,
+            materialName: material.name,
+            quantity: oldQuantity,
+            projectId: id,
+            performedBy: req.body.username || 'system',
+            performedByName: req.body.username || 'System',
+            timestamp: new Date().toISOString(),
+            notes: `Returned from project #${id} (update)`
+          });
+        }
+        
+        // Now deduct new materials from inventory
+        for (const newMat of newMaterials) {
+          const material = db.inventory.materials.find(m => m.id === newMat.id);
+          if (!material) {
+            console.warn(`Material with id ${newMat.id} not found in inventory`);
+            continue;
+          }
+          
+          const newQuantity = parseInt(newMat.quantity) || 0;
+          if (newQuantity <= 0) continue;
+          
+          // Check if enough stock (unless admin/inventoryController - they can override)
+          const user = db.users[req.body.username] || db.users['admin']; // Default to admin if not specified
+          if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+            if (material.quantity < newQuantity) {
+              // Restore already returned materials if insufficient stock
+              for (const oldMat of oldMaterials) {
+                const mat = db.inventory.materials.find(m => m.id === oldMat.id);
+                if (mat) {
+                  const oldQty = parseInt(oldMat.quantity) || 0;
+                  mat.quantity -= oldQty; // Reverse the restoration
+                }
+              }
+              return res.status(400).json({ 
+                error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${newQuantity}` 
+              });
+            }
+          }
+          
+          // Deduct from inventory
+          const oldQuantity = material.quantity;
+          material.quantity -= newQuantity;
+          
+          // Log transaction
+          db.inventory.transactions.push({
+            id: Date.now() + Math.random(),
+            type: 'assignment',
+            materialId: newMat.id,
+            materialName: material.name,
+            quantity: -newQuantity,
+            projectId: id,
+            performedBy: user ? user.username : 'system',
+            performedByName: user ? user.name : 'System',
+            timestamp: new Date().toISOString(),
+            notes: `Assigned to project #${id} (update)`
+          });
+          
+          console.log(`📦 Material ${material.name}: ${oldQuantity} → ${material.quantity} (assigned ${newQuantity} to project #${id})`);
+        }
       }
-      const role = key === 'staff' ? 'staff' : 
-                   key === 'teamLeaders' ? 'teamLeader' : 
-                   key === 'inventoryControllers' ? 'inventoryController' : 
-                   'supervisor';
-      db.users[updated.username] = {
-        username: updated.username,
-        password: updated.password || db.users[updated.username]?.password || old.password,
-        role: role,
-        name: updated.name
-      };
+      
+      db[key][idx] = updated;
+      if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key)) {
+        if (old.username && db.users[old.username] && old.username !== updated.username) {
+          delete db.users[old.username];
+        }
+        const role = key === 'staff' ? 'staff' : 
+                     key === 'teamLeaders' ? 'teamLeader' : 
+                     key === 'inventoryControllers' ? 'inventoryController' : 
+                     'supervisor';
+        db.users[updated.username] = {
+          username: updated.username,
+          password: updated.password || db.users[updated.username]?.password || old.password,
+          role: role,
+          name: updated.name
+        };
+      }
+      writeDb(db);
+      res.json(updated);
+    } catch (error) {
+      console.error(`Error updating ${key}:`, error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-    writeDb(db);
-    res.json(updated);
   };
 }
 

@@ -6199,21 +6199,28 @@
                 // Get project name (Tab 1)
                 const projectName = document.getElementById('project-name')?.value || '';
                 
-                // Get form data
+                // Get apartment size with custom handling
+                const apartmentSizeSelect = document.getElementById('apartment-size');
+                const apartmentSize = apartmentSizeSelect?.value || '';
+                const apartmentSizeCustom = apartmentSize === 'custom' ? (document.getElementById('apartment-size-custom')?.value || '') : '';
+                
+                // Get form data with null-safe access
                 const jobData = {
                     projectName: projectName, // New field
-                    date: document.getElementById('job-date').value,
-                    time: document.getElementById('job-time').value,
-                    clientName: document.getElementById('client-name').value,
-                    clientPhone: document.getElementById('client-phone').value,
-                    clientEmail: document.getElementById('client-email').value,
-                    moveFrom: document.getElementById('move-from').value,
-                    moveTo: document.getElementById('move-to').value,
-                    teamLeader: document.getElementById('team-leader-assign').value,
-                    assignedStaff: Array.from(document.getElementById('assign-staff').selectedOptions).map(option => option.value).filter(v => v),
-                    moveOutPermit: document.getElementById('move-out-permit').dataset.uploadUrl || '',
-                    moveInPermit: document.getElementById('move-in-permit').dataset.uploadUrl || '',
-                    itemImages: document.getElementById('item-images').dataset.uploadUrls ? JSON.parse(document.getElementById('item-images').dataset.uploadUrls) : [],
+                    date: document.getElementById('job-date')?.value || '',
+                    time: document.getElementById('job-time')?.value || '',
+                    clientName: document.getElementById('client-name')?.value || '',
+                    clientPhone: document.getElementById('client-phone')?.value || '',
+                    clientEmail: document.getElementById('client-email')?.value || '',
+                    moveFrom: document.getElementById('move-from')?.value || '',
+                    moveTo: document.getElementById('move-to')?.value || '',
+                    apartmentSize: apartmentSize,
+                    apartmentSizeCustom: apartmentSizeCustom,
+                    teamLeader: document.getElementById('team-leader-assign')?.value || '',
+                    assignedStaff: document.getElementById('assign-staff') ? Array.from(document.getElementById('assign-staff').selectedOptions).map(option => option.value).filter(v => v) : [],
+                    moveOutPermit: document.getElementById('move-out-permit')?.dataset.uploadUrl || '',
+                    moveInPermit: document.getElementById('move-in-permit')?.dataset.uploadUrl || '',
+                    itemImages: document.getElementById('item-images')?.dataset.uploadUrls ? JSON.parse(document.getElementById('item-images').dataset.uploadUrls) : [],
                     instructions: document.getElementById('job-instructions')?.value || '',
                     stuffDetails: document.getElementById('stuff-details')?.value || '',
                     surveyFormId: document.getElementById('survey-form-select')?.value || ''
@@ -6236,16 +6243,23 @@
                 console.log('Project form data:', jobData);
 
                 // Validate required fields
-                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
+                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo || !apartmentSize) {
                     console.error('Validation failed - missing required fields:', {
                         projectName: jobData.projectName,
                         clientName: jobData.clientName,
                         date: jobData.date,
                         time: jobData.time,
                         moveFrom: jobData.moveFrom,
-                        moveTo: jobData.moveTo
+                        moveTo: jobData.moveTo,
+                        apartmentSize: apartmentSize
                     });
-                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, and Locations)', 'error');
+                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, Locations, and Apartment Size)', 'error');
+                    return;
+                }
+                
+                // Validate custom apartment size if "custom" is selected
+                if (apartmentSize === 'custom' && !apartmentSizeCustom.trim()) {
+                    this.showNotification('Please enter a custom apartment size', 'error');
                     return;
                 }
 
@@ -6303,7 +6317,8 @@
                 const uploadPromises = [];
                 
                 // Upload move out permit
-                const moveOutFile = document.getElementById('move-out-permit').files[0];
+                const moveOutElement = document.getElementById('move-out-permit');
+                const moveOutFile = moveOutElement?.files?.[0];
                 if (moveOutFile) {
                     uploadPromises.push(
                         this.uploadFile(moveOutFile).then(url => ({ moveOutPermit: url }))
@@ -6311,7 +6326,8 @@
                 }
                 
                 // Upload move in permit
-                const moveInFile = document.getElementById('move-in-permit').files[0];
+                const moveInElement = document.getElementById('move-in-permit');
+                const moveInFile = moveInElement?.files?.[0];
                 if (moveInFile) {
                     uploadPromises.push(
                         this.uploadFile(moveInFile).then(url => ({ moveInPermit: url }))
@@ -6319,7 +6335,8 @@
                 }
                 
                 // Upload item images
-                const itemFiles = Array.from(document.getElementById('item-images').files || []);
+                const itemImagesElement = document.getElementById('item-images');
+                const itemFiles = itemImagesElement ? Array.from(itemImagesElement.files || []) : [];
                 if (itemFiles.length > 0) {
                     uploadPromises.push(
                         Promise.all(itemFiles.map(file => this.uploadFile(file)))

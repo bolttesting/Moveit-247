@@ -98,12 +98,16 @@
             iframe.style.border = '1px solid #ddd';
             iframe.style.marginTop = '20px';
             
-            iframe.onload = function() {
-                log('✅ Application loaded\n', 'success');
-                
-                try {
-                    const appWindow = iframe.contentWindow;
-                    const appDocument = iframe.contentDocument || appWindow.document;
+                    iframe.onload = function() {
+                        log('✅ Application loaded\n', 'success');
+                        log('⚠️ Note: Due to CORS restrictions, direct iframe testing is limited.\n', 'error');
+                        log('💡 Please run the test script directly in the application console instead.\n', 'info');
+                        log('   Open http://localhost:4000, login, open console (F12), and run test-buttons-direct.js\n', 'info');
+                        return;
+                        
+                        try {
+                            const appWindow = iframe.contentWindow;
+                            const appDocument = iframe.contentDocument || appWindow.document;
                     
                     // Wait a bit for app initialization
                     setTimeout(() => {

@@ -6738,6 +6738,27 @@
                 document.getElementById('cancel-add-supervisor')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('cancel-add-teamleader')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('cancel-add-staff')?.addEventListener('click', () => this.hideModals());
+                
+                // Handle all close buttons (X) in modals
+                document.querySelectorAll('.modal .close').forEach(closeBtn => {
+                    closeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const modal = closeBtn.closest('.modal');
+                        if (modal) {
+                            this.hideModals();
+                        }
+                    });
+                });
+                
+                // Close modal when clicking outside (on overlay)
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            this.hideModals();
+                        }
+                    });
+                });
 
                 // Submenu toggle for Projects
                 document.querySelectorAll('.has-submenu > a').forEach(link => {
@@ -10031,12 +10052,32 @@
                 const modal = document.getElementById(modalId);
                 if (!modal) {
                     console.error(`Modal not found: ${modalId}`);
+                    this.showNotification(`Modal "${modalId}" not found. Please refresh the page.`, 'error');
                     return;
                 }
+                console.log(`Opening modal: ${modalId}`);
+                console.log('Modal element:', modal);
+                console.log('Modal current display:', window.getComputedStyle(modal).display);
+                
+                // Force show the modal
                 modal.style.display = 'flex';
                 modal.classList.add('active');
+                modal.setAttribute('data-modal-active', 'true');
+                
                 // Also ensure body doesn't scroll
                 document.body.style.overflow = 'hidden';
+                
+                // Double-check it's visible
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(modal);
+                    console.log('Modal computed display after show:', computedStyle.display);
+                    console.log('Modal visibility:', computedStyle.visibility);
+                    console.log('Modal z-index:', computedStyle.zIndex);
+                    if (computedStyle.display !== 'flex' && computedStyle.display !== 'block') {
+                        console.warn('Modal display not set correctly, forcing...');
+                        modal.style.setProperty('display', 'flex', 'important');
+                    }
+                }, 10);
             }
 
             hideModals() {

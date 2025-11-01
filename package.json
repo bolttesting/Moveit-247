@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --env-file=.env server.js"
+    "dev": "node --env-file=.env server.js",
+    "generate-icons": "node android/generate-icons.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

@@ -6790,6 +6790,182 @@
                     });
                 });
 
+                // Comprehensive button event delegation system
+                // Store reference to this for event delegation
+                const self = this;
+                
+                // Remove old global button delegation handler if exists
+                if (this._globalButtonDelegationHandler) {
+                    document.removeEventListener('click', this._globalButtonDelegationHandler, true);
+                }
+                
+                // Create global button delegation handler
+                this._globalButtonDelegationHandler = function(e) {
+                    const target = e.target;
+                    const button = target.closest('button') || target.closest('a.btn');
+                    if (!button) return;
+                    
+                    const buttonId = button.id || '';
+                    const buttonClass = button.className || '';
+                    const buttonText = button.textContent.trim();
+                    const onclickAttr = button.getAttribute('onclick');
+                    
+                    // If button has onclick attribute, let it handle it (but we'll also handle missing handlers)
+                    // We'll handle buttons without handlers here
+                    
+                    // Map button IDs to handler functions
+                    const buttonHandlerMap = {
+                        // Add buttons
+                        'add-supervisor-btn': () => self.showAddSupervisorModal(),
+                        'add-teamleader-btn': () => self.showAddTeamLeaderModal(),
+                        'add-staff-btn': () => self.showAddStaffModal(),
+                        'add-inventorycontroller-btn': () => self.showAddInventoryControllerModal(),
+                        'add-survey-btn': () => self.showAddSurveyModal(),
+                        'add-material-btn': () => self.showAddMaterialModal(),
+                        'add-custom-item-btn': () => self.showAddCustomItemModal(),
+                        
+                        // Save buttons
+                        'save-supervisor': () => self.addSupervisor(),
+                        'save-teamleader': () => self.addTeamLeader(),
+                        'save-staff': () => self.addStaff(),
+                        'save-inventorycontroller': () => self.saveInventoryController(),
+                        'save-material': () => self.saveMaterial(),
+                        'save-survey': () => self.addSurvey(),
+                        'save-custom-item': () => self.addCustomItem(),
+                        
+                        // Update buttons
+                        'update-supervisor': () => self.updateSupervisor(),
+                        'update-teamleader': () => self.updateTeamLeader(),
+                        'update-staff': () => self.updateStaff(),
+                        'update-job': () => self.updateJob(),
+                        'update-inventorycontroller': () => self.updateInventoryController(),
+                        
+                        // Close/Details buttons
+                        'close-job-details': () => self.hideModals(),
+                        'close-supervisor-details': () => self.hideModals(),
+                        'close-teamleader-details': () => self.hideModals(),
+                        'close-staff-details': () => self.hideModals(),
+                        'close-inventorycontroller-details': () => self.hideModals(),
+                        'close-survey-details': () => self.hideModals(),
+                        
+                        // Cancel buttons
+                        'cancel-add-supervisor': () => self.hideModals(),
+                        'cancel-add-teamleader': () => self.hideModals(),
+                        'cancel-add-staff': () => self.hideModals(),
+                        'cancel-add-inventorycontroller': () => self.hideModals(),
+                        'cancel-add-material': () => self.hideModals(),
+                        'cancel-add-survey': () => self.hideModals(),
+                        'cancel-edit-supervisor': () => self.hideModals(),
+                        'cancel-edit-teamleader': () => self.hideModals(),
+                        'cancel-edit-staff': () => self.hideModals(),
+                        'cancel-edit-job': () => self.hideModals(),
+                        'cancel-edit-inventorycontroller': () => self.hideModals(),
+                        'cancel-complete-survey': () => self.hideModals(),
+                        'cancel-custom-item': () => self.hideModals(),
+                        'cancel-completion': () => self.hideModals(),
+                        'cancel-approval': () => self.hideModals(),
+                        
+                        // Action buttons
+                        'submit-completion': () => self.submitJobCompletion(),
+                        'approve-job': () => self.approveJobCompletion(),
+                        'submit-survey': () => self.completeSurvey(),
+                        'submit-bill-btn': () => self.submitBill(),
+                        'download-survey-report': () => self.downloadSurveyReport(),
+                        
+                        // Refresh buttons
+                        'refresh-tracking-btn': () => self.refreshTracking(),
+                    };
+                    
+                    // Check if button ID has a handler
+                    if (buttonId && buttonHandlerMap[buttonId]) {
+                        // Only handle if no onclick attribute (to avoid double execution)
+                        if (!onclickAttr || onclickAttr.includes('app.')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log(`Button clicked via delegation: ${buttonId}`);
+                            buttonHandlerMap[buttonId]();
+                            return;
+                        }
+                    }
+                    
+                    // Handle buttons with onclick that might be broken (if not already handled by ID map)
+                    if (onclickAttr && onclickAttr.includes('app.') && !buttonHandlerMap[buttonId]) {
+                        // Extract function calls from onclick (handle multiple calls)
+                        const functionMatches = onclickAttr.matchAll(/app\.(\w+)\s*\(([^)]*)\)/g);
+                        
+                        for (const match of functionMatches) {
+                            const funcName = match[1];
+                            const params = match[2];
+                            
+                            // Check if function exists
+                            if (typeof self[funcName] === 'function') {
+                                console.log(`Handling onclick via delegation: ${funcName}(${params})`);
+                                
+                                // Parse and call function with params
+                                try {
+                                    if (params && params.trim()) {
+                                        // Try to evaluate params (for simple cases)
+                                        const parsedParams = params.split(',').map(p => {
+                                            p = p.trim();
+                                            if (p === 'event' || p === 'e') return e;
+                                            if ((p.startsWith("'") && p.endsWith("'")) || (p.startsWith('"') && p.endsWith('"'))) {
+                                                return p.slice(1, -1); // Remove quotes
+                                            }
+                                            if (!isNaN(p) && p !== '') return Number(p);
+                                            if (p === 'true') return true;
+                                            if (p === 'false') return false;
+                                            // Try to evaluate as expression for things like 'job.id'
+                                            try {
+                                                // Check if it's a variable reference (like 'job.id')
+                                                if (p.includes('.')) {
+                                                    // Don't try to evaluate complex expressions, pass as string
+                                                    return p;
+                                                }
+                                                return eval(p); // Only for simple literals
+                                            } catch {
+                                                return p; // Return as string if evaluation fails
+                                            }
+                                        });
+                                        self[funcName](...parsedParams);
+                                    } else {
+                                        self[funcName]();
+                                    }
+                                    // Prevent default to avoid double execution
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    return; // Only handle first function call
+                                } catch (err) {
+                                    console.error(`Error calling ${funcName}:`, err);
+                                    // Fall back to letting onclick handle it
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Handle buttons by text content as fallback (for buttons without IDs)
+                    const buttonTextLower = buttonText.toLowerCase();
+                    if (buttonTextLower.includes('add material') && typeof self.showAddMaterialModal === 'function') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Button clicked via text fallback: Add Material');
+                        self.showAddMaterialModal();
+                        return;
+                    }
+                    if (buttonTextLower.includes('refresh') && buttonClass.includes('inventory')) {
+                        // Check context - if in inventory section, call loadInventory
+                        if (button.closest('#inventory-content')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Button clicked via text fallback: Refresh Inventory');
+                            self.loadInventory();
+                            return;
+                        }
+                    }
+                };
+                
+                // Attach global delegation handler
+                document.addEventListener('click', this._globalButtonDelegationHandler, true);
+
                 // Cancel buttons
                 document.querySelectorAll('.btn-secondary').forEach(btn => {
                     if (!btn.id.includes('edit') && !btn.id.includes('add')) {

@@ -10740,6 +10740,7 @@
                     const res = await fetch('/api/item-catalog');
                     const catalog = await res.json();
                     this.itemCatalog = catalog || [];
+                    console.log('Item catalog loaded:', this.itemCatalog.length, 'items');
                 } catch (error) {
                     console.error('Error loading item catalog:', error);
                     this.itemCatalog = [];
@@ -10748,10 +10749,23 @@
 
             populateItemsTable(existingItems = []) {
                 const tbody = document.getElementById('packing-list-items-tbody');
+                if (!tbody) {
+                    console.error('packing-list-items-tbody not found');
+                    return;
+                }
                 tbody.innerHTML = '';
                 
                 // Add all items from catalog
                 const catalogToAdd = existingItems.length > 0 ? existingItems : this.itemCatalog || [];
+                
+                console.log('Populating items table:', catalogToAdd.length, 'items');
+                console.log('Item catalog length:', this.itemCatalog?.length || 0);
+                
+                if (catalogToAdd.length === 0) {
+                    console.warn('No items to display in packing list table');
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">No items available. Please refresh the page.</td></tr>';
+                    return;
+                }
                 
                 catalogToAdd.forEach((item, index) => {
                     const row = this.createItemRow(item, index);

@@ -3536,12 +3536,12 @@
                                 <div class="form-group">
                                         <label>Moving From <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" id="move-from" required>
-                                    </div>
-                                    <div class="form-group">
+                                </div>
+                                <div class="form-group">
                                         <label>Moving To <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" id="move-to" required>
-                                    </div>
-                                    <div class="form-group">
+                                </div>
+                                <div class="form-group">
                                         <label>Customer Name <span style="color: red;">*</span></label>
                                     <input type="text" class="form-control" id="client-name" required>
                                 </div>
@@ -3550,8 +3550,21 @@
                                     <input type="tel" class="form-control" id="client-phone" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Email</label>
-                                        <input type="email" class="form-control" id="client-email">
+                                    <label>Apartment Size <span style="color: red;">*</span></label>
+                                    <select class="form-control" id="apartment-size" required onchange="app.handleApartmentSizeChange()">
+                                        <option value="">Select Size</option>
+                                        <option value="studio">Studio</option>
+                                        <option value="1br">1 Bedroom</option>
+                                        <option value="2br">2 Bedrooms</option>
+                                        <option value="3br">3 Bedrooms</option>
+                                        <option value="4br">4 Bedrooms</option>
+                                        <option value="villa">Villa</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="apartment-size-custom-group" style="display: none;">
+                                    <label>Custom Apartment Size <span style="color: red;">*</span></label>
+                                    <input type="text" class="form-control" id="apartment-size-custom" placeholder="E.g., 4 Bedroom Villa, Studio, Penthouse">
                                 </div>
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -3764,14 +3777,13 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Phone</th>
-                                    <th>Email</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="5" class="no-data">No supervisors available</td>
+                                    <td colspan="4" class="no-data">No supervisors available</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -3868,14 +3880,13 @@
                                     <th>Name</th>
                                     <th>Username</th>
                                     <th>Phone</th>
-                                    <th>Email</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="6" class="no-data">No inventory controllers available</td>
+                                    <td colspan="5" class="no-data">No inventory controllers available</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -4283,10 +4294,6 @@
                                     <input type="tel" class="form-control" id="profile-phone">
                                 </div>
                                 <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" class="form-control" id="profile-email">
-                                </div>
-                                <div class="form-group">
                                     <label>New Password</label>
                                     <input type="password" class="form-control" id="profile-password">
                                 </div>
@@ -4674,10 +4681,6 @@
                             <input type="tel" class="form-control" id="edit-client-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="edit-client-email" required>
-                        </div>
-                        <div class="form-group">
                             <label>Apartment Size</label>
                             <select class="form-control" id="edit-apartment-size" required onchange="app.handleEditApartmentSizeChange()">
                                 <option value="">Select Size</option>
@@ -4782,9 +4785,6 @@
                             <input type="tel" class="form-control" id="edit-inventorycontroller-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="edit-inventorycontroller-email" required>
-                        </div>
                         <div class="form-group">
                             <label>Username</label>
                             <input type="text" class="form-control" id="edit-inventorycontroller-username" required>
@@ -4829,9 +4829,6 @@
                             <input type="tel" class="form-control" id="new-inventorycontroller-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="new-inventorycontroller-email" required>
-                        </div>
                         <div class="form-group">
                             <label>Username</label>
                             <input type="text" class="form-control" id="new-inventorycontroller-username" required>
@@ -4902,10 +4899,6 @@
                             <input type="tel" class="form-control" id="edit-supervisor-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="edit-supervisor-email" required>
-                        </div>
-                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="edit-supervisor-designation" required>
                         </div>
@@ -4947,10 +4940,6 @@
                             <input type="tel" class="form-control" id="edit-teamleader-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="edit-teamleader-email" required>
-                        </div>
-                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="edit-teamleader-designation" required>
                         </div>
@@ -4990,10 +4979,6 @@
                         <div class="form-group">
                             <label>Phone</label>
                             <input type="tel" class="form-control" id="edit-staff-phone" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="edit-staff-email" required>
                         </div>
                         <div class="form-group" id="edit-staff-designation-group">
                             <label>Designation</label>
@@ -5048,10 +5033,6 @@
                             <input type="tel" class="form-control" id="new-supervisor-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="new-supervisor-email" required>
-                        </div>
-                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="new-supervisor-designation" required>
                         </div>
@@ -5102,10 +5083,6 @@
                             <input type="tel" class="form-control" id="new-teamleader-phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="new-teamleader-email" required>
-                        </div>
-                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="new-teamleader-designation" required>
                         </div>
@@ -5154,10 +5131,6 @@
                         <div class="form-group">
                             <label>Phone</label>
                             <input type="tel" class="form-control" id="new-staff-phone" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" id="new-staff-email" required>
                         </div>
                         <div class="form-group" id="new-staff-designation-group">
                             <label>Designation</label>
@@ -5286,9 +5259,6 @@
                                 <input type="tel" class="form-control" id="pl-mobile" required>
                             </div>
                             <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" class="form-control" id="pl-email">
-                            </div>
                             <div class="form-group">
                                 <label>Source</label>
                                 <input type="text" class="form-control" id="pl-source">
@@ -6196,7 +6166,8 @@
                     time: document.getElementById('job-time').value,
                     clientName: document.getElementById('client-name').value,
                     clientPhone: document.getElementById('client-phone').value,
-                    clientEmail: document.getElementById('client-email').value,
+                    apartmentSize: document.getElementById('apartment-size').value,
+                    apartmentSizeCustom: document.getElementById('apartment-size-custom').value || '',
                     moveFrom: document.getElementById('move-from').value,
                     moveTo: document.getElementById('move-to').value,
                     teamLeader: document.getElementById('team-leader-assign').value,
@@ -6226,16 +6197,23 @@
                 console.log('Project form data:', jobData);
 
                 // Validate required fields
-                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
+                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo || !jobData.apartmentSize) {
                     console.error('Validation failed - missing required fields:', {
                         projectName: jobData.projectName,
                         clientName: jobData.clientName,
                         date: jobData.date,
                         time: jobData.time,
                         moveFrom: jobData.moveFrom,
-                        moveTo: jobData.moveTo
+                        moveTo: jobData.moveTo,
+                        apartmentSize: jobData.apartmentSize
                     });
-                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, and Locations)', 'error');
+                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, Locations, and Apartment Size)', 'error');
+                    return;
+                }
+                
+                // Validate custom apartment size if selected
+                if (jobData.apartmentSize === 'custom' && !jobData.apartmentSizeCustom) {
+                    this.showNotification('Please enter custom apartment size', 'error');
                     return;
                 }
 
@@ -9016,7 +8994,6 @@
                     row.innerHTML = `
                         <td>${sup.name}</td>
                         <td>${sup.phone}</td>
-                        <td>${sup.email}</td>
                         <td><span class="status-badge status-${sup.status}">${this.formatStatus(sup.status)}</span></td>
                         <td>
                             <button class="btn btn-primary btn-sm view-supervisor-btn" data-id="${sup.id}">View</button>
@@ -9411,7 +9388,7 @@
                 if (approveBtn) {
                     if (canApprove) {
                         approveBtn.style.display = 'block';
-                        approveBtn.onclick = () => this.approveJob(jobId);
+                approveBtn.onclick = () => this.approveJob(jobId);
                     } else {
                         // Hide approve button for team leaders and other roles
                         approveBtn.style.display = 'none';
@@ -9464,9 +9441,7 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const email = row.cells[2]?.textContent.toLowerCase() || '';
-                    
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9478,9 +9453,7 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const email = row.cells[2]?.textContent.toLowerCase() || '';
-                    
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9492,9 +9465,7 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const email = row.cells[2]?.textContent.toLowerCase() || '';
-                    
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9503,7 +9474,7 @@
             exportJobsCSV() {
                 const jobs = this.data.jobs.filter(job => job.status !== 'completed');
                 const csv = this.convertToCSV(jobs, [
-                    'id', 'clientName', 'email', 'phone', 'date', 'movingFrom', 'movingTo', 
+                    'id', 'clientName', 'phone', 'date', 'movingFrom', 'movingTo', 
                     'apartmentSize', 'teamLeader', 'status', 'requirementsAcknowledged'
                 ]);
                 this.downloadCSV(csv, 'current-jobs.csv');
@@ -10050,7 +10021,6 @@
                 document.getElementById('edit-job-time').value = job.time || '';
                 document.getElementById('edit-client-name').value = job.clientName;
                 document.getElementById('edit-client-phone').value = job.clientPhone;
-                document.getElementById('edit-client-email').value = job.clientEmail;
                 document.getElementById('edit-apartment-size').value = job.apartmentSize;
                 document.getElementById('edit-apartment-size-custom').value = job.apartmentSizeCustom || '';
                 document.getElementById('edit-move-from').value = job.moveFrom;
@@ -10124,7 +10094,6 @@
                     time: document.getElementById('edit-job-time').value,
                     clientName: document.getElementById('edit-client-name').value,
                     clientPhone: document.getElementById('edit-client-phone').value,
-                    clientEmail: document.getElementById('edit-client-email').value,
                     apartmentSize: document.getElementById('edit-apartment-size').value,
                     apartmentSizeCustom: document.getElementById('edit-apartment-size-custom').value,
                     moveFrom: document.getElementById('edit-move-from').value,
@@ -10232,23 +10201,16 @@
                 // Get form values
                 const name = document.getElementById('new-supervisor-name').value.trim();
                 const phone = document.getElementById('new-supervisor-phone').value.trim();
-                const email = document.getElementById('new-supervisor-email').value.trim();
                 const designation = document.getElementById('new-supervisor-designation').value.trim();
                 const username = document.getElementById('new-supervisor-username').value.trim();
                 const password = document.getElementById('new-supervisor-password').value;
 
-                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
+                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty' });
 
                 // Validate required fields
-                if (!name || !phone || !email || !username || !password) {
+                if (!name || !phone || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
-                    return;
-                }
-
-                // Validate email format
-                if (email && !this.isValidEmail(email)) {
-                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10267,7 +10229,6 @@
                 const newSupervisor = {
                     name,
                     phone,
-                    email,
                     designation: designation || 'Supervisor',
                     username,
                     password,
@@ -10312,23 +10273,16 @@
                 // Get form values
                 const name = document.getElementById('new-teamleader-name').value.trim();
                 const phone = document.getElementById('new-teamleader-phone').value.trim();
-                const email = document.getElementById('new-teamleader-email').value.trim();
                 const designation = document.getElementById('new-teamleader-designation').value.trim();
                 const username = document.getElementById('new-teamleader-username').value.trim();
                 const password = document.getElementById('new-teamleader-password').value;
 
-                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
+                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty' });
 
                 // Validate required fields
-                if (!name || !phone || !email || !username || !password) {
+                if (!name || !phone || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
-                    return;
-                }
-
-                // Validate email format
-                if (email && !this.isValidEmail(email)) {
-                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10347,7 +10301,6 @@
                 const newTeamLeader = {
                     name,
                     phone,
-                    email,
                     designation: designation || 'Team Leader',
                     username,
                     password,
@@ -10395,16 +10348,15 @@
                 // Get form values
                 const name = document.getElementById('new-staff-name').value.trim();
                 const phone = document.getElementById('new-staff-phone').value.trim();
-                const email = document.getElementById('new-staff-email').value.trim();
                 const designation = this.currentRole === 'admin' ? document.getElementById('new-staff-designation').value.trim() : '';
                 const username = document.getElementById('new-staff-username').value.trim();
                 const password = document.getElementById('new-staff-password').value;
                 const teamLeader = document.getElementById('new-staff-teamleader').value;
 
-                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty', teamLeader });
+                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty', teamLeader });
 
                 // Validate required fields (designation only required for admin)
-                if (!name || !phone || !email || !username || !password) {
+                if (!name || !phone || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
@@ -10413,12 +10365,6 @@
                 // Validate designation for admin
                 if (this.currentRole === 'admin' && !designation) {
                     this.showNotification('Please select a designation', 'error');
-                    return;
-                }
-
-                // Validate email format
-                if (email && !this.isValidEmail(email)) {
-                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10437,7 +10383,6 @@
                 const newStaff = {
                     name,
                     phone,
-                    email,
                     designation: this.currentRole === 'admin' ? (designation || 'Staff') : 'Staff', // Only admin can set designation
                     username,
                     password,
@@ -10717,7 +10662,6 @@
                     companyName: document.getElementById('pl-company-name').value.trim(),
                     personName: document.getElementById('pl-person-name').value.trim(),
                     mobile: document.getElementById('pl-mobile').value.trim(),
-                    email: document.getElementById('pl-email').value.trim(),
                     source: document.getElementById('pl-source').value.trim(),
                     serviceTypes: serviceTypes,
                     origin: document.getElementById('pl-origin').value.trim(),
@@ -10975,7 +10919,6 @@
                 if (data.companyName) document.getElementById('pl-company-name').value = data.companyName;
                 if (data.personName) document.getElementById('pl-person-name').value = data.personName;
                 if (data.mobile) document.getElementById('pl-mobile').value = data.mobile;
-                if (data.email) document.getElementById('pl-email').value = data.email;
                 if (data.source) document.getElementById('pl-source').value = data.source;
                 
                 // Populate service types
@@ -11118,7 +11061,6 @@
                                             <div><strong>Company:</strong> ${pl.companyName || 'N/A'}</div>
                                             <div><strong>Person:</strong> ${pl.personName || 'N/A'}</div>
                                             <div><strong>Mobile:</strong> ${pl.mobile || 'N/A'}</div>
-                                            <div><strong>Email:</strong> ${pl.email || 'N/A'}</div>
                                             <div><strong>Service:</strong> ${(pl.serviceTypes || []).join(', ') || 'N/A'}</div>
                                             <div><strong>Source:</strong> ${pl.source || 'N/A'}</div>
                                             <div><strong>Origin:</strong> ${pl.origin || 'N/A'} ${pl.originDate ? `(${pl.originDate} ${pl.originTime || ''})` : ''}</div>
@@ -11341,10 +11283,6 @@
                     <div class="detail-row">
                         <div class="detail-label">Phone:</div>
                         <div class="detail-value">${job.clientPhone || job.phone || 'N/A'}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Email:</div>
-                        <div class="detail-value">${job.clientEmail || job.email || 'N/A'}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Moving Date:</div>
@@ -11857,7 +11795,6 @@
                 document.getElementById('edit-supervisor-id').value = supervisor.id;
                 document.getElementById('edit-supervisor-name').value = supervisor.name;
                 document.getElementById('edit-supervisor-phone').value = supervisor.phone;
-                document.getElementById('edit-supervisor-email').value = supervisor.email;
                 document.getElementById('edit-supervisor-designation').value = supervisor.designation;
                 document.getElementById('edit-supervisor-username').value = supervisor.username;
                 document.getElementById('edit-supervisor-password').value = '';
@@ -11872,7 +11809,6 @@
                 document.getElementById('edit-teamleader-id').value = teamLeader.id;
                 document.getElementById('edit-teamleader-name').value = teamLeader.name;
                 document.getElementById('edit-teamleader-phone').value = teamLeader.phone;
-                document.getElementById('edit-teamleader-email').value = teamLeader.email;
                 document.getElementById('edit-teamleader-designation').value = teamLeader.designation;
                 document.getElementById('edit-teamleader-username').value = teamLeader.username;
                 document.getElementById('edit-teamleader-password').value = '';
@@ -11887,7 +11823,6 @@
                 document.getElementById('edit-staff-id').value = staff.id;
                 document.getElementById('edit-staff-name').value = staff.name;
                 document.getElementById('edit-staff-phone').value = staff.phone;
-                document.getElementById('edit-staff-email').value = staff.email;
                 document.getElementById('edit-staff-designation').value = staff.designation;
                 document.getElementById('edit-staff-username').value = staff.username;
                 document.getElementById('edit-staff-password').value = '';
@@ -11928,7 +11863,6 @@
                     const oldUsername = supervisor.username;
                     supervisor.name = document.getElementById('edit-supervisor-name').value;
                     supervisor.phone = document.getElementById('edit-supervisor-phone').value;
-                    supervisor.email = document.getElementById('edit-supervisor-email').value;
                     supervisor.designation = document.getElementById('edit-supervisor-designation').value;
                     const newUsername = document.getElementById('edit-supervisor-username').value;
                     supervisor.username = newUsername;
@@ -11967,7 +11901,6 @@
                     const oldUsername = teamLeader.username;
                     teamLeader.name = document.getElementById('edit-teamleader-name').value;
                     teamLeader.phone = document.getElementById('edit-teamleader-phone').value;
-                    teamLeader.email = document.getElementById('edit-teamleader-email').value;
                     teamLeader.designation = document.getElementById('edit-teamleader-designation').value;
                     const newUsername = document.getElementById('edit-teamleader-username').value;
                     teamLeader.username = newUsername;
@@ -12005,7 +11938,6 @@
                     const oldUsername = staff.username;
                     staff.name = document.getElementById('edit-staff-name').value;
                     staff.phone = document.getElementById('edit-staff-phone').value;
-                    staff.email = document.getElementById('edit-staff-email').value;
                     // Only admin can update designation
                     if (this.currentRole === 'admin') {
                         staff.designation = document.getElementById('edit-staff-designation').value;
@@ -12186,7 +12118,6 @@
                 document.getElementById('edit-inventorycontroller-id').value = ic.id;
                 document.getElementById('edit-inventorycontroller-name').value = ic.name || '';
                 document.getElementById('edit-inventorycontroller-phone').value = ic.phone || '';
-                document.getElementById('edit-inventorycontroller-email').value = ic.email || '';
                 document.getElementById('edit-inventorycontroller-username').value = ic.username || '';
                 document.getElementById('edit-inventorycontroller-status').value = ic.status || 'available';
                 document.getElementById('edit-inventorycontroller-password').value = '';
@@ -12226,7 +12157,6 @@
                 const updates = {
                     name: document.getElementById('edit-inventorycontroller-name').value,
                     phone: document.getElementById('edit-inventorycontroller-phone').value,
-                    email: document.getElementById('edit-inventorycontroller-email').value,
                     username: document.getElementById('edit-inventorycontroller-username').value,
                     status: document.getElementById('edit-inventorycontroller-status').value
                 };
@@ -12274,7 +12204,6 @@
                 const formData = {
                     name: document.getElementById('new-inventorycontroller-name').value,
                     phone: document.getElementById('new-inventorycontroller-phone').value,
-                    email: document.getElementById('new-inventorycontroller-email').value,
                     username: document.getElementById('new-inventorycontroller-username').value,
                     password: document.getElementById('new-inventorycontroller-password').value,
                     status: 'available'

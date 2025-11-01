@@ -91,14 +91,30 @@ function getSeedData() {
         phone: '+1234567890'
       } 
     },
-    jobs: [],
+    jobs: [], // Will be renamed to projects in frontend
     notifications: [],
     supervisors: [],
     teamLeaders: [],
     staff: [],
+    inventoryControllers: [], // New role
     surveys: [],
     tracking: {},
     branding: { logoUrl: '' },
+    // Inventory Management System
+    inventory: {
+      materials: [
+        { id: 1, name: 'Medium Box', quantity: 0, minThreshold: 10 },
+        { id: 2, name: 'Large Box', quantity: 0, minThreshold: 10 },
+        { id: 3, name: 'Tapes', quantity: 0, minThreshold: 20 },
+        { id: 4, name: 'Cling wrap', quantity: 0, minThreshold: 15 },
+        { id: 5, name: 'Blanket', quantity: 0, minThreshold: 5 },
+        { id: 6, name: 'Hanger Box', quantity: 0, minThreshold: 10 },
+        { id: 7, name: 'Packing paper', quantity: 0, minThreshold: 10 },
+        { id: 8, name: 'Bubble wrap', quantity: 0, minThreshold: 10 }
+      ],
+      transactions: [],
+      pendingCollections: []
+    },
     itemCatalog: [
       { name: '1 Seater Sofa', cbm: 0.57 },
       { name: '2 Seater Sofa', cbm: 1 },
@@ -262,6 +278,23 @@ app.post('/api/auth/login', (req, res) => {
       }
     }
     
+    // If not found, check inventoryControllers array
+    if (!user && db.inventoryControllers && Array.isArray(db.inventoryControllers)) {
+      const inventoryController = db.inventoryControllers.find(ic => ic.username && ic.username.toLowerCase() === username.toLowerCase());
+      if (inventoryController && inventoryController.password === password) {
+        return res.json({ 
+          user: { 
+            username: inventoryController.username, 
+            role: 'inventoryController', 
+            name: inventoryController.name, 
+            phone: inventoryController.phone || '', 
+            email: inventoryController.email || '', 
+            profileImage: inventoryController.profileImage || '' 
+          } 
+        });
+      }
+    }
+    
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -323,8 +356,8 @@ function createRoute(key, idField = 'id') {
         return res.status(400).json({ error: 'Request body is required' });
       }
       
-      // Check for duplicate username in people collections
-      if (['supervisors', 'teamLeaders', 'staff'].includes(key) && item.username) {
+        // Check for duplicate username in people collections
+      if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key) && item.username) {
         const existingUser = db[key].find(existing => existing.username === item.username);
         if (existingUser) {
           return res.status(400).json({ error: 'Username already exists' });
@@ -344,8 +377,11 @@ function createRoute(key, idField = 'id') {
       db[key].push(item);
       
       // Add user to users collection for login (for people collections)
-      if (['supervisors', 'teamLeaders', 'staff'].includes(key) && item.username && item.password) {
-        const role = key === 'supervisors' ? 'supervisor' : key === 'teamLeaders' ? 'teamLeader' : 'staff';
+      if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key) && item.username && item.password) {
+        const role = key === 'supervisors' ? 'supervisor' : 
+                     key === 'teamLeaders' ? 'teamLeader' : 
+                     key === 'inventoryControllers' ? 'inventoryController' : 
+                     'staff';
         db.users[item.username] = {
           username: item.username,
           password: item.password,
@@ -407,12 +443,16 @@ function createRoute(key, idField = 'id') {
         console.log(`📢 Job #${item.id} created - Notifications sent to team leader and ${supervisors.length} supervisors`);
       }
       // sync users for people collections
-      if (['supervisors', 'teamLeaders', 'staff'].includes(key)) {
+      if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key)) {
         if (item.username) {
+          const role = key === 'staff' ? 'staff' : 
+                       key === 'teamLeaders' ? 'teamLeader' : 
+                       key === 'inventoryControllers' ? 'inventoryController' : 
+                       'supervisor';
           db.users[item.username] = { 
             username: item.username, 
             password: item.password, 
-            role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamLeader' : 'supervisor', 
+            role: role, 
             name: item.name,
             phone: item.phone || '',
             email: item.email || '',
@@ -420,6 +460,56 @@ function createRoute(key, idField = 'id') {
           };
         }
       }
+      
+      // Handle inventory deduction when creating job with packingMaterials
+      if (key === 'jobs' && item.packingMaterials && Array.isArray(item.packingMaterials) && item.packingMaterials.length > 0) {
+        if (!db.inventory) {
+          db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+        }
+        
+        // Check stock availability and deduct
+        for (const mat of item.packingMaterials) {
+          const material = db.inventory.materials.find(m => m.id === mat.id);
+          if (!material) {
+            console.warn(`Material with id ${mat.id} not found in inventory`);
+            continue;
+          }
+          
+          const quantity = parseInt(mat.quantity) || 0;
+          if (quantity <= 0) continue;
+          
+          // Check if enough stock (unless admin/inventoryController - they can override)
+          const user = db.users[req.body.username] || db.users['admin']; // Default to admin if not specified
+          if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+            if (material.quantity < quantity) {
+              return res.status(400).json({ 
+                error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${quantity}` 
+              });
+            }
+          }
+          
+          // Deduct from inventory
+          const oldQuantity = material.quantity;
+          material.quantity -= quantity;
+          
+          // Log transaction
+          db.inventory.transactions.push({
+            id: Date.now() + Math.random(),
+            type: 'assignment',
+            materialId: mat.id,
+            materialName: material.name,
+            quantity: -quantity,
+            projectId: item.id,
+            performedBy: user ? user.username : 'system',
+            performedByName: user ? user.name : 'System',
+            timestamp: new Date().toISOString(),
+            notes: `Assigned to project #${item.id}`
+          });
+          
+          console.log(`📦 Material ${material.name}: ${oldQuantity} → ${material.quantity} (assigned ${quantity} to project #${item.id})`);
+        }
+      }
+      
       writeDb(db);
       res.status(201).json(item);
     } catch (error) {
@@ -438,14 +528,18 @@ function updateRoute(key, idField = 'id') {
     const old = db[key][idx];
     const updated = { ...old, ...req.body };
     db[key][idx] = updated;
-    if (['supervisors', 'teamLeaders', 'staff'].includes(key)) {
+    if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key)) {
       if (old.username && db.users[old.username] && old.username !== updated.username) {
         delete db.users[old.username];
       }
+      const role = key === 'staff' ? 'staff' : 
+                   key === 'teamLeaders' ? 'teamLeader' : 
+                   key === 'inventoryControllers' ? 'inventoryController' : 
+                   'supervisor';
       db.users[updated.username] = {
         username: updated.username,
         password: updated.password || db.users[updated.username]?.password || old.password,
-        role: key === 'staff' ? 'staff' : key === 'teamLeaders' ? 'teamLeader' : 'supervisor',
+        role: role,
         name: updated.name
       };
     }
@@ -461,7 +555,7 @@ function deleteRoute(key, idField = 'id') {
     const idx = db[key].findIndex(x => String(x[idField]) === id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
     const [removed] = db[key].splice(idx, 1);
-    if (['supervisors', 'teamLeaders', 'staff'].includes(key) && removed?.username) {
+    if (['supervisors', 'teamLeaders', 'staff', 'inventoryControllers'].includes(key) && removed?.username) {
       delete db.users[removed.username];
     }
     writeDb(db);
@@ -471,6 +565,13 @@ function deleteRoute(key, idField = 'id') {
 
 // Jobs
 app.get('/api/jobs', listRoute('jobs'));
+app.get('/api/jobs/:id', (req, res) => {
+  const db = readDb();
+  const id = String(req.params.id);
+  const job = db.jobs.find(j => String(j.id) === id);
+  if (!job) return res.status(404).json({ error: 'Job not found' });
+  res.json(job);
+});
 app.post('/api/jobs', createRoute('jobs', 'id'));
 app.put('/api/jobs', (req, res) => {
   const db = readDb();
@@ -518,9 +619,13 @@ app.post('/api/jobs/:id/submit-completion', (req, res) => {
 app.post('/api/jobs/:id/complete', (req, res) => {
   const db = readDb();
   const id = String(req.params.id);
-  const { rating, signature, notes, tipAmount, boxesCollected, boxesCount } = req.body || {};
+  const { rating, signature, notes, tipAmount, boxesCollected, boxesCount, materialsCollected, materialsCollectedList } = req.body || {};
   const job = db.jobs.find(j => String(j.id) === id);
   if (!job) return res.status(404).json({ error: 'Not found' });
+  
+  // Handle both old format (boxesCollected) and new format (materialsCollected)
+  const materialsToCollect = materialsCollectedList || 
+                             (materialsCollected === true || materialsCollected === 'yes' ? [] : []);
   
   job.status = 'waiting-approval';
   job.completionData = {
@@ -528,10 +633,99 @@ app.post('/api/jobs/:id/complete', (req, res) => {
     signature: signature || null,
     notes: notes || '',
     tipAmount: tipAmount || 0,
-    boxesCollected: boxesCollected || 'no',
-    boxesCount: boxesCount || 0,
+    boxesCollected: boxesCollected || 'no', // Keep for backward compatibility
+    boxesCount: boxesCount || 0, // Keep for backward compatibility
+    materialsCollected: materialsCollected || false,
+    materialsCollectedList: materialsToCollect, // Array of {id, name, quantity}
     completedAt: new Date().toISOString()
   };
+  
+  // If materials need to be collected, create pending collection
+  if (materialsCollected === true || materialsCollected === 'yes') {
+    if (materialsToCollect && Array.isArray(materialsToCollect) && materialsToCollect.length > 0) {
+      if (!db.inventory) {
+        db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+      }
+      
+      const collection = {
+        id: Date.now() + Math.random(),
+        projectId: id,
+        projectName: job.projectName || job.clientName || `Project #${id}`,
+        materials: materialsToCollect,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        createdBy: job.teamLeader || 'system'
+      };
+      
+      db.inventory.pendingCollections.push(collection);
+      
+      // Notify inventory controllers
+      const inventoryControllers = db.inventoryControllers || [];
+      if (!db.notifications) db.notifications = [];
+      
+      inventoryControllers.forEach(ic => {
+        const notification = {
+          id: Date.now() + Math.random(),
+          recipient: ic.username,
+          recipientName: ic.name,
+          title: `Materials to Collect: Project #${id}`,
+          message: `Project #${id} completed. ${materialsToCollect.length} material(s) need to be collected.`,
+          type: 'inventory-collection',
+          createdBy: 'system',
+          createdAt: new Date().toISOString(),
+          readBy: []
+        };
+        db.notifications.push(notification);
+      });
+      
+      console.log(`📦 Pending collection created for project #${id}: ${materialsToCollect.length} material(s)`);
+    } else {
+      // If materialsCollected is true but no list provided, check if job has packingMaterials
+      const assignedMaterials = job.packingMaterials || [];
+      if (assignedMaterials.length > 0) {
+        // Use assigned materials as default collection list
+        const defaultCollection = assignedMaterials.map(m => ({
+          id: m.id,
+          name: m.name || 'Unknown Material',
+          quantity: m.quantity || 0
+        }));
+        
+        const collection = {
+          id: Date.now() + Math.random(),
+          projectId: id,
+          projectName: job.projectName || job.clientName || `Project #${id}`,
+          materials: defaultCollection,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          createdBy: job.teamLeader || 'system'
+        };
+        
+        if (!db.inventory) {
+          db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+        }
+        db.inventory.pendingCollections.push(collection);
+        
+        // Notify inventory controllers
+        const inventoryControllers = db.inventoryControllers || [];
+        if (!db.notifications) db.notifications = [];
+        
+        inventoryControllers.forEach(ic => {
+          const notification = {
+            id: Date.now() + Math.random(),
+            recipient: ic.username,
+            recipientName: ic.name,
+            title: `Materials to Collect: Project #${id}`,
+            message: `Project #${id} completed. ${defaultCollection.length} material(s) need to be collected.`,
+            type: 'inventory-collection',
+            createdBy: 'system',
+            createdAt: new Date().toISOString(),
+            readBy: []
+          };
+          db.notifications.push(notification);
+        });
+      }
+    }
+  }
   
   // Add to history
   job.history = job.history || [];
@@ -578,18 +772,20 @@ app.post('/api/jobs/:id/bills', (req, res) => {
     }
     
     // Add bill to job
-    job.bills.push({
+    const bill = {
       id: Date.now(), // Simple ID generation
       description: billData.description,
       amount: parseFloat(billData.amount),
       fileUrl: billData.fileUrl,
       notes: billData.notes || '',
-      attachedBy: billData.attachedBy,
-      attachedAt: billData.attachedAt || new Date().toISOString()
-    });
+      attachedBy: billData.attachedBy || 'admin',
+      attachedAt: billData.attachedAt || new Date().toISOString(),
+      date: billData.date || new Date().toISOString()
+    };
+    job.bills.push(bill);
     
     writeDb(db);
-    res.json(job);
+    res.json({ success: true, bill: bill, job: job });
   } catch (error) {
     console.error('Error attaching bill:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -727,6 +923,17 @@ app.put('/api/staff', (req, res) => {
 app.put('/api/staff/:id', updateRoute('staff'));
 app.delete('/api/staff/:id', deleteRoute('staff'));
 
+app.get('/api/inventorycontrollers', listRoute('inventoryControllers'));
+app.post('/api/inventorycontrollers', createRoute('inventoryControllers'));
+app.put('/api/inventorycontrollers', (req, res) => {
+  const db = readDb();
+  db.inventoryControllers = req.body;
+  writeDb(db);
+  res.json({ success: true });
+});
+app.put('/api/inventorycontrollers/:id', updateRoute('inventoryControllers'));
+app.delete('/api/inventorycontrollers/:id', deleteRoute('inventoryControllers'));
+
 // Surveys
 app.get('/api/surveys', listRoute('surveys'));
 app.post('/api/surveys', createRoute('surveys', 'id'));
@@ -791,7 +998,7 @@ app.put('/api/branding', (req, res) => {
     const { logoUrl } = req.body || {};
     db.branding = { logoUrl: logoUrl || '' };
     writeDb(db);
-    res.json(db.branding);
+    res.json({ success: true, branding: db.branding });
   } catch (e) {
     res.status(500).json({ error: 'Failed to update branding' });
   }
@@ -817,6 +1024,274 @@ app.put('/api/item-catalog', (req, res) => {
   } catch (error) {
     console.error('Error updating item catalog:', error);
     res.status(500).json({ error: 'Failed to update item catalog' });
+  }
+});
+
+// Inventory Management APIs
+app.get('/api/inventory', (req, res) => {
+  try {
+    const db = readDb();
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+      writeDb(db);
+    }
+    res.json(db.inventory);
+  } catch (error) {
+    console.error('Error fetching inventory:', error);
+    res.status(500).json({ error: 'Failed to fetch inventory' });
+  }
+});
+
+app.put('/api/inventory/materials', (req, res) => {
+  try {
+    const db = readDb();
+    const { username } = req.query;
+    const user = db.users[username];
+    
+    // Only admin and inventoryController can update materials
+    if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    db.inventory.materials = Array.isArray(req.body) ? req.body : [];
+    writeDb(db);
+    res.json({ success: true, materials: db.inventory.materials });
+  } catch (error) {
+    console.error('Error updating inventory materials:', error);
+    res.status(500).json({ error: 'Failed to update inventory materials' });
+  }
+});
+
+// Assign materials to project - automatically deduct from inventory
+app.post('/api/inventory/assign', (req, res) => {
+  try {
+    const db = readDb();
+    const { username, projectId, materials } = req.body; // materials: [{id, quantity}, ...]
+    
+    if (!projectId || !Array.isArray(materials)) {
+      return res.status(400).json({ error: 'Invalid request' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    
+    // Check stock availability and deduct
+    const updates = [];
+    for (const mat of materials) {
+      const material = db.inventory.materials.find(m => m.id === mat.id);
+      if (!material) {
+        return res.status(400).json({ error: `Material with id ${mat.id} not found` });
+      }
+      
+      const quantity = parseInt(mat.quantity) || 0;
+      if (quantity < 0) {
+        return res.status(400).json({ error: 'Quantity cannot be negative' });
+      }
+      
+      // Check if enough stock (unless admin/inventoryController)
+      const user = db.users[username];
+      if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+        if (material.quantity < quantity) {
+          return res.status(400).json({ 
+            error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${quantity}` 
+          });
+        }
+      }
+      
+      // Deduct from inventory
+      const oldQuantity = material.quantity;
+      material.quantity -= quantity;
+      
+      // Log transaction
+      db.inventory.transactions.push({
+        id: Date.now() + Math.random(),
+        type: 'assignment',
+        materialId: mat.id,
+        materialName: material.name,
+        quantity: -quantity,
+        projectId: projectId,
+        performedBy: username,
+        performedByName: user ? user.name : 'System',
+        timestamp: new Date().toISOString(),
+        notes: `Assigned to project #${projectId}`
+      });
+      
+      updates.push({ material, oldQuantity });
+    }
+    
+    writeDb(db);
+    res.json({ success: true, materials: db.inventory.materials, updates });
+  } catch (error) {
+    console.error('Error assigning materials:', error);
+    res.status(500).json({ error: 'Failed to assign materials' });
+  }
+});
+
+// Return materials to inventory
+app.post('/api/inventory/return', (req, res) => {
+  try {
+    const db = readDb();
+    const { username, projectId, materials, notes } = req.body;
+    
+    const user = db.users[username];
+    if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!Array.isArray(materials)) {
+      return res.status(400).json({ error: 'Invalid materials array' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    
+    const updates = [];
+    for (const mat of materials) {
+      const material = db.inventory.materials.find(m => m.id === mat.id);
+      if (!material) {
+        continue; // Skip if material not found
+      }
+      
+      const quantity = parseInt(mat.quantity) || 0;
+      if (quantity <= 0) continue;
+      
+      // Add back to inventory
+      material.quantity += quantity;
+      
+      // Log transaction
+      db.inventory.transactions.push({
+        id: Date.now() + Math.random(),
+        type: 'return',
+        materialId: mat.id,
+        materialName: material.name,
+        quantity: quantity,
+        projectId: projectId || null,
+        performedBy: username,
+        performedByName: user.name,
+        timestamp: new Date().toISOString(),
+        notes: notes || `Returned from project #${projectId || 'N/A'}`
+      });
+      
+      updates.push({ material });
+    }
+    
+    writeDb(db);
+    res.json({ success: true, materials: db.inventory.materials, updates });
+  } catch (error) {
+    console.error('Error returning materials:', error);
+    res.status(500).json({ error: 'Failed to return materials' });
+  }
+});
+
+// Get pending collections
+app.get('/api/inventory/pending-collections', (req, res) => {
+  try {
+    const db = readDb();
+    const { username } = req.query;
+    const user = db.users[username];
+    
+    if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    
+    res.json(db.inventory.pendingCollections || []);
+  } catch (error) {
+    console.error('Error fetching pending collections:', error);
+    res.status(500).json({ error: 'Failed to fetch pending collections' });
+  }
+});
+
+// Mark collection as received and add to inventory
+app.post('/api/inventory/collections/:collectionId/receive', (req, res) => {
+  try {
+    const db = readDb();
+    const { collectionId } = req.params;
+    const { username } = req.body;
+    
+    const user = db.users[username];
+    if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    
+    const collection = db.inventory.pendingCollections.find(c => String(c.id) === String(collectionId));
+    if (!collection) {
+      return res.status(404).json({ error: 'Collection not found' });
+    }
+    
+    if (collection.status === 'received') {
+      return res.status(400).json({ error: 'Collection already received' });
+    }
+    
+    // Add materials to inventory
+    if (collection.materials && Array.isArray(collection.materials)) {
+      for (const mat of collection.materials) {
+        const material = db.inventory.materials.find(m => m.id === mat.id);
+        if (material) {
+          material.quantity += (parseInt(mat.quantity) || 0);
+          
+          // Log transaction
+          db.inventory.transactions.push({
+            id: Date.now() + Math.random(),
+            type: 'collection',
+            materialId: mat.id,
+            materialName: material.name,
+            quantity: parseInt(mat.quantity) || 0,
+            projectId: collection.projectId,
+            performedBy: username,
+            performedByName: user.name,
+            timestamp: new Date().toISOString(),
+            notes: `Collected from completed project #${collection.projectId}`
+          });
+        }
+      }
+    }
+    
+    // Update collection status
+    collection.status = 'received';
+    collection.receivedBy = username;
+    collection.receivedByName = user.name;
+    collection.receivedAt = new Date().toISOString();
+    
+    writeDb(db);
+    res.json({ success: true, collection, materials: db.inventory.materials });
+  } catch (error) {
+    console.error('Error receiving collection:', error);
+    res.status(500).json({ error: 'Failed to receive collection' });
+  }
+});
+
+// Get inventory transactions
+app.get('/api/inventory/transactions', (req, res) => {
+  try {
+    const db = readDb();
+    const { username } = req.query;
+    const user = db.users[username];
+    
+    if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!db.inventory) {
+      db.inventory = { materials: [], transactions: [], pendingCollections: [] };
+    }
+    
+    res.json(db.inventory.transactions || []);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 });
 
@@ -1084,7 +1559,7 @@ app.post('/api/notifications', (req, res) => {
       
       // Create notification
       const notification = {
-        id: Date.now(),
+        id: Date.now() + Math.random(), // Ensure unique ID like bulk notifications
         recipient,
         recipientName,
         title,
@@ -1209,6 +1684,23 @@ function migrateExistingUsers() {
           name: staff.name || staff.fullName || 'Staff',
           email: staff.email || '',
           phone: staff.phone || ''
+        };
+        migrated++;
+      }
+    });
+  }
+  
+  // Migrate inventory controllers
+  if (db.inventoryControllers && Array.isArray(db.inventoryControllers)) {
+    db.inventoryControllers.forEach(ic => {
+      if (ic.username && ic.password && !db.users[ic.username]) {
+        db.users[ic.username] = {
+          username: ic.username,
+          password: ic.password,
+          role: 'inventoryController',
+          name: ic.name || ic.fullName || 'Inventory Controller',
+          email: ic.email || '',
+          phone: ic.phone || ''
         };
         migrated++;
       }

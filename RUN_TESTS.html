@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Test Runner - MoveIt 247</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .content { padding: 30px; }
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            background: #f0f9ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .stat-value.passed { color: #10b981; }
+        .stat-value.failed { color: #ef4444; }
+        .stat-value.warnings { color: #f59e0b; }
+        .console {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        .console-line {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .console-line.pass { color: #10b981; }
+        .console-line.fail { color: #ef4444; }
+        .console-line.warn { color: #f59e0b; }
+        .console-line.info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Automatic Test Runner</h1>
+            <p>Testing all MoveIt 247 functionalities...</p>
+        </div>
+        <div class="content">
+            <div class="alert">
+                <strong>📋 Instructions:</strong><br>
+                1. Make sure your MoveIt 247 application is OPEN in another browser tab<br>
+                2. Log in to the application<br>
+                3. Come back to this tab and click the button below<br>
+                4. Or just wait - tests will auto-start!
+            </div>
+            <div id="status" class="alert">
+                <strong>⏳ Ready...</strong> Click "Start Tests" or wait for auto-start
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value passed" id="passed">0</div>
+                    <div>✅ Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value failed" id="failed">0</div>
+                    <div>❌ Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value warnings" id="warnings">0</div>
+                    <div>⚠️ Warnings</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button onclick="startTests()" style="padding: 15px 30px; font-size: 16px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    ▶️ START TESTS NOW
+                </button>
+            </div>
+            <div class="console" id="console"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simple test runner - checks basic functionality
+        let testResults = { passed: 0, failed: 0, warnings: 0 };
+        
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = message;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('passed').textContent = testResults.passed;
+            document.getElementById('failed').textContent = testResults.failed;
+            document.getElementById('warnings').textContent = testResults.warnings;
+        }
+
+        function test(name, fn) {
+            try {
+                log(`🧪 Testing: ${name}`, 'info');
+                fn();
+                testResults.passed++;
+                log(`✅ PASSED: ${name}`, 'pass');
+                updateStats();
+                return true;
+            } catch (error) {
+                testResults.failed++;
+                log(`❌ FAILED: ${name} - ${error.message}`, 'fail');
+                updateStats();
+                return false;
+            }
+        }
+
+        function warn(message) {
+            testResults.warnings++;
+            log(`⚠️ WARNING: ${message}`, 'warn');
+            updateStats();
+        }
+
+        async function startTests() {
+            document.getElementById('status').innerHTML = '<strong>🔄 Running Tests...</strong> Please wait...';
+            log('🚀 Starting Test Suite...', 'info');
+            log('='.repeat(60), 'info');
+            
+            // Test 1: Check if app exists
+            test('Application loaded', () => {
+                if (typeof window.app === 'undefined' && !document.getElementById('app-container') && !document.getElementById('login-page')) {
+                    throw new Error('Application not detected. Make sure the MoveIt 247 app is open in another tab.');
+                }
+            });
+
+            // Test 2: Check if logged in
+            test('User logged in', () => {
+                if (typeof window.app !== 'undefined' && window.app.currentUser) {
+                    log(`✅ Logged in as: ${window.app.currentUser.name} (${window.app.currentUser.role})`, 'pass');
+                } else {
+                    warn('User not logged in. Some tests may be skipped.');
+                }
+            });
+
+            // Test 3: Check main elements
+            test('Login form exists', () => {
+                const form = document.getElementById('login-form') || document.querySelector('form[id*="login"]');
+                if (!form && !document.getElementById('app-container')) {
+                    throw new Error('Login form not found');
+                }
+            });
+
+            test('App container exists', () => {
+                const container = document.getElementById('app-container');
+                if (!container && typeof window.app !== 'undefined') {
+                    throw new Error('App container not found');
+                }
+            });
+
+            // Test 4: Navigation elements
+            test('Navigation menu exists', () => {
+                const menu = document.querySelector('.sidebar-menu') || document.querySelector('[class*="menu"]');
+                if (!menu && typeof window.app !== 'undefined') {
+                    warn('Navigation menu not found');
+                }
+            });
+
+            // Test 5: Dashboard
+            test('Dashboard loads', async () => {
+                if (typeof window.app !== 'undefined' && window.app.loadDashboard) {
+                    try {
+                        await window.app.loadDashboard();
+                    } catch (e) {
+                        throw new Error('Dashboard failed to load: ' + e.message);
+                    }
+                } else {
+                    warn('Dashboard function not available');
+                }
+            });
+
+            // Test 6: Project management
+            test('Project form exists', () => {
+                const form = document.getElementById('job-form') || document.getElementById('add-job-card');
+                if (!form && typeof window.app !== 'undefined') {
+                    warn('Project form not found');
+                }
+            });
+
+            // Test 7: User management
+            test('User management sections exist', () => {
+                const sections = ['supervisors', 'teamleaders', 'staff', 'inventorycontrollers'];
+                sections.forEach(section => {
+                    const content = document.getElementById(`${section}-content`);
+                    if (!content && typeof window.app !== 'undefined') {
+                        warn(`${section} section not found`);
+                    }
+                });
+            });
+
+            // Test 8: Inventory management
+            test('Inventory section exists', () => {
+                const inventory = document.getElementById('inventory-content');
+                if (!inventory && typeof window.app !== 'undefined') {
+                    warn('Inventory section not found');
+                }
+            });
+
+            // Test 9: Notifications
+            test('Notifications section exists', () => {
+                const notifications = document.getElementById('notifications-content');
+                if (!notifications && typeof window.app !== 'undefined') {
+                    warn('Notifications section not found');
+                }
+            });
+
+            // Test 10: Profile
+            test('Profile section exists', () => {
+                const profile = document.getElementById('profile-content');
+                if (!profile && typeof window.app !== 'undefined') {
+                    warn('Profile section not found');
+                }
+            });
+
+            // Summary
+            log('', 'info');
+            log('📊 TEST SUMMARY', 'info');
+            log('='.repeat(60), 'info');
+            log(`✅ Passed: ${testResults.passed}`, 'pass');
+            log(`❌ Failed: ${testResults.failed}`, 'fail');
+            log(`⚠️  Warnings: ${testResults.warnings}`, 'warn');
+            log('='.repeat(60), 'info');
+
+            if (testResults.failed === 0) {
+                document.getElementById('status').innerHTML = '<strong>✅ All Tests Passed!</strong> Your application is working correctly.';
+                document.getElementById('status').style.background = '#ecfdf5';
+                document.getElementById('status').style.borderColor = '#10b981';
+                document.getElementById('status').style.color = '#059669';
+            } else {
+                document.getElementById('status').innerHTML = `<strong>⚠️ Tests Complete:</strong> ${testResults.passed} passed, ${testResults.failed} failed, ${testResults.warnings} warnings.`;
+                document.getElementById('status').style.background = '#fffbeb';
+                document.getElementById('status').style.borderColor = '#f59e0b';
+                document.getElementById('status').style.color = '#d97706';
+            }
+
+            log('✅ Testing complete!', 'pass');
+        }
+
+        // Auto-start after 2 seconds
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🔄 Auto-starting tests in 2 seconds...', 'info');
+                setTimeout(startTests, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

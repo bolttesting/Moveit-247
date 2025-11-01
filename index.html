@@ -588,6 +588,42 @@
             background: white;
         }
 
+        .sidebar-menu li.has-submenu .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding-left: 20px;
+            list-style: none;
+        }
+
+        .sidebar-menu li.has-submenu.active .submenu {
+            max-height: 500px;
+        }
+
+        .sidebar-menu li.has-submenu.active a i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-menu .submenu li {
+            margin: 2px 0;
+        }
+
+        .sidebar-menu .submenu li a {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--gray-400);
+        }
+
+        .sidebar-menu .submenu li a:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .sidebar-menu .submenu li.active a {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
         .main-content {
             margin-left: var(--sidebar-width);
             padding: 0;
@@ -3219,6 +3255,49 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+
+        /* Project Form Tabs */
+        .form-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0;
+        }
+
+        .form-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: #64748b;
+            transition: all 0.2s ease;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .form-tab:hover {
+            color: #3b82f6;
+            background: #f0f4ff;
+        }
+
+        .form-tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            background: transparent;
+        }
+
+        .form-tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .form-tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -3256,12 +3335,23 @@
             <div class="sidebar-menu">
                 <ul>
                     <li class="active"><a href="#dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="#jobs"><i class="fas fa-tasks"></i> Jobs</a></li>
+                    <li class="has-submenu">
+                        <a href="#jobs"><i class="fas fa-tasks"></i> Projects <i class="fas fa-chevron-down" style="float: right; font-size: 0.8em; margin-top: 3px;"></i></a>
+                        <ul class="submenu">
+                            <li><a href="#add-projects"><i class="fas fa-plus"></i> Add Projects</a></li>
+                            <li><a href="#current-projects"><i class="fas fa-list"></i> Current Projects</a></li>
+                            <li><a href="#project-task"><i class="fas fa-tasks"></i> Project Task</a></li>
+                        </ul>
+                    </li>
                     <li id="supervisors-menu-item"><a href="#supervisors"><i class="fas fa-user-tie"></i> Supervisors</a></li>
                     <li id="teamleaders-menu-item"><a href="#teamleaders"><i class="fas fa-users"></i> Team Leaders</a></li>
                     <li id="staff-menu-item"><a href="#staff"><i class="fas fa-user-friends"></i> Staff</a></li>
+                    <li id="inventorycontrollers-menu-item"><a href="#inventorycontrollers"><i class="fas fa-boxes"></i> Inventory Controllers</a></li>
+                    <li id="inventory-menu-item"><a href="#inventory"><i class="fas fa-warehouse"></i> Inventory Management</a></li>
+                    <li id="pending-collections-menu-item"><a href="#pending-collections"><i class="fas fa-truck-loading"></i> Pending Collections</a></li>
+                    <li id="inventory-history-menu-item"><a href="#inventory-history"><i class="fas fa-history"></i> Inventory History</a></li>
                     <li id="surveys-menu-item"><a href="#surveys"><i class="fas fa-clipboard-check"></i> Surveys</a></li>
-                    <li><a href="#job-history"><i class="fas fa-history"></i> Job History</a></li>
+                    <li><a href="#job-history"><i class="fas fa-history"></i> Project History</a></li>
                     <li id="live-tracking-menu-item"><a href="#live-tracking"><i class="fas fa-map-marker-alt"></i> Live Tracking</a></li>
                     <li id="pending-approval-menu-item"><a href="#pending-approval"><i class="fas fa-clock"></i> Pending Approval</a></li>
                     <li id="reports-menu-item"><a href="#reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
@@ -3302,9 +3392,9 @@
                         <p id="welcome-message">Welcome to your MoveIt 247 dashboard. Here's what's happening today.</p>
                     </div>
                     <div class="quick-actions">
-                        <button class="quick-action-btn" onclick="app.navigateTo('jobs')" data-tooltip="View all jobs">
+                        <button class="quick-action-btn" onclick="app.navigateTo('jobs')" data-tooltip="View all projects">
                             <i class="fas fa-tasks"></i>
-                            <span>Jobs</span>
+                            <span>Projects</span>
                         </button>
                         <button class="quick-action-btn" onclick="app.navigateTo('supervisors')" data-tooltip="Manage supervisors">
                             <i class="fas fa-user-tie"></i>
@@ -3324,17 +3414,17 @@
                     <div class="stat-card">
                         <i class="fas fa-tasks"></i>
                         <h3 id="ongoing-jobs">0</h3>
-                        <p>Ongoing Jobs</p>
+                        <p>Ongoing Projects</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-calendar-day"></i>
                         <h3 id="future-jobs">0</h3>
-                        <p>Future Jobs</p>
+                        <p>Future Projects</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-check-circle"></i>
                         <h3 id="completed-jobs">0</h3>
-                        <p>Completed Jobs</p>
+                        <p>Completed Projects</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-clock"></i>
@@ -3364,14 +3454,14 @@
                     <div class="stat-card">
                         <i class="fas fa-exclamation-triangle"></i>
                         <h3 id="delayed-jobs">0</h3>
-                        <p>Delayed Jobs</p>
+                        <p>Delayed Projects</p>
                     </div>
                 </div>
 
                 <div class="dashboard-charts">
                     <div class="card">
                         <div class="card-header">
-                            <h3>Job Status Distribution</h3>
+                            <h3>Project Status Distribution</h3>
                         </div>
                         <div class="card-body">
                             <canvas id="jobStatusChart" width="400" height="200"></canvas>
@@ -3379,7 +3469,7 @@
                     </div>
                     <div class="card">
                         <div class="card-header">
-                            <h3>Monthly Job Trends</h3>
+                            <h3>Monthly Project Trends</h3>
                         </div>
                         <div class="card-body">
                             <canvas id="monthlyTrendsChart" width="400" height="200"></canvas>
@@ -3389,13 +3479,13 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h3>Recent Jobs</h3>
+                        <h3>Recent Projects</h3>
                     </div>
                     <div class="card-body">
                         <table class="table" id="recent-jobs-table">
                             <thead>
                                 <tr>
-                                    <th>Job ID</th>
+                                    <th>Project ID</th>
                                     <th>Client</th>
                                     <th>Date</th>
                                     <th>Team Leader</th>
@@ -3413,91 +3503,117 @@
                 </div>
             </div>
 
-            <!-- Jobs -->
-            <div class="tab-content" id="jobs-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Job Templates</h3>
-                        <button class="btn btn-secondary" onclick="app.showTemplatesModal()">Manage Templates</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="templates-grid" id="templates-grid">
-                            <!-- Templates will be populated here -->
-                        </div>
-                    </div>
-                </div>
-
+            <!-- Add Projects -->
+            <div class="tab-content" id="add-projects-content">
                 <div class="card" id="add-job-card">
                     <div class="card-header">
-                        <h3>Add New Job</h3>
+                        <h3>Add New Project</h3>
                     </div>
                     <div class="card-body">
+                        <!-- Tab Navigation -->
+                        <div class="form-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0;">
+                            <button type="button" class="form-tab active" onclick="app.switchProjectTab(1)" data-tab="1">Tab 1: Project Basics</button>
+                            <button type="button" class="form-tab" onclick="app.switchProjectTab(2)" data-tab="2">Tab 2: Team & Materials</button>
+                            <button type="button" class="form-tab" onclick="app.switchProjectTab(3)" data-tab="3">Tab 3: Documents</button>
+                </div>
+
                         <form id="add-job-form">
+                            <!-- Tab 1: Project Basics -->
+                            <div class="form-tab-content active" id="project-tab-1">
                             <div class="form-grid">
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label>Project Name <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="project-name" placeholder="Enter project name" required>
+                                    </div>
                                 <div class="form-group">
-                                    <label>Moving Date</label>
+                                        <label>Moving Date <span style="color: red;">*</span></label>
                                     <input type="date" class="form-control" id="job-date" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Moving Time</label>
+                                        <label>Moving Time <span style="color: red;">*</span></label>
                                     <input type="time" class="form-control" id="job-time" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Client Name</label>
+                                        <label>Moving From <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="move-from" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Moving To <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="move-to" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Customer Name <span style="color: red;">*</span></label>
                                     <input type="text" class="form-control" id="client-name" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Phone</label>
+                                        <label>Contact Number <span style="color: red;">*</span></label>
                                     <input type="tel" class="form-control" id="client-phone" required>
                                 </div>
                                 <div class="form-group">
                                     <label>Email</label>
-                                    <input type="email" class="form-control" id="client-email" required>
+                                        <input type="email" class="form-control" id="client-email">
                                 </div>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                    <button type="button" class="btn btn-primary" onclick="app.switchProjectTab(2)">Next: Team & Materials →</button>
+                                </div>
+                                </div>
+
+                            <!-- Tab 2: Team & Materials -->
+                            <div class="form-tab-content" id="project-tab-2">
+                                <div class="form-grid">
                                 <div class="form-group">
-                                    <label>Apartment Size</label>
-                                    <select class="form-control" id="apartment-size" required onchange="app.handleApartmentSizeChange()">
-                                        <option value="">Select Size</option>
-                                        <option value="small">Small</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="large">Large</option>
-                                        <option value="custom">Custom</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" id="apartment-size-custom-group" style="display: none;">
-                                    <label>Custom Apartment Size</label>
-                                    <input type="text" class="form-control" id="apartment-size-custom" placeholder="E.g., 4 Bedroom Villa, Studio, Penthouse">
-                                </div>
-                                <div class="form-group">
-                                    <label>Moving From</label>
-                                    <input type="text" class="form-control" id="move-from" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Moving To</label>
-                                    <input type="text" class="form-control" id="move-to" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Assign Team Leader</label>
-                                    <select class="form-control" id="team-leader-assign">
+                                        <label>Team Leader</label>
+                                    <select class="form-control" id="team-leader-assign" ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' ? 'disabled' : ''}>
                                         <option value="">Select Team Leader</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Assign Staff</label>
-                                    <select class="form-control" id="assign-staff" multiple>
+                                        <label>Staff</label>
+                                    <select class="form-control" id="assign-staff" multiple ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' ? 'disabled' : ''}>
                                         <option value="">Select Staff</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>Moving Out Permit</label>
-                                <input type="file" class="form-control" id="move-out-permit" accept="image/*">
-                                <div class="image-preview" id="move-out-preview"></div>
+                                
+                                <!-- Packing Materials Section -->
+                                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                    <h4 style="margin-bottom: 15px;">📦 Packing Materials</h4>
+                                    <div id="packing-materials-container">
+                                        <!-- Materials will be populated dynamically -->
                             </div>
+                                    <div id="material-stock-warnings" style="margin-top: 10px;"></div>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;">
+                                    <button type="button" class="btn btn-secondary" onclick="app.switchProjectTab(1)">← Back</button>
+                                    <button type="button" class="btn btn-primary" onclick="app.switchProjectTab(3)">Next: Documents →</button>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Documents -->
+                            <div class="form-tab-content" id="project-tab-3">
+                                <div class="form-grid">
                             <div class="form-group">
-                                <label>Moving In Permit</label>
+                                        <label>Move In Permit</label>
                                 <input type="file" class="form-control" id="move-in-permit" accept="image/*">
                                 <div class="image-preview" id="move-in-preview"></div>
+                            </div>
+                                    <div class="form-group">
+                                        <label>Move Out Permit</label>
+                                        <input type="file" class="form-control" id="move-out-permit" accept="image/*">
+                                        <div class="image-preview" id="move-out-preview"></div>
+                                    </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label>Stuff Details</label>
+                                        <textarea class="form-control" id="stuff-details" rows="4" placeholder="Enter details about items to be moved..."></textarea>
+                                    </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label>Survey Form</label>
+                                        <select class="form-control" id="survey-form-select">
+                                            <option value="">None - Select from Survey History</option>
+                                        </select>
+                                        <small style="color: #64748b;">Attach a completed survey form from history</small>
                             </div>
                             <div class="form-group">
                                 <label>Item Images</label>
@@ -3505,20 +3621,28 @@
                                 <div class="image-preview" id="item-images-preview"></div>
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
-                                <label>Special Instructions (Optional)</label>
-                                <textarea class="form-control" id="job-instructions" rows="4" placeholder="Enter any special instructions for this job (e.g., fragile items, parking info, elevator access, etc.)"></textarea>
+                                        <label>Special Notes</label>
+                                        <textarea class="form-control" id="job-instructions" rows="4" placeholder="Enter any special instructions (e.g., fragile items, parking info, elevator access, etc.)"></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">Add Job</button>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;">
+                                    <button type="button" class="btn btn-secondary" onclick="app.switchProjectTab(2)">← Back</button>
+                                    <button type="submit" class="btn btn-primary">Add Project</button>
+                                </div>
+                            </div>
                         </form>
+                    </div>
                     </div>
                 </div>
 
-                <div class="card">
+            <!-- Current Projects -->
+            <div class="tab-content" id="current-projects-content">
+                <div class="card" id="current-jobs-card">
                     <div class="card-header">
-                        <h3>Current Jobs</h3>
+                        <h3>Current Projects</h3>
                         <div class="header-controls">
                             <div class="search-box">
-                                <input type="text" id="jobs-search" placeholder="Search jobs..." class="form-control" onkeyup="app.filterJobs()">
+                                <input type="text" id="jobs-search" placeholder="Search projects..." class="form-control" onkeyup="app.filterJobs()">
                                 <select id="jobs-status-filter" class="form-control" onchange="app.filterJobs()">
                                     <option value="">All Statuses</option>
                                     <option value="assigned">Assigned</option>
@@ -3551,7 +3675,7 @@
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" id="select-all-jobs" onchange="app.toggleSelectAllJobs()"></th>
-                                    <th>Job ID</th>
+                                    <th>Project ID</th>
                                     <th>Client</th>
                                     <th>Date</th>
                                     <th>Team Leader</th>
@@ -3578,6 +3702,7 @@
                                 <span id="jobs-page-numbers"></span>
                                 <button class="btn btn-sm" id="jobs-next" onclick="app.nextPage('jobs')" disabled>Next</button>
                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3587,10 +3712,10 @@
             <div class="tab-content" id="pending-approval-content">
                 <div class="card">
                     <div class="card-header">
-                        <h3>Jobs Pending Approval</h3>
+                        <h3>Projects Pending Approval</h3>
                         <div class="header-controls">
                             <div class="search-box">
-                                <input type="text" id="pending-approval-search" placeholder="Search pending jobs..." class="form-control" onkeyup="app.filterPendingApproval()">
+                                <input type="text" id="pending-approval-search" placeholder="Search pending projects..." class="form-control" onkeyup="app.filterPendingApproval()">
                             </div>
                             <div class="export-actions">
                                 <button class="btn btn-success btn-sm" onclick="app.exportPendingApprovalCSV()">Export CSV</button>
@@ -3601,7 +3726,7 @@
                         <table class="table" id="pending-approval-table">
                             <thead>
                                 <tr>
-                                    <th>Job ID</th>
+                                    <th>Project ID</th>
                                     <th>Client</th>
                                     <th>Date</th>
                                     <th>Team Leader</th>
@@ -3724,6 +3849,135 @@
                 </div>
             </div>
 
+            <!-- Inventory Controllers -->
+            <div class="tab-content" id="inventorycontrollers-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Inventory Controllers</h3>
+                        <div class="header-controls">
+                            <div class="search-box">
+                                <input type="text" id="inventorycontrollers-search" placeholder="Search..." class="form-control">
+                            </div>
+                            <button class="btn btn-primary" id="add-inventorycontroller-btn" onclick="app.showAddInventoryControllerModal()">Add Inventory Controller</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="inventorycontrollers-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" class="no-data">No inventory controllers available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Management -->
+            <div class="tab-content" id="inventory-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📦 Inventory Management</h3>
+                        <p style="color: #64748b; margin-bottom: 10px;">Manage packing materials inventory</p>
+                        <div class="header-controls">
+                            <button class="btn btn-success btn-sm" onclick="app.showAddMaterialModal()" style="margin-right: 10px;">Add Material</button>
+                            <button class="btn btn-primary btn-sm" onclick="app.loadInventory()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Material Name</th>
+                                    <th>Current Stock</th>
+                                    <th>Min Threshold</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="no-data">Loading inventory...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Collections -->
+            <div class="tab-content" id="pending-collections-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📥 Pending Collections</h3>
+                        <p style="color: #64748b; margin-bottom: 10px;">Materials to be collected from completed projects</p>
+                        <div class="header-controls">
+                            <button class="btn btn-primary btn-sm" onclick="app.loadPendingCollections()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="pending-collections-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Project Name</th>
+                                    <th>Materials</th>
+                                    <th>Created Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="no-data">No pending collections</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory History -->
+            <div class="tab-content" id="inventory-history-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 Inventory History</h3>
+                        <p style="color: #64748b; margin-bottom: 10px;">View all inventory transactions</p>
+                        <div class="header-controls">
+                            <button class="btn btn-primary btn-sm" onclick="app.loadInventoryHistory()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="inventory-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Material</th>
+                                    <th>Quantity</th>
+                                    <th>Project</th>
+                                    <th>Performed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" class="no-data">No transactions found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Surveys -->
             <div class="tab-content" id="surveys-content">
                 <div class="card">
@@ -3773,7 +4027,7 @@
                         <table class="table" id="job-history-table">
                             <thead>
                                 <tr>
-                                    <th>Job ID</th>
+                                    <th>Project ID</th>
                                     <th>Client</th>
                                     <th>Moving Date</th>
                                     <th>Completed Date</th>
@@ -3785,7 +4039,7 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="8" class="no-data">No job history available</td>
+                                    <td colspan="8" class="no-data">No project history available</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -3910,7 +4164,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="3" class="no-data">No jobs data available</td>
+                                        <td colspan="3" class="no-data">No projects data available</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3921,7 +4175,7 @@
                 <!-- Revenue Report -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
-                        <h3>Revenue Report (Tips & Completed Jobs)</h3>
+                        <h3>Revenue Report (Tips & Completed Projects)</h3>
                         <div class="header-controls">
                             <button class="btn btn-success btn-sm" onclick="app.exportRevenueReportCSV()">Export CSV</button>
                             <button class="btn btn-danger btn-sm" onclick="app.exportRevenueReportPDF()">Export PDF</button>
@@ -3932,7 +4186,7 @@
                             <table class="table" id="revenue-report-table">
                                 <thead>
                                     <tr>
-                                        <th>Job ID</th>
+                                        <th>Project ID</th>
                                         <th>Client</th>
                                         <th>Date</th>
                                         <th>Team Leader</th>
@@ -3973,6 +4227,7 @@
                                     <optgroup label="Supervisors" id="notification-supervisors"></optgroup>
                                     <optgroup label="Team Leaders" id="notification-teamleaders"></optgroup>
                                     <optgroup label="Staff" id="notification-staff"></optgroup>
+                                    <optgroup label="Inventory Controllers" id="notification-inventorycontrollers"></optgroup>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -4077,6 +4332,56 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Test Suite Section (Admin Only) -->
+                <div class="card" id="test-suite-card" style="display: none; margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>🧪 Test Suite - Functionality Testing</h3>
+                        <p style="color: #64748b; font-size: 14px; margin-top: 10px;">Run comprehensive tests to check all buttons, features, and functionalities</p>
+            </div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 20px;">
+                            <button type="button" class="btn btn-success" id="run-all-tests-btn" onclick="app.runAllTestsUI()" style="font-size: 16px; padding: 12px 24px;">
+                                <i class="fas fa-play-circle"></i> Run All Tests
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="clear-test-results-btn" onclick="app.clearTestResults()" style="margin-left: 10px;">
+                                <i class="fas fa-eraser"></i> Clear Results
+                            </button>
+                        </div>
+                        
+                        <div id="test-status" style="display: none; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="loading-spinner" style="display: none; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <span id="test-status-text">Running tests...</span>
+                            </div>
+                        </div>
+
+                        <div id="test-results" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #10b981;" id="test-passed-count">0</div>
+                                    <div style="color: #059669; font-size: 14px;">Passed</div>
+                                </div>
+                                <div style="background: #fef2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #ef4444;" id="test-failed-count">0</div>
+                                    <div style="color: #dc2626; font-size: 14px;">Failed</div>
+                                </div>
+                                <div style="background: #fffbeb; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #f59e0b;" id="test-warnings-count">0</div>
+                                    <div style="color: #d97706; font-size: 14px;">Warnings</div>
+                                </div>
+                                <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #3b82f6;" id="test-duration">0s</div>
+                                    <div style="color: #2563eb; font-size: 14px;">Duration</div>
+                                </div>
+                            </div>
+
+                            <div id="test-results-list" style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                <!-- Test results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -4159,7 +4464,7 @@
     <!-- Job Completion Modal -->
     <div class="completion-modal" id="completion-modal">
         <div class="completion-modal-content">
-            <h3>Complete Job</h3>
+            <h3>Complete Project</h3>
             <div class="completion-section">
                 <h4>Client Satisfaction Rating</h4>
                 <div class="star-rating" id="satisfaction-rating">
@@ -4193,23 +4498,25 @@
             </div>
 
             <div class="completion-section">
-                <h4>Boxes Information</h4>
+                <h4>📦 Materials Collection</h4>
                 <div class="form-group">
-                    <label>Were boxes collected?</label>
-                    <select class="form-control" id="boxes-collected" onchange="app.toggleBoxesCount()">
+                    <label>Were materials collected from this project?</label>
+                    <select class="form-control" id="materials-collected" onchange="app.toggleMaterialsCollection()">
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                     </select>
                 </div>
-                <div class="form-group" id="boxes-count-group" style="display: none;">
-                    <label>Number of boxes collected</label>
-                    <input type="number" class="form-control" id="boxes-count" min="0" placeholder="Enter number of boxes">
+                <div id="materials-collection-group" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <p style="margin-bottom: 15px; color: #64748b; font-size: 0.9em;">Select materials to collect (enter quantities for each material)</p>
+                    <div id="completion-materials-container">
+                        <!-- Materials will be populated dynamically based on project's assigned materials -->
+                    </div>
                 </div>
             </div>
 
             <div class="completion-section">
                 <h4>Completion Notes</h4>
-                <textarea id="completion-notes" class="form-control" rows="3" placeholder="Any additional notes about the job completion..."></textarea>
+                <textarea id="completion-notes" class="form-control" rows="3" placeholder="Any additional notes about the project completion..."></textarea>
             </div>
 
             <input type="hidden" id="completion-job-id">
@@ -4225,11 +4532,11 @@
     <div class="modal" id="job-details-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Job Details</h3>
+                <h3>Project Details</h3>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body" id="job-details-body">
-                <!-- Job details will be populated here -->
+                <!-- Project details will be populated here -->
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="close-job-details">Close</button>
@@ -4289,7 +4596,7 @@
     <div class="modal" id="job-completion-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Complete Job</h3>
+                <h3>Complete Project</h3>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
@@ -4339,11 +4646,11 @@
         </div>
     </div>
 
-    <!-- Edit Job Modal -->
+    <!-- Edit Project Modal -->
     <div class="modal" id="edit-job-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Edit Job</h3>
+                <h3>Edit Project</h3>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
@@ -4405,6 +4712,17 @@
                             </select>
                         </div>
                     </div>
+                    
+                    <!-- Packing Materials Section (Admin & Supervisor Only) -->
+                    <div id="edit-packing-materials-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0; display: none;">
+                        <h4 style="margin-bottom: 15px;">📦 Packing Materials</h4>
+                        <div id="edit-packing-materials-container">
+                            <!-- Materials will be populated dynamically -->
+                            <p style="color: #64748b;">Loading materials...</p>
+                        </div>
+                        <div id="edit-material-stock-warnings" style="margin-top: 10px;"></div>
+                    </div>
+                    
                     <div class="form-group">
                         <label>Status</label>
                         <select class="form-control" id="edit-job-status">
@@ -4423,7 +4741,143 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancel-edit-job">Cancel</button>
-                <button class="btn btn-primary" id="update-job">Update Job</button>
+                <button class="btn btn-primary" id="update-job">Update Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Controller Details Modal -->
+    <div class="modal" id="inventorycontroller-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Inventory Controller Details</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="inventorycontroller-details-body">
+                <!-- Inventory Controller details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="close-inventorycontroller-details">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Inventory Controller Modal -->
+    <div class="modal" id="edit-inventorycontroller-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Inventory Controller</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="edit-inventorycontroller-form">
+                    <input type="hidden" id="edit-inventorycontroller-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="edit-inventorycontroller-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" class="form-control" id="edit-inventorycontroller-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-inventorycontroller-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control" id="edit-inventorycontroller-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control" id="edit-inventorycontroller-password">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select class="form-control" id="edit-inventorycontroller-status" required>
+                                <option value="available">Available</option>
+                                <option value="unavailable">Unavailable</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-edit-inventorycontroller">Cancel</button>
+                <button class="btn btn-primary" id="update-inventorycontroller">Update Inventory Controller</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Inventory Controller Modal -->
+    <div class="modal" id="add-inventorycontroller-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Inventory Controller</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-inventorycontroller-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="new-inventorycontroller-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" class="form-control" id="new-inventorycontroller-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="new-inventorycontroller-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control" id="new-inventorycontroller-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" class="form-control" id="new-inventorycontroller-password" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-add-inventorycontroller">Cancel</button>
+                <button class="btn btn-primary" id="save-inventorycontroller">Add Inventory Controller</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Material Modal -->
+    <div class="modal" id="add-material-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Material</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-material-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Material Name</label>
+                            <input type="text" class="form-control" id="new-material-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Initial Quantity</label>
+                            <input type="number" class="form-control" id="new-material-quantity" min="0" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Threshold</label>
+                            <input type="number" class="form-control" id="new-material-threshold" min="0" value="10" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-add-material">Cancel</button>
+                <button class="btn btn-primary" id="save-material">Add Material</button>
             </div>
         </div>
     </div>
@@ -5275,6 +5729,18 @@
                         name: staff.name
                     };
                 });
+
+                // Add inventory controllers to users
+                if (this.data.inventoryControllers) {
+                    this.data.inventoryControllers.forEach(ic => {
+                        this.data.users[ic.username] = {
+                            username: ic.username,
+                            password: ic.password,
+                            role: 'inventoryController',
+                            name: ic.name
+                    };
+                });
+                }
             }
 
             checkAutoLogin() {
@@ -5475,19 +5941,262 @@
                 }
             }
 
-            addJob(e) {
+            // Project Tab Switching
+            switchProjectTab(tabNumber) {
+                // Hide all tabs
+                document.querySelectorAll('.form-tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                    tab.style.display = 'none';
+                });
+                
+                // Hide all tab buttons
+                document.querySelectorAll('.form-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Show selected tab
+                const selectedTab = document.getElementById(`project-tab-${tabNumber}`);
+                if (selectedTab) {
+                    selectedTab.classList.add('active');
+                    selectedTab.style.display = 'block';
+                }
+                
+                // Activate tab button
+                const tabBtn = document.querySelector(`.form-tab[data-tab="${tabNumber}"]`);
+                if (tabBtn) {
+                    tabBtn.classList.add('active');
+                }
+                
+                // Load data when switching to Tab 2 (Team & Materials)
+                if (tabNumber === 2) {
+                    this.populatePackingMaterials();
+                }
+                
+                // Load surveys when switching to Tab 3 (Documents)
+                if (tabNumber === 3) {
+                    this.populateSurveyFormDropdown();
+                }
+            }
+
+            // Populate Packing Materials for Tab 2
+            async populatePackingMaterials() {
+                const container = document.getElementById('packing-materials-container');
+                if (!container) return;
+                
+                try {
+                    // Fetch inventory materials
+                    const response = await fetch('/api/inventory');
+                    if (!response.ok) throw new Error('Failed to fetch inventory');
+                    const inventory = await response.json();
+                    const materials = inventory.materials || [];
+                    
+                    if (materials.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b;">No materials available. Please add materials to inventory first.</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = materials.map(material => {
+                        const isLowStock = material.quantity < (material.minThreshold || 10);
+                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock (${material.quantity} available)</span>` : '';
+                        const availableText = material.quantity > 0 ? `${material.quantity} available` : 'Out of stock';
+                        
+                        return `
+                            <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center; padding: 10px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                <div>
+                                    <label style="font-weight: 600;">${material.name}</label>
+                                    <small style="color: #64748b; display: block;">${availableText} ${stockWarning}</small>
+                                </div>
+                                <div>
+                                    <input type="number" class="form-control material-quantity" 
+                                           data-material-id="${material.id}" 
+                                           data-material-name="${material.name}"
+                                           min="0" 
+                                           max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : material.quantity}"
+                                           value="0"
+                                           style="text-align: center; font-weight: bold;"
+                                           onchange="app.validateMaterialQuantity(${material.id})"
+                                           ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'readonly' : ''}>
+                                    <small style="color: #64748b; display: block; text-align: center;">Qty</small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } catch (error) {
+                    console.error('Error loading materials:', error);
+                    container.innerHTML = '<p style="color: #ef4444;">Failed to load materials</p>';
+                }
+            }
+
+            validateMaterialQuantity(materialId) {
+                const input = document.querySelector(`.material-quantity[data-material-id="${materialId}"]`);
+                if (!input) return;
+                
+                const quantity = parseInt(input.value) || 0;
+                const maxAllowed = parseInt(input.max) || 0;
+                
+                // Get material info
+                if (!this.data.inventory || !this.data.inventory.materials) {
+                    // Try to fetch inventory if not loaded
+                    this.loadInventory();
+                    return;
+                }
+                
+                const material = this.data.inventory.materials.find(m => m.id === materialId);
+                if (!material) return;
+                
+                // Check stock availability (unless admin/inventoryController/supervisor)
+                if (this.currentRole !== 'admin' && this.currentRole !== 'inventoryController' && this.currentRole !== 'supervisor') {
+                    if (quantity > material.quantity) {
+                        this.showNotification(`Insufficient stock for ${material.name}. Available: ${material.quantity}`, 'error');
+                        input.value = material.quantity;
+                        return;
+                    }
+                }
+                
+                // Show warning if low stock
+                if (material.quantity < material.minThreshold && quantity > 0) {
+                    const warning = document.getElementById('material-stock-warnings');
+                    if (warning) {
+                        warning.innerHTML = `<div style="padding: 10px; background: #fef3c7; border-radius: 6px; margin-top: 10px;">
+                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${material.quantity} units remaining (minimum: ${material.minThreshold})
+                        </div>`;
+                    }
+                }
+            }
+
+            // Populate Packing Materials for Edit Project Modal
+            async populateEditPackingMaterials(job) {
+                const container = document.getElementById('edit-packing-materials-container');
+                if (!container) return;
+                
+                try {
+                    // Fetch inventory materials
+                    const response = await fetch('/api/inventory');
+                    if (!response.ok) throw new Error('Failed to fetch inventory');
+                    const inventory = await response.json();
+                    const materials = inventory.materials || [];
+                    
+                    if (materials.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b;">No materials available. Please add materials to inventory first.</p>';
+                        return;
+                    }
+                    
+                    // Get existing packing materials from job
+                    const existingMaterials = job.packingMaterials || [];
+                    
+                    container.innerHTML = materials.map(material => {
+                        const isLowStock = material.quantity < (material.minThreshold || 10);
+                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock (${material.quantity} available)</span>` : '';
+                        const availableText = material.quantity > 0 ? `${material.quantity} available` : 'Out of stock';
+                        
+                        // Find existing quantity for this material
+                        const existingMaterial = existingMaterials.find(em => em.id === material.id);
+                        const existingQuantity = existingMaterial ? existingMaterial.quantity : 0;
+                        
+                        return `
+                            <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center; padding: 10px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                <div>
+                                    <label style="font-weight: 600;">${material.name}</label>
+                                    <small style="color: #64748b; display: block;">${availableText} ${stockWarning}</small>
+                                </div>
+                                <div>
+                                    <input type="number" class="form-control edit-material-quantity" 
+                                           data-material-id="${material.id}" 
+                                           data-material-name="${material.name}"
+                                           min="0" 
+                                           max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : material.quantity}"
+                                           value="${existingQuantity}"
+                                           style="text-align: center; font-weight: bold;"
+                                           onchange="app.validateEditMaterialQuantity(${material.id})">
+                                    <small style="color: #64748b; display: block; text-align: center;">Qty</small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } catch (error) {
+                    console.error('Error loading materials:', error);
+                    container.innerHTML = '<p style="color: #ef4444;">Failed to load materials</p>';
+                }
+            }
+
+            validateEditMaterialQuantity(materialId) {
+                const input = document.querySelector(`.edit-material-quantity[data-material-id="${materialId}"]`);
+                if (!input) return;
+                
+                const quantity = parseInt(input.value) || 0;
+                
+                // Get material info
+                if (!this.data.inventory || !this.data.inventory.materials) {
+                    // Try to fetch inventory if not loaded
+                    this.loadInventory();
+                    return;
+                }
+                
+                const material = this.data.inventory.materials.find(m => m.id === materialId);
+                if (!material) return;
+                
+                // Check stock availability (unless admin/inventoryController/supervisor)
+                if (this.currentRole !== 'admin' && this.currentRole !== 'inventoryController' && this.currentRole !== 'supervisor') {
+                    if (quantity > material.quantity) {
+                        this.showNotification(`Insufficient stock for ${material.name}. Available: ${material.quantity}`, 'error');
+                        input.value = material.quantity;
+                        return;
+                    }
+                }
+                
+                // Show warning if low stock
+                if (material.quantity < material.minThreshold && quantity > 0) {
+                    const warning = document.getElementById('edit-material-stock-warnings');
+                    if (warning) {
+                        warning.innerHTML = `<div style="padding: 10px; background: #fef3c7; border-radius: 6px; margin-top: 10px;">
+                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${material.quantity} units remaining (minimum: ${material.minThreshold})
+                        </div>`;
+                    }
+                }
+            }
+
+            // Populate Survey Form Dropdown for Tab 3
+            async populateSurveyFormDropdown() {
+                const select = document.getElementById('survey-form-select');
+                if (!select) return;
+                
+                try {
+                    const response = await fetch('/api/surveys');
+                    if (!response.ok) return;
+                    const surveys = await response.json();
+                    
+                    // Clear existing options except first one
+                    select.innerHTML = '<option value="">None - Select from Survey History</option>';
+                    
+                    // Add completed surveys
+                    surveys
+                        .filter(s => s.status === 'completed')
+                        .forEach(survey => {
+                            const option = document.createElement('option');
+                            option.value = survey.id;
+                            option.textContent = `Survey #${survey.id} - ${survey.clientName} (${survey.surveyDate})`;
+                            select.appendChild(option);
+                        });
+                } catch (error) {
+                    console.error('Error loading surveys:', error);
+                }
+            }
+
+            async addJob(e) {
                 e.preventDefault();
-                console.log('Add Job form submitted');
+                console.log('Add Project form submitted');
+                
+                // Get project name (Tab 1)
+                const projectName = document.getElementById('project-name')?.value || '';
                 
                 // Get form data
                 const jobData = {
+                    projectName: projectName, // New field
                     date: document.getElementById('job-date').value,
                     time: document.getElementById('job-time').value,
                     clientName: document.getElementById('client-name').value,
                     clientPhone: document.getElementById('client-phone').value,
                     clientEmail: document.getElementById('client-email').value,
-                    apartmentSize: document.getElementById('apartment-size').value,
-                    apartmentSizeCustom: document.getElementById('apartment-size-custom').value,
                     moveFrom: document.getElementById('move-from').value,
                     moveTo: document.getElementById('move-to').value,
                     teamLeader: document.getElementById('team-leader-assign').value,
@@ -5495,21 +6204,38 @@
                     moveOutPermit: document.getElementById('move-out-permit').dataset.uploadUrl || '',
                     moveInPermit: document.getElementById('move-in-permit').dataset.uploadUrl || '',
                     itemImages: document.getElementById('item-images').dataset.uploadUrls ? JSON.parse(document.getElementById('item-images').dataset.uploadUrls) : [],
-                    instructions: document.getElementById('job-instructions')?.value || ''
+                    instructions: document.getElementById('job-instructions')?.value || '',
+                    stuffDetails: document.getElementById('stuff-details')?.value || '',
+                    surveyFormId: document.getElementById('survey-form-select')?.value || ''
                 };
 
-                console.log('Job form data:', jobData);
+                // Get packing materials from Tab 2
+                const materials = [];
+                document.querySelectorAll('.material-quantity').forEach(input => {
+                    const quantity = parseInt(input.value) || 0;
+                    if (quantity > 0) {
+                        materials.push({
+                            id: parseInt(input.dataset.materialId),
+                            name: input.dataset.materialName,
+                            quantity: quantity
+                        });
+                    }
+                });
+                jobData.packingMaterials = materials;
+
+                console.log('Project form data:', jobData);
 
                 // Validate required fields
-                if (!jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
+                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
                     console.error('Validation failed - missing required fields:', {
+                        projectName: jobData.projectName,
                         clientName: jobData.clientName,
                         date: jobData.date,
                         time: jobData.time,
                         moveFrom: jobData.moveFrom,
                         moveTo: jobData.moveTo
                     });
-                    this.showNotification('Please fill in all required fields', 'error');
+                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, and Locations)', 'error');
                     return;
                 }
 
@@ -5536,16 +6262,20 @@
                         return res.json();
                     })
                     .then(newJob => {
-                        console.log('Job added successfully:', newJob);
-                        this.showNotification('Job added successfully!', 'success');
+                        console.log('Project added successfully:', newJob);
+                        this.showNotification('Project added successfully!', 'success');
                         this.hideModals();
                         this.resetJobForm();
-                        // Only reload jobs, not the entire dashboard
+                        // Only reload projects, not the entire dashboard
                         this.loadJobs();
+                        // Reload inventory to reflect deductions
+                        if (this.currentRole === 'admin' || this.currentRole === 'inventoryController') {
+                            this.loadInventory();
+                        }
                     })
                     .catch(err => {
-                        console.error('Error adding job:', err);
-                        this.showNotification('Error adding job: ' + err.message, 'error');
+                        console.error('Error adding project:', err);
+                        this.showNotification('Error adding project: ' + err.message, 'error');
                     });
                 })
                 .catch(err => {
@@ -5673,7 +6403,8 @@
                     'admin': 'Administrator',
                     'supervisor': 'Supervisor', 
                     'teamleader': 'Team Leader',
-                    'staff': 'Staff'
+                    'staff': 'Staff',
+                    'inventoryController': 'Inventory Controller'
                 };
                 return roleMap[role] || role;
             }
@@ -5697,11 +6428,18 @@
             formatSectionName(section) {
                 const sectionMap = {
                     'dashboard': 'Dashboard',
-                    'jobs': 'Jobs',
+                    'jobs': 'Projects',
+                    'add-projects': 'Add Projects',
+                    'current-projects': 'Current Projects',
+                    'project-task': 'Project Task',
                     'supervisors': 'Supervisors',
                     'teamleaders': 'Team Leaders',
                     'staff': 'Staff',
-                    'job-history': 'Job History',
+                    'inventorycontrollers': 'Inventory Controllers',
+                    'inventory': 'Inventory Management',
+                    'pending-collections': 'Pending Collections',
+                    'inventory-history': 'Inventory History',
+                    'job-history': 'Project History',
                     'live-tracking': 'Live Tracking',
                     'pending-approval': 'Pending Approval',
                     'reports': 'Reports',
@@ -5852,6 +6590,17 @@
                 document.getElementById('save-staff').addEventListener('click', () => this.addStaff());
                 document.getElementById('save-survey').addEventListener('click', () => this.addSurvey());
                 
+                // Inventory Controller modals
+                document.getElementById('update-inventorycontroller')?.addEventListener('click', () => this.updateInventoryController());
+                document.getElementById('cancel-edit-inventorycontroller')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('save-inventorycontroller')?.addEventListener('click', () => this.saveInventoryController());
+                document.getElementById('cancel-add-inventorycontroller')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('close-inventorycontroller-details')?.addEventListener('click', () => this.hideModals());
+                
+                // Material modals
+                document.getElementById('save-material')?.addEventListener('click', () => this.saveMaterial());
+                document.getElementById('cancel-add-material')?.addEventListener('click', () => this.hideModals());
+                
                 // Survey buttons
                 document.getElementById('add-survey-btn')?.addEventListener('click', () => this.showAddSurveyModal());
                 document.getElementById('cancel-add-survey')?.addEventListener('click', () => this.hideModals());
@@ -5882,9 +6631,39 @@
                 });
 
                 // Cancel add buttons
-                document.getElementById('cancel-add-supervisor').addEventListener('click', () => this.hideModals());
-                document.getElementById('cancel-add-teamleader').addEventListener('click', () => this.hideModals());
-                document.getElementById('cancel-add-staff').addEventListener('click', () => this.hideModals());
+                document.getElementById('cancel-add-supervisor')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('cancel-add-teamleader')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('cancel-add-staff')?.addEventListener('click', () => this.hideModals());
+
+                // Submenu toggle for Projects
+                document.querySelectorAll('.has-submenu > a').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const parent = link.parentElement;
+                        // Close other submenus
+                        document.querySelectorAll('.has-submenu').forEach(sm => {
+                            if (sm !== parent) sm.classList.remove('active');
+                        });
+                        parent.classList.toggle('active');
+                    });
+                });
+
+                // Submenu item clicks
+                document.querySelectorAll('.submenu a').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const href = link.getAttribute('href');
+                        if (href) {
+                            const section = href.replace('#', '');
+                            this.navigateTo(section);
+                            // Keep parent submenu open
+                            const submenuParent = link.closest('.has-submenu');
+                            if (submenuParent) {
+                                submenuParent.classList.add('active');
+                            }
+                        }
+                    });
+                });
 
                 // Cancel buttons
                 document.querySelectorAll('.btn-secondary').forEach(btn => {
@@ -6147,6 +6926,21 @@
                     this.initializeLocationTracking();
                 }
                 
+                // Initialize inventory data for inventory controllers and admin
+                if (user.role === 'inventorycontroller' || user.role === 'inventoryController' || user.role === 'admin') {
+                    this.data.inventoryControllers = this.data.inventoryControllers || [];
+                    this.data.inventory = this.data.inventory || { materials: [], transactions: [], pendingCollections: [] };
+                    // Load inventory controllers list for notifications (admin only)
+                    if (user.role === 'admin') {
+                        this.fetchPeople('inventoryControllers');
+                    }
+                    if (user.role === 'inventorycontroller' || user.role === 'inventoryController') {
+                        this.loadInventory();
+                        this.loadPendingCollections();
+                        this.loadInventoryHistory();
+                    }
+                }
+                
                 // Request browser notification permission (for all users)
                 this.requestNotificationPermission();
                 
@@ -6166,11 +6960,15 @@
             }
 
             updateMenuForRole() {
-                const role = this.currentRole;
+                const role = (this.currentRole || '').toLowerCase();
                 console.log('updateMenuForRole called, role:', role);
                 const supervisorsItem = document.getElementById('supervisors-menu-item');
                 const teamLeadersItem = document.getElementById('teamleaders-menu-item');
                 const staffItem = document.getElementById('staff-menu-item');
+                const inventoryControllersItem = document.getElementById('inventorycontrollers-menu-item');
+                const inventoryMenuItem = document.getElementById('inventory-menu-item');
+                const pendingCollectionsItem = document.getElementById('pending-collections-menu-item');
+                const inventoryHistoryItem = document.getElementById('inventory-history-menu-item');
                 const surveysItem = document.getElementById('surveys-menu-item');
                 const reportsItem = document.getElementById('reports-menu-item');
                 const addJobCard = document.getElementById('add-job-card');
@@ -6182,7 +6980,7 @@
                 const clearDataBtn = document.getElementById('clear-data-btn');
 
                 // Hide all management items first
-                [supervisorsItem, teamLeadersItem, staffItem, surveysItem, reportsItem, pendingApprovalItem, liveTrackingMenuItem].forEach(item => {
+                [supervisorsItem, teamLeadersItem, staffItem, inventoryControllersItem, inventoryMenuItem, pendingCollectionsItem, inventoryHistoryItem, surveysItem, reportsItem, pendingApprovalItem, liveTrackingMenuItem].forEach(item => {
                     if (item) item.style.display = 'none';
                 });
                 
@@ -6195,7 +6993,7 @@
                 // Show based on role
                 if (role === 'admin') {
                     console.log('Setting up admin menu...');
-                    [supervisorsItem, teamLeadersItem, staffItem, surveysItem, reportsItem, pendingApprovalItem].forEach(item => {
+                    [supervisorsItem, teamLeadersItem, staffItem, inventoryControllersItem, inventoryMenuItem, pendingCollectionsItem, inventoryHistoryItem, surveysItem, reportsItem, pendingApprovalItem].forEach(item => {
                         if (item) item.style.display = 'block';
                     });
                     if (addJobCard) addJobCard.style.display = 'block';
@@ -6204,6 +7002,40 @@
                     if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block';
                     if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'block'; // Admin sees live tracking
                     if (clearDataBtn) clearDataBtn.style.display = 'block'; // Only admin sees Clear Data button
+                } else if (role === 'inventorycontroller' || role === 'inventoryController') {
+                    console.log('Setting up inventory controller menu...');
+                    // Inventory Controller sees only: Inventory Management, Pending Collections, Inventory History, Notifications, Profile, Logout
+                    if (inventoryMenuItem) inventoryMenuItem.style.display = 'block';
+                    if (pendingCollectionsItem) pendingCollectionsItem.style.display = 'block';
+                    if (inventoryHistoryItem) inventoryHistoryItem.style.display = 'block';
+                    // Hide everything else - including Dashboard, Projects menu, etc.
+                    const dashboardMenuItem = document.querySelector('a[href="#dashboard"]')?.parentElement;
+                    if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
+                    if (supervisorsItem) supervisorsItem.style.display = 'none';
+                    if (teamLeadersItem) teamLeadersItem.style.display = 'none';
+                    if (staffItem) staffItem.style.display = 'none';
+                    if (surveysItem) surveysItem.style.display = 'none';
+                    if (reportsItem) reportsItem.style.display = 'none';
+                    if (pendingApprovalItem) pendingApprovalItem.style.display = 'none';
+                    if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'none';
+                    if (jobsMenuItem) jobsMenuItem.style.display = 'none'; // Hide Projects menu entirely
+                    if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'none';
+                    if (addJobCard) addJobCard.style.display = 'none';
+                    if (addSurveyBtn) addSurveyBtn.style.display = 'none';
+                    
+                    // Hide Projects menu entirely for inventory controller (including all submenu items)
+                    const projectsMenuWithSubmenu = document.querySelector('li.has-submenu');
+                    if (projectsMenuWithSubmenu) {
+                        projectsMenuWithSubmenu.style.display = 'none';
+                    }
+                    // Also hide project-task if accessed directly
+                    const projectTaskLink = document.querySelector('a[href="#project-task"]');
+                    if (projectTaskLink && projectTaskLink.parentElement) {
+                        projectTaskLink.parentElement.style.display = 'none';
+                    }
+                    
+                    // Hide Inventory Controllers management (they shouldn't manage themselves)
+                    if (inventoryControllersItem) inventoryControllersItem.style.display = 'none';
                 } else if (role === 'supervisor') {
                     console.log('Setting up supervisor menu...');
                     [teamLeadersItem, staffItem, surveysItem, pendingApprovalItem].forEach(item => {
@@ -6248,6 +7080,11 @@
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
                     if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block'; // Staff can see their completed jobs
                 }
+                
+                // Normalize role for inventoryController
+                if (role === 'inventoryController') {
+                    this.currentRole = 'inventoryController';
+                }
                 console.log('Menu setup complete for role:', role);
             }
 
@@ -6262,30 +7099,106 @@
                 }
                 
                 // Update active menu - with error handling
-                document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+                document.querySelectorAll('.sidebar-menu li').forEach(li => {
+                    li.classList.remove('active');
+                    // Also remove active from submenu items
+                    li.querySelectorAll('.submenu li').forEach(subLi => subLi.classList.remove('active'));
+                });
                 const menuLink = document.querySelector(`a[href="#${section}"]`);
                 if (menuLink && menuLink.parentElement) {
                     menuLink.parentElement.classList.add('active');
+                    // If it's a submenu item, also activate parent
+                    const submenuParent = menuLink.closest('.has-submenu');
+                    if (submenuParent) {
+                        submenuParent.classList.add('active');
+                    }
                     console.log(`✅ Menu item activated: ${section}`);
                 } else {
                     console.warn(`⚠️ Menu link not found for: ${section}`);
                 }
 
-                // Update content
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                // Update content - hide all first
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                });
                 const contentElement = document.getElementById(`${section}-content`);
                 if (contentElement) {
                     contentElement.classList.add('active');
+                    contentElement.style.display = 'block';
                 }
                 document.getElementById('page-title').textContent = this.formatSectionName(section);
 
                 // Load section data (only if needed)
                 switch(section) {
                     case 'dashboard': 
+                        // Inventory controllers should not see dashboard - redirect to inventory
+                        if (this.currentRole === 'inventoryController') {
+                            this.navigateTo('inventory');
+                            return;
+                        }
                         await this.loadDashboard(); 
                         break;
                     case 'jobs': 
+                    case 'add-projects':
+                        // Show add projects tab
+                        document.querySelectorAll('.tab-content').forEach(tab => {
+                            tab.style.display = 'none';
+                            tab.classList.remove('active');
+                        });
+                        const addProjectsContent = document.getElementById('add-projects-content');
+                        if (addProjectsContent) {
+                            addProjectsContent.style.display = 'block';
+                            addProjectsContent.classList.add('active');
+                        }
                         this.loadJobs(); 
+                        break;
+                    case 'current-projects':
+                        // Show current projects tab
+                        document.querySelectorAll('.tab-content').forEach(tab => {
+                            tab.style.display = 'none';
+                            tab.classList.remove('active');
+                        });
+                        const currentProjectsContent = document.getElementById('current-projects-content');
+                        if (currentProjectsContent) {
+                            currentProjectsContent.style.display = 'block';
+                            currentProjectsContent.classList.add('active');
+                        }
+                        this.loadJobs();
+                        break;
+                    case 'project-task':
+                        // Inventory controllers should not see project-task - redirect to inventory
+                        if (this.currentRole === 'inventoryController' || this.currentRole === 'inventorycontroller') {
+                            this.navigateTo('inventory');
+                            return;
+                        }
+                        // Show project task tab (empty for now)
+                        document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+                        let taskContent = document.getElementById('project-task-content');
+                        if (!taskContent) {
+                            // Create it if it doesn't exist
+                            const mainContainer = document.querySelector('.main-content > div') || document.querySelector('.main-content');
+                            if (mainContainer) {
+                                const taskDiv = document.createElement('div');
+                                taskDiv.className = 'tab-content';
+                                taskDiv.id = 'project-task-content';
+                                taskDiv.innerHTML = `
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3>Project Task</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <p style="color: #64748b; text-align: center; padding: 40px;">Project Task section - Coming soon</p>
+                                        </div>
+                                    </div>
+                                `;
+                                mainContainer.appendChild(taskDiv);
+                                taskContent = document.getElementById('project-task-content');
+                            }
+                        }
+                        if (taskContent) {
+                            taskContent.style.display = 'block';
+                        }
                         break;
                     case 'supervisors': 
                         this.loadSupervisors(); 
@@ -6295,6 +7208,18 @@
                         break;
                     case 'staff': 
                         this.loadStaff(); 
+                        break;
+                    case 'inventorycontrollers': 
+                        this.loadInventoryControllers(); 
+                        break;
+                    case 'inventory': 
+                        this.loadInventory(); 
+                        break;
+                    case 'pending-collections': 
+                        this.loadPendingCollections(); 
+                        break;
+                    case 'inventory-history': 
+                        this.loadInventoryHistory(); 
                         break;
                     case 'surveys': 
                         this.loadSurveys(); 
@@ -6779,6 +7704,10 @@
                 
                 // Populate recipient dropdown if admin
                 if (this.currentRole === 'admin') {
+                    // Ensure inventory controllers are loaded before populating recipients
+                    if (!this.data.inventoryControllers) {
+                        await this.fetchPeople('inventoryControllers');
+                    }
                     this.populateNotificationRecipients();
                 }
                 
@@ -7007,6 +7936,7 @@
                 const supervisorsGroup = document.getElementById('notification-supervisors');
                 const teamLeadersGroup = document.getElementById('notification-teamleaders');
                 const staffGroup = document.getElementById('notification-staff');
+                const inventoryControllersGroup = document.getElementById('notification-inventorycontrollers');
                 
                 if (!supervisorsGroup || !teamLeadersGroup || !staffGroup) return;
                 
@@ -7014,9 +7944,10 @@
                 supervisorsGroup.innerHTML = '';
                 teamLeadersGroup.innerHTML = '';
                 staffGroup.innerHTML = '';
+                if (inventoryControllersGroup) inventoryControllersGroup.innerHTML = '';
                 
                 // Populate supervisors
-                this.data.supervisors.forEach(sup => {
+                (this.data.supervisors || []).forEach(sup => {
                     const option = document.createElement('option');
                     option.value = sup.username;
                     option.textContent = sup.name;
@@ -7024,7 +7955,7 @@
                 });
                 
                 // Populate team leaders
-                this.data.teamLeaders.forEach(tl => {
+                (this.data.teamLeaders || []).forEach(tl => {
                     const option = document.createElement('option');
                     option.value = tl.username;
                     option.textContent = tl.name;
@@ -7032,12 +7963,22 @@
                 });
                 
                 // Populate staff
-                this.data.staff.forEach(staff => {
+                (this.data.staff || []).forEach(staff => {
                     const option = document.createElement('option');
                     option.value = staff.username;
                     option.textContent = staff.name;
                     staffGroup.appendChild(option);
                 });
+                
+                // Populate inventory controllers
+                if (inventoryControllersGroup && this.data.inventoryControllers) {
+                    (this.data.inventoryControllers || []).forEach(ic => {
+                        const option = document.createElement('option');
+                        option.value = ic.username;
+                        option.textContent = ic.name;
+                        inventoryControllersGroup.appendChild(option);
+                    });
+                }
             }
 
             toggleSendToAll(e) {
@@ -7640,7 +8581,14 @@
 
             async fetchPeople(type) {
                 try {
-                    const path = type === 'teamLeaders' ? 'teamleaders' : type;
+                    let path;
+                    if (type === 'teamLeaders') {
+                        path = 'teamleaders';
+                    } else if (type === 'inventoryControllers') {
+                        path = 'inventorycontrollers';
+                    } else {
+                        path = type;
+                    }
                     const response = await fetch(`/api/${path}`);
                     if (!response.ok) throw new Error(`Failed to fetch ${type}`);
                     const data = await response.json();
@@ -8905,7 +9853,7 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Job ID</th>
+                                        <th>Project ID</th>
                                         <th>Client</th>
                                         <th>Date</th>
                                         <th>Team Leader</th>
@@ -9021,6 +9969,16 @@
                 this.showModal('add-staff-modal');
             }
 
+            showAddInventoryControllerModal() {
+                document.getElementById('add-inventorycontroller-form').reset();
+                this.showModal('add-inventorycontroller-modal');
+            }
+
+            showAddMaterialModal() {
+                document.getElementById('add-material-form').reset();
+                this.showModal('add-material-modal');
+            }
+
             // Edit Job Method
             editJob(jobId) {
                 const job = this.data.jobs.find(j => j.id == jobId);
@@ -9079,6 +10037,17 @@
                     });
                 }
 
+                // Show/hide and populate packing materials for admin and supervisor
+                const packingMaterialsSection = document.getElementById('edit-packing-materials-section');
+                if (packingMaterialsSection) {
+                    if (this.currentRole === 'admin' || this.currentRole === 'supervisor') {
+                        packingMaterialsSection.style.display = 'block';
+                        this.populateEditPackingMaterials(job);
+                    } else {
+                        packingMaterialsSection.style.display = 'none';
+                    }
+                }
+
                 this.showModal('edit-job-modal');
             }
 
@@ -9107,6 +10076,22 @@
                     assignedStaff: Array.from(document.getElementById('edit-assign-staff').selectedOptions).map(option => option.value).filter(v => v),
                     status: document.getElementById('edit-job-status').value
                 };
+
+                // Get packing materials (only for admin and supervisor)
+                if (this.currentRole === 'admin' || this.currentRole === 'supervisor') {
+                    const materials = [];
+                    document.querySelectorAll('.edit-material-quantity').forEach(input => {
+                        const quantity = parseInt(input.value) || 0;
+                        if (quantity > 0) {
+                            materials.push({
+                                id: parseInt(input.dataset.materialId),
+                                name: input.dataset.materialName,
+                                quantity: quantity
+                            });
+                        }
+                    });
+                    updatedJob.packingMaterials = materials;
+                }
 
                 // Keep apartment size fields separate (don't overwrite apartmentSize with custom text)
                 // apartmentSize will remain as 'custom' and apartmentSizeCustom will have the actual text
@@ -10327,6 +11312,46 @@
                         </div>
                     </div>
                     
+                    ${job.surveyFormId ? `
+                    <div class="detail-row">
+                        <div class="detail-label">Survey Form:</div>
+                        <div class="detail-value">
+                            ${(() => {
+                                const survey = this.data.surveys?.find(s => String(s.id) === String(job.surveyFormId));
+                                if (survey) {
+                                    return `
+                                        <div class="survey-display" style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-top: 10px;">
+                                            <h4 style="margin: 0 0 10px 0; color: #1e40af;">
+                                                <i class="fas fa-clipboard-check" style="margin-right: 8px;"></i>Survey #${survey.id}
+                                            </h4>
+                                            ${survey.completed ? `
+                                                <p style="margin: 5px 0; color: #059669;"><i class="fas fa-check-circle"></i> Completed</p>
+                                                ${survey.completedAt ? `<p style="margin: 5px 0; color: #64748b; font-size: 0.9em;">Completed on: ${new Date(survey.completedAt).toLocaleDateString()}</p>` : ''}
+                                                ${survey.estimatorName ? `<p style="margin: 5px 0;"><strong>Estimator:</strong> ${survey.estimatorName}</p>` : ''}
+                                                <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                                                    <button class="btn btn-primary btn-sm" onclick="app.showSurveyDetails(${survey.id})" style="margin: 0;">
+                                                        <i class="fas fa-eye"></i> View Details
+                                                    </button>
+                                                    <button class="btn btn-success btn-sm" onclick="app.downloadSurveyReport(${survey.id})" style="margin: 0;">
+                                                        <i class="fas fa-file-pdf"></i> Download Report
+                                                    </button>
+                                                </div>
+                                            ` : `
+                                                <p style="margin: 5px 0; color: #f59e0b;"><i class="fas fa-clock"></i> Pending</p>
+                                                <button class="btn btn-secondary btn-sm" onclick="app.showSurveyDetails(${survey.id})" style="margin-top: 10px;">
+                                                    <i class="fas fa-edit"></i> Complete Survey
+                                                </button>
+                                            `}
+                                        </div>
+                                    `;
+                                } else {
+                                    return `<span style="color: #ef4444;">Survey form #${job.surveyFormId} not found</span>`;
+                                }
+                            })()}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
                     <!-- Job History Section -->
                     <div class="job-history-container">
                         <h3>Job History</h3>
@@ -10875,6 +11900,542 @@
                 .catch(() => this.showNotification('Failed to update status', 'error'));
             }
 
+            // Inventory Controller Methods
+            loadInventoryControllers() {
+                this.fetchPeople('inventoryControllers').then(() => {
+                    this.populateInventoryControllersTable();
+                });
+            }
+
+            populateInventoryControllersTable() {
+                const tbody = document.querySelector('#inventorycontrollers-table tbody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!this.data.inventoryControllers || this.data.inventoryControllers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No inventory controllers available</td></tr>';
+                    return;
+                }
+
+                this.data.inventoryControllers.forEach(ic => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${ic.name}</td>
+                        <td>${ic.username}</td>
+                        <td>${ic.phone || 'N/A'}</td>
+                        <td>${ic.email || 'N/A'}</td>
+                        <td><span class="status-badge status-${ic.status || 'available'}">${this.formatStatus(ic.status || 'available')}</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm view-ic-btn" data-id="${ic.id}">View</button>
+                            ${(this.currentRole === 'admin') ? `
+                                <button class="btn btn-warning btn-sm edit-ic-btn" data-id="${ic.id}">Edit</button>
+                                <button class="btn btn-danger btn-sm delete-ic-btn" data-id="${ic.id}">Delete</button>
+                            ` : ''}
+                        </td>
+                    `;
+
+                    row.querySelector('.view-ic-btn').addEventListener('click', (e) => {
+                        this.showInventoryControllerDetails(parseInt(e.target.dataset.id));
+                    });
+
+                    const editBtn = row.querySelector('.edit-ic-btn');
+                    if (editBtn) {
+                        editBtn.addEventListener('click', (e) => {
+                            this.editInventoryController(parseInt(e.target.dataset.id));
+                        });
+                    }
+
+                    const deleteBtn = row.querySelector('.delete-ic-btn');
+                    if (deleteBtn) {
+                        deleteBtn.addEventListener('click', (e) => {
+                            this.deleteInventoryController(parseInt(e.target.dataset.id));
+                        });
+                    }
+
+                    tbody.appendChild(row);
+                });
+            }
+
+            async showInventoryControllerDetails(icId) {
+                await this.fetchPeople('inventoryControllers');
+                const ic = this.data.inventoryControllers?.find(i => i.id === icId);
+                if (!ic) {
+                    this.showNotification('Inventory Controller not found', 'error');
+                    return;
+                }
+
+                const body = document.getElementById('inventorycontroller-details-body');
+                const userFallback = this.data.users && this.data.users[ic.username] ? this.data.users[ic.username] : {};
+                const icProfileImage = ic.profileImage || userFallback.profileImage || '';
+                body.innerHTML = `
+                    <div class="detail-row">
+                        <div class="detail-label">Name:</div>
+                        <div class="detail-value">${ic.name}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Phone:</div>
+                        <div class="detail-value">${ic.phone}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Email:</div>
+                        <div class="detail-value">${ic.email}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Username:</div>
+                        <div class="detail-value">${ic.username}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value"><span class="status-badge status-${ic.status}">${this.formatStatus(ic.status)}</span></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Profile Image:</div>
+                        <div class="detail-value">
+                            <div class="image-gallery">
+                                ${icProfileImage ? `
+                                    <div class="image-item" onclick="app.showImageModal('${icProfileImage}')">
+                                        <img src="${this.getImageUrl(icProfileImage)}" alt="Profile Image" onerror="this.style.display='none'">
+                                    </div>
+                                ` : 'No profile image available'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.showModal('inventorycontroller-details-modal');
+            }
+
+            async editInventoryController(icId) {
+                await this.fetchPeople('inventoryControllers');
+                const ic = this.data.inventoryControllers?.find(i => i.id === icId);
+                if (!ic) {
+                    this.showNotification('Inventory Controller not found', 'error');
+                    return;
+                }
+
+                document.getElementById('edit-inventorycontroller-id').value = ic.id;
+                document.getElementById('edit-inventorycontroller-name').value = ic.name || '';
+                document.getElementById('edit-inventorycontroller-phone').value = ic.phone || '';
+                document.getElementById('edit-inventorycontroller-email').value = ic.email || '';
+                document.getElementById('edit-inventorycontroller-username').value = ic.username || '';
+                document.getElementById('edit-inventorycontroller-status').value = ic.status || 'available';
+                document.getElementById('edit-inventorycontroller-password').value = '';
+
+                this.showModal('edit-inventorycontroller-modal');
+            }
+
+            deleteInventoryController(icId) {
+                if (!confirm('Are you sure you want to delete this inventory controller?')) return;
+                
+                fetch(`/api/inventorycontrollers/${encodeURIComponent(icId)}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(() => {
+                    this.loadInventoryControllers();
+                    this.showNotification('Inventory Controller deleted successfully', 'success');
+                })
+                .catch(() => {
+                    this.showNotification('Failed to delete inventory controller', 'error');
+                });
+            }
+
+            async updateInventoryController() {
+                const icId = parseInt(document.getElementById('edit-inventorycontroller-id').value);
+                const ic = this.data.inventoryControllers?.find(i => i.id === icId);
+                if (!ic) {
+                    this.showNotification('Inventory Controller not found', 'error');
+                    return;
+                }
+
+                const oldUsername = ic.username;
+                const updates = {
+                    name: document.getElementById('edit-inventorycontroller-name').value,
+                    phone: document.getElementById('edit-inventorycontroller-phone').value,
+                    email: document.getElementById('edit-inventorycontroller-email').value,
+                    username: document.getElementById('edit-inventorycontroller-username').value,
+                    status: document.getElementById('edit-inventorycontroller-status').value
+                };
+
+                const newPassword = document.getElementById('edit-inventorycontroller-password').value;
+                if (newPassword) {
+                    updates.password = newPassword;
+                }
+
+                try {
+                    const response = await fetch(`/api/inventorycontrollers/${icId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updates)
+                    });
+
+                    if (!response.ok) throw new Error('Failed to update inventory controller');
+
+                    // Update local data
+                    Object.assign(ic, updates);
+                    if (oldUsername !== updates.username) {
+                        if (this.data.users[oldUsername]) {
+                            delete this.data.users[oldUsername];
+                        }
+                        this.data.users[updates.username] = {
+                            username: updates.username,
+                            password: newPassword || this.data.users[oldUsername]?.password || ic.password,
+                            role: 'inventoryController',
+                            name: updates.name
+                        };
+                    } else if (newPassword && this.data.users[oldUsername]) {
+                        this.data.users[oldUsername].password = newPassword;
+                    }
+
+                    this.loadInventoryControllers();
+                    this.hideModals();
+                    this.showNotification('Inventory Controller updated successfully', 'success');
+                } catch (error) {
+                    console.error('Error updating inventory controller:', error);
+                    this.showNotification('Failed to update inventory controller', 'error');
+                }
+            }
+
+            async saveInventoryController() {
+                const formData = {
+                    name: document.getElementById('new-inventorycontroller-name').value,
+                    phone: document.getElementById('new-inventorycontroller-phone').value,
+                    email: document.getElementById('new-inventorycontroller-email').value,
+                    username: document.getElementById('new-inventorycontroller-username').value,
+                    password: document.getElementById('new-inventorycontroller-password').value,
+                    status: 'available'
+                };
+
+                try {
+                    const response = await fetch('/api/inventorycontrollers', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to create inventory controller');
+                    }
+
+                    const newIc = await response.json();
+                    this.loadInventoryControllers();
+                    this.hideModals();
+                    this.showNotification('Inventory Controller created successfully', 'success');
+                } catch (error) {
+                    console.error('Error creating inventory controller:', error);
+                    this.showNotification(error.message || 'Failed to create inventory controller', 'error');
+                }
+            }
+
+            async saveMaterial() {
+                const name = document.getElementById('new-material-name').value;
+                const quantity = parseInt(document.getElementById('new-material-quantity').value) || 0;
+                const minThreshold = parseInt(document.getElementById('new-material-threshold').value) || 10;
+
+                if (!name) {
+                    this.showNotification('Material name is required', 'error');
+                    return;
+                }
+
+                try {
+                    // Get current inventory
+                    const inventoryResponse = await fetch('/api/inventory');
+                    if (!inventoryResponse.ok) throw new Error('Failed to fetch inventory');
+                    const inventory = await inventoryResponse.json();
+                    
+                    const materials = inventory.materials || [];
+                    const maxId = materials.length > 0 ? Math.max(...materials.map(m => m.id || 0)) : 0;
+                    const newMaterial = {
+                        id: maxId + 1,
+                        name: name,
+                        quantity: quantity,
+                        minThreshold: minThreshold
+                    };
+
+                    materials.push(newMaterial);
+
+                    // Update inventory via API
+                    const updateResponse = await fetch('/api/inventory/materials?username=' + encodeURIComponent(this.currentUser.username), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(materials)
+                    });
+
+                    if (!updateResponse.ok) throw new Error('Failed to add material');
+
+                    this.loadInventory();
+                    this.hideModals();
+                    this.showNotification('Material added successfully', 'success');
+                } catch (error) {
+                    console.error('Error adding material:', error);
+                    this.showNotification(error.message || 'Failed to add material', 'error');
+                }
+            }
+
+            // Inventory Management Functions
+            async loadInventory() {
+                try {
+                    const response = await fetch('/api/inventory');
+                    if (!response.ok) throw new Error('Failed to fetch inventory');
+                    const data = await response.json();
+                    this.data.inventory = data || { materials: [], transactions: [], pendingCollections: [] };
+                    this.populateInventoryTable();
+                } catch (error) {
+                    console.error('Error fetching inventory:', error);
+                    this.showNotification('Failed to load inventory', 'error');
+                }
+            }
+
+            populateInventoryTable() {
+                const tbody = document.querySelector('#inventory-table tbody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!this.data.inventory || !this.data.inventory.materials || this.data.inventory.materials.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No materials in inventory</td></tr>';
+                    return;
+                }
+
+                this.data.inventory.materials.forEach(material => {
+                    const isLowStock = material.quantity < (material.minThreshold || 10);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <input type="text" class="form-control material-name-input" value="${material.name}" data-id="${material.id}" style="min-width: 150px;">
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="btn btn-sm btn-danger" onclick="app.adjustMaterialQuantity(${material.id}, -1)" style="min-width: 30px; padding: 4px 8px;">-</button>
+                                <input type="number" class="form-control material-quantity-input" value="${material.quantity}" data-id="${material.id}" data-original="${material.quantity}" style="width: 80px; text-align: center; font-weight: bold;" min="0">
+                                <button class="btn btn-sm btn-success" onclick="app.adjustMaterialQuantity(${material.id}, 1)" style="min-width: 30px; padding: 4px 8px;">+</button>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control material-threshold-input" value="${material.minThreshold || 10}" data-id="${material.id}" style="width: 80px; text-align: center;" min="0">
+                        </td>
+                        <td><span class="status-badge ${isLowStock ? 'status-delayed' : 'status-completed'}">${isLowStock ? 'Low Stock' : 'In Stock'}</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm save-material-btn" data-id="${material.id}" style="display: none;">Save</button>
+                        </td>
+                    `;
+
+                    // Add event listeners for inline editing
+                    const nameInput = row.querySelector('.material-name-input');
+                    const quantityInput = row.querySelector('.material-quantity-input');
+                    const thresholdInput = row.querySelector('.material-threshold-input');
+                    const saveBtn = row.querySelector('.save-material-btn');
+
+                    const checkChanges = () => {
+                        const nameChanged = nameInput.value !== material.name;
+                        const quantityChanged = parseInt(quantityInput.value) !== material.quantity;
+                        const thresholdChanged = parseInt(thresholdInput.value) !== (material.minThreshold || 10);
+                        if (nameChanged || quantityChanged || thresholdChanged) {
+                            saveBtn.style.display = 'inline-block';
+                        } else {
+                            saveBtn.style.display = 'none';
+                        }
+                    };
+
+                    nameInput.addEventListener('input', checkChanges);
+                    quantityInput.addEventListener('input', checkChanges);
+                    thresholdInput.addEventListener('input', checkChanges);
+
+                    quantityInput.addEventListener('change', () => {
+                        if (parseInt(quantityInput.value) < 0) quantityInput.value = 0;
+                    });
+
+                    saveBtn.addEventListener('click', () => {
+                        this.saveMaterialChanges(material.id, nameInput.value, parseInt(quantityInput.value), parseInt(thresholdInput.value));
+                    });
+
+                    tbody.appendChild(row);
+                });
+            }
+
+            adjustMaterialQuantity(materialId, change) {
+                const input = document.querySelector(`.material-quantity-input[data-id="${materialId}"]`);
+                if (!input) return;
+                
+                const currentValue = parseInt(input.value) || 0;
+                const newValue = Math.max(0, currentValue + change);
+                input.value = newValue;
+                
+                // Trigger change event to show save button
+                input.dispatchEvent(new Event('input'));
+            }
+
+            async saveMaterialChanges(materialId, newName, newQuantity, newThreshold) {
+                const material = this.data.inventory.materials.find(m => m.id === materialId);
+                if (!material) {
+                    this.showNotification('Material not found', 'error');
+                    return;
+                }
+
+                const oldQuantity = material.quantity;
+                const oldName = material.name;
+
+                try {
+                    // Update material
+                    material.name = newName;
+                    material.quantity = newQuantity;
+                    material.minThreshold = newThreshold;
+
+                    const updatedMaterials = this.data.inventory.materials;
+
+                    // Update via API
+                    const response = await fetch(`/api/inventory/materials?username=${encodeURIComponent(this.currentUser.username)}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedMaterials)
+                    });
+
+                    if (!response.ok) throw new Error('Failed to update material');
+
+                    // Log transaction if quantity changed
+                    if (oldQuantity !== newQuantity && this.data.inventory.transactions) {
+                        const quantityChange = newQuantity - oldQuantity;
+                        if (quantityChange !== 0) {
+                            this.data.inventory.transactions.push({
+                                id: Date.now() + Math.random(),
+                                type: quantityChange > 0 ? 'adjustment_add' : 'adjustment_remove',
+                                materialId: materialId,
+                                materialName: newName,
+                                quantity: quantityChange,
+                                performedBy: this.currentUser.username,
+                                performedByName: this.currentUser.name,
+                                timestamp: new Date().toISOString(),
+                                notes: `Manual adjustment: ${quantityChange > 0 ? 'added' : 'removed'} ${Math.abs(quantityChange)} ${oldName !== newName ? `(renamed from ${oldName})` : ''}`
+                            });
+                        }
+                    }
+
+                    // Refresh table
+                    this.loadInventory();
+                    this.showNotification('Material updated successfully', 'success');
+                } catch (error) {
+                    console.error('Error updating material:', error);
+                    this.showNotification('Failed to update material', 'error');
+                    // Reload to reset
+                    this.loadInventory();
+                }
+            }
+
+            async loadPendingCollections() {
+                try {
+                    const response = await fetch(`/api/inventory/pending-collections?username=${encodeURIComponent(this.currentUser.username)}`);
+                    if (!response.ok) throw new Error('Failed to fetch pending collections');
+                    const collections = await response.json();
+                    this.data.pendingCollections = collections || [];
+                    this.populatePendingCollectionsTable();
+                } catch (error) {
+                    console.error('Error fetching pending collections:', error);
+                    this.showNotification('Failed to load pending collections', 'error');
+                }
+            }
+
+            populatePendingCollectionsTable() {
+                const tbody = document.querySelector('#pending-collections-table tbody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!this.data.pendingCollections || this.data.pendingCollections.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="no-data">No pending collections</td></tr>';
+                    return;
+                }
+
+                this.data.pendingCollections
+                    .filter(c => c.status === 'pending')
+                    .forEach(collection => {
+                        const row = document.createElement('tr');
+                        const materialsList = collection.materials.map(m => `${m.name} (${m.quantity})`).join(', ');
+                        row.innerHTML = `
+                            <td>#${collection.projectId}</td>
+                            <td>${collection.projectName}</td>
+                            <td>${materialsList}</td>
+                            <td>${new Date(collection.createdAt).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-success btn-sm receive-collection-btn" data-id="${collection.id}">Mark as Received</button>
+                            </td>
+                        `;
+
+                        row.querySelector('.receive-collection-btn').addEventListener('click', (e) => {
+                            this.receiveCollection(collection.id);
+                        });
+
+                        tbody.appendChild(row);
+                    });
+            }
+
+            receiveCollection(collectionId) {
+                fetch(`/api/inventory/collections/${collectionId}/receive`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: this.currentUser.username })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(() => {
+                    this.loadPendingCollections();
+                    this.loadInventory();
+                    this.showNotification('Collection marked as received and added to inventory', 'success');
+                })
+                .catch(() => {
+                    this.showNotification('Failed to receive collection', 'error');
+                });
+            }
+
+            async loadInventoryHistory() {
+                try {
+                    const response = await fetch(`/api/inventory/transactions?username=${encodeURIComponent(this.currentUser.username)}`);
+                    if (!response.ok) throw new Error('Failed to fetch transactions');
+                    const transactions = await response.json();
+                    this.data.inventoryTransactions = transactions || [];
+                    this.populateInventoryHistoryTable();
+                } catch (error) {
+                    console.error('Error fetching inventory transactions:', error);
+                    this.showNotification('Failed to load inventory history', 'error');
+                }
+            }
+
+            populateInventoryHistoryTable() {
+                const tbody = document.querySelector('#inventory-history-table tbody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!this.data.inventoryTransactions || this.data.inventoryTransactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No transactions found</td></tr>';
+                    return;
+                }
+
+                // Sort by timestamp (newest first)
+                const sorted = [...this.data.inventoryTransactions].sort((a, b) => 
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                );
+
+                sorted.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    const quantityClass = transaction.quantity > 0 ? 'text-success' : 'text-danger';
+                    const quantitySign = transaction.quantity > 0 ? '+' : '';
+                    row.innerHTML = `
+                        <td>${new Date(transaction.timestamp).toLocaleString()}</td>
+                        <td>${transaction.type === 'assignment' ? '📤 Assignment' : transaction.type === 'return' ? '📥 Return' : transaction.type === 'collection' ? '📦 Collection' : transaction.type}</td>
+                        <td>${transaction.materialName}</td>
+                        <td><span class="${quantityClass}">${quantitySign}${transaction.quantity}</span></td>
+                        <td>${transaction.projectId ? `Project #${transaction.projectId}` : 'N/A'}</td>
+                        <td>${transaction.performedByName || 'System'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+
             // Profile Update Method
             async updateProfile(e) {
                 e.preventDefault();
@@ -11160,6 +12721,12 @@
                             })
                             .catch(() => {});
                     }
+                }
+
+                // Show test suite section only for admin
+                const testSuiteCard = document.getElementById('test-suite-card');
+                if (testSuiteCard) {
+                    testSuiteCard.style.display = this.currentRole === 'admin' ? 'block' : 'none';
                 }
                 
                 // Setup branding logo preview
@@ -11838,13 +13405,85 @@
             }
 
             toggleBoxesCount() {
-                const boxesCollected = document.getElementById('boxes-collected').value;
-                const boxesCountGroup = document.getElementById('boxes-count-group');
-                if (boxesCollected === 'yes') {
-                    boxesCountGroup.style.display = 'block';
+                // Legacy function name for backwards compatibility
+                this.toggleMaterialsCollection();
+            }
+
+            toggleMaterialsCollection() {
+                const materialsCollected = document.getElementById('materials-collected').value;
+                const materialsGroup = document.getElementById('materials-collection-group');
+                if (materialsCollected === 'yes') {
+                    materialsGroup.style.display = 'block';
+                    // Populate materials if not already populated
+                    this.populateCompletionMaterials();
                 } else {
-                    boxesCountGroup.style.display = 'none';
-                    document.getElementById('boxes-count').value = '';
+                    materialsGroup.style.display = 'none';
+                    // Clear all material inputs
+                    document.querySelectorAll('.completion-material-quantity').forEach(input => {
+                        input.value = '0';
+                    });
+                }
+            }
+
+            async populateCompletionMaterials() {
+                const container = document.getElementById('completion-materials-container');
+                if (!container) return;
+                
+                const jobId = document.getElementById('completion-job-id')?.value;
+                if (!jobId) return;
+                
+                try {
+                    // Fetch job details to get assigned materials
+                    const response = await fetch(`/api/jobs/${jobId}`);
+                    if (!response.ok) {
+                        container.innerHTML = '<p style="color: #ef4444;">Failed to load project materials</p>';
+                        return;
+                    }
+                    const job = await response.json();
+                    
+                    // Get materials assigned to this project
+                    const assignedMaterials = job.packingMaterials || [];
+                    
+                    if (assignedMaterials.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b;">No materials were assigned to this project</p>';
+                        return;
+                    }
+                    
+                    // Fetch current inventory to show material names
+                    const inventoryResponse = await fetch('/api/inventory');
+                    if (!inventoryResponse.ok) {
+                        container.innerHTML = '<p style="color: #ef4444;">Failed to load inventory</p>';
+                        return;
+                    }
+                    const inventory = await inventoryResponse.json();
+                    const materials = inventory.materials || [];
+                    
+                    container.innerHTML = assignedMaterials.map(assigned => {
+                        const material = materials.find(m => m.id === assigned.id) || { name: assigned.name || 'Unknown Material' };
+                        const maxQuantity = assigned.quantity || 0;
+                        
+                        return `
+                            <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
+                                <div>
+                                    <label style="font-weight: 600;">${material.name}</label>
+                                    <small style="color: #64748b; display: block;">Assigned: ${maxQuantity} units</small>
+                                </div>
+                                <div>
+                                    <input type="number" class="form-control completion-material-quantity" 
+                                           data-material-id="${assigned.id}" 
+                                           data-material-name="${material.name}"
+                                           min="0" 
+                                           max="${maxQuantity}"
+                                           value="${maxQuantity}"
+                                           style="text-align: center; font-weight: bold;">
+                                    <small style="color: #64748b; display: block; text-align: center;">Qty to collect</small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } catch (error) {
+                    console.error('Error loading materials:', error);
+                    container.innerHTML = '<p style="color: #ef4444;">Error loading materials</p>';
                 }
             }
 
@@ -11854,10 +13493,11 @@
                 this.clearSignature();
                 this.initStarRating();
                 this.initSignaturePad();
-                // Reset boxes selection
-                document.getElementById('boxes-collected').value = 'no';
-                document.getElementById('boxes-count-group').style.display = 'none';
-                document.getElementById('boxes-count').value = '';
+                // Reset materials collection
+                const materialsCollected = document.getElementById('materials-collected');
+                if (materialsCollected) materialsCollected.value = 'no';
+                const materialsGroup = document.getElementById('materials-collection-group');
+                if (materialsGroup) materialsGroup.style.display = 'none';
                 document.getElementById('completion-tip-amount').value = '';
                 this.showModal('completion-modal');
             }
@@ -11886,13 +13526,14 @@
                 const tipAmount = document.getElementById('completion-tip-amount');
                 if (tipAmount) tipAmount.value = '';
                 
-                // Clear boxes fields
-                const boxesCollected = document.getElementById('boxes-collected');
-                if (boxesCollected) boxesCollected.value = 'no';
-                const boxesCount = document.getElementById('boxes-count');
-                if (boxesCount) boxesCount.value = '';
-                const boxesCountGroup = document.getElementById('boxes-count-group');
-                if (boxesCountGroup) boxesCountGroup.style.display = 'none';
+                // Clear materials collection fields
+                const materialsCollected = document.getElementById('materials-collected');
+                if (materialsCollected) materialsCollected.value = 'no';
+                const materialsGroup = document.getElementById('materials-collection-group');
+                if (materialsGroup) materialsGroup.style.display = 'none';
+                document.querySelectorAll('.completion-material-quantity').forEach(input => {
+                    input.value = '0';
+                });
                 
                 // Hide signature preview
                 const preview = document.getElementById('signature-preview');
@@ -11924,9 +13565,23 @@
                 const tipAmount = parseFloat(document.getElementById('completion-tip-amount')?.value) || 0;
                 console.log('Tip Amount:', tipAmount);
                 
-                const boxesCollected = document.getElementById('boxes-collected')?.value || 'no';
-                const boxesCount = boxesCollected === 'yes' ? parseInt(document.getElementById('boxes-count')?.value) || 0 : 0;
-                console.log('Boxes Collected:', boxesCollected, 'Count:', boxesCount);
+                const materialsCollected = document.getElementById('materials-collected')?.value || 'no';
+                const materialsToCollect = [];
+                
+                if (materialsCollected === 'yes') {
+                    // Collect materials quantities
+                    document.querySelectorAll('.completion-material-quantity').forEach(input => {
+                        const quantity = parseInt(input.value) || 0;
+                        if (quantity > 0) {
+                            materialsToCollect.push({
+                                id: parseInt(input.dataset.materialId),
+                                name: input.dataset.materialName,
+                                quantity: quantity
+                            });
+                        }
+                    });
+                }
+                console.log('Materials Collected:', materialsCollected, 'Materials:', materialsToCollect);
                 
                 if (!signature) {
                     console.error('No signature provided');
@@ -11939,8 +13594,8 @@
                     signature, 
                     notes,
                     tipAmount,
-                    boxesCollected,
-                    boxesCount
+                    materialsCollected: materialsCollected === 'yes' ? true : false,
+                    materialsCollectedList: materialsToCollect
                 };
                 console.log('Submitting completion with payload:', payload);
                 

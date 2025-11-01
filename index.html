@@ -1902,12 +1902,6 @@
             justify-content: center;
         }
 
-        .modal.active,
-        .modal[style*="display: flex"],
-        .modal[style*="display:flex"] {
-            display: flex !important;
-        }
-
         .modal-content {
             background: white;
             border-radius: 8px;
@@ -3542,12 +3536,12 @@
                                 <div class="form-group">
                                         <label>Moving From <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" id="move-from" required>
-                                </div>
-                                <div class="form-group">
+                                    </div>
+                                    <div class="form-group">
                                         <label>Moving To <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" id="move-to" required>
-                                </div>
-                                <div class="form-group">
+                                    </div>
+                                    <div class="form-group">
                                         <label>Customer Name <span style="color: red;">*</span></label>
                                     <input type="text" class="form-control" id="client-name" required>
                                 </div>
@@ -3558,18 +3552,15 @@
                                 <div class="form-group">
                                     <label>Apartment Size <span style="color: red;">*</span></label>
                                     <select class="form-control" id="apartment-size" required onchange="app.handleApartmentSizeChange()">
-                                        <option value="">Select Size</option>
-                                        <option value="studio">Studio</option>
-                                        <option value="1br">1 Bedroom</option>
-                                        <option value="2br">2 Bedrooms</option>
-                                        <option value="3br">3 Bedrooms</option>
-                                        <option value="4br">4 Bedrooms</option>
-                                        <option value="villa">Villa</option>
+                                        <option value="">Select Apartment Size</option>
+                                        <option value="small">Small (Studio - 1BR)</option>
+                                        <option value="medium">Medium (2BR - 3BR)</option>
+                                        <option value="large">Large (4BR+)</option>
                                         <option value="custom">Custom</option>
                                     </select>
                                 </div>
                                 <div class="form-group" id="apartment-size-custom-group" style="display: none;">
-                                    <label>Custom Apartment Size <span style="color: red;">*</span></label>
+                                    <label>Custom Apartment Size</label>
                                     <input type="text" class="form-control" id="apartment-size-custom" placeholder="E.g., 4 Bedroom Villa, Studio, Penthouse">
                                 </div>
                                 </div>
@@ -3783,13 +3774,14 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Phone</th>
+                                    <th>Email</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="4" class="no-data">No supervisors available</td>
+                                    <td colspan="5" class="no-data">No supervisors available</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -3876,7 +3868,7 @@
                             <div class="search-box">
                                 <input type="text" id="inventorycontrollers-search" placeholder="Search..." class="form-control">
                             </div>
-                            <button class="btn btn-primary" id="add-inventorycontroller-btn">Add Inventory Controller</button>
+                            <button class="btn btn-primary" id="add-inventorycontroller-btn" onclick="app.showAddInventoryControllerModal()">Add Inventory Controller</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -3886,13 +3878,14 @@
                                     <th>Name</th>
                                     <th>Username</th>
                                     <th>Phone</th>
+                                    <th>Email</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="5" class="no-data">No inventory controllers available</td>
+                                    <td colspan="6" class="no-data">No inventory controllers available</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -4300,6 +4293,10 @@
                                     <input type="tel" class="form-control" id="profile-phone">
                                 </div>
                                 <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control" id="profile-email">
+                                </div>
+                                <div class="form-group">
                                     <label>New Password</label>
                                     <input type="password" class="form-control" id="profile-password">
                                 </div>
@@ -4687,6 +4684,10 @@
                             <input type="tel" class="form-control" id="edit-client-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-client-email" required>
+                        </div>
+                        <div class="form-group">
                             <label>Apartment Size</label>
                             <select class="form-control" id="edit-apartment-size" required onchange="app.handleEditApartmentSizeChange()">
                                 <option value="">Select Size</option>
@@ -4791,6 +4792,9 @@
                             <input type="tel" class="form-control" id="edit-inventorycontroller-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-inventorycontroller-email" required>
+                        </div>
                         <div class="form-group">
                             <label>Username</label>
                             <input type="text" class="form-control" id="edit-inventorycontroller-username" required>
@@ -4835,6 +4839,9 @@
                             <input type="tel" class="form-control" id="new-inventorycontroller-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="new-inventorycontroller-email" required>
+                        </div>
                         <div class="form-group">
                             <label>Username</label>
                             <input type="text" class="form-control" id="new-inventorycontroller-username" required>
@@ -4905,6 +4912,10 @@
                             <input type="tel" class="form-control" id="edit-supervisor-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-supervisor-email" required>
+                        </div>
+                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="edit-supervisor-designation" required>
                         </div>
@@ -4946,6 +4957,10 @@
                             <input type="tel" class="form-control" id="edit-teamleader-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-teamleader-email" required>
+                        </div>
+                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="edit-teamleader-designation" required>
                         </div>
@@ -4985,6 +5000,10 @@
                         <div class="form-group">
                             <label>Phone</label>
                             <input type="tel" class="form-control" id="edit-staff-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="edit-staff-email" required>
                         </div>
                         <div class="form-group" id="edit-staff-designation-group">
                             <label>Designation</label>
@@ -5039,6 +5058,10 @@
                             <input type="tel" class="form-control" id="new-supervisor-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="new-supervisor-email" required>
+                        </div>
+                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="new-supervisor-designation" required>
                         </div>
@@ -5089,6 +5112,10 @@
                             <input type="tel" class="form-control" id="new-teamleader-phone" required>
                         </div>
                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="new-teamleader-email" required>
+                        </div>
+                        <div class="form-group">
                             <label>Designation</label>
                             <input type="text" class="form-control" id="new-teamleader-designation" required>
                         </div>
@@ -5137,6 +5164,10 @@
                         <div class="form-group">
                             <label>Phone</label>
                             <input type="tel" class="form-control" id="new-staff-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="new-staff-email" required>
                         </div>
                         <div class="form-group" id="new-staff-designation-group">
                             <label>Designation</label>
@@ -5265,6 +5296,9 @@
                                 <input type="tel" class="form-control" id="pl-mobile" required>
                             </div>
                             <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" id="pl-email">
+                            </div>
                             <div class="form-group">
                                 <label>Source</label>
                                 <input type="text" class="form-control" id="pl-source">
@@ -5547,40 +5581,6 @@
         // Complete implementation with all view buttons working
         class MoveIt247 {
             constructor() {
-                // Check if running via file:// protocol and show warning
-                if (window.location.protocol === 'file:') {
-                    const errorHTML = `
-                        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 99999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 40px; text-align: center; font-family: Arial, sans-serif;">
-                            <div style="max-width: 600px;">
-                                <h1 style="color: #ef4444; font-size: 32px; margin-bottom: 20px;">⚠️ Access Error</h1>
-                                <p style="color: #64748b; font-size: 18px; margin-bottom: 30px; line-height: 1.6;">
-                                    This application must be accessed via a web server, not directly from the file system.
-                                </p>
-                                <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                                    <h2 style="color: #92400e; margin-top: 0;">How to Fix:</h2>
-                                    <ol style="color: #78350f; text-align: left; margin: 0; padding-left: 20px;">
-                                        <li style="margin-bottom: 10px;">Open a terminal in the project folder</li>
-                                        <li style="margin-bottom: 10px;">Run: <code style="background: #fbbf24; padding: 2px 6px; border-radius: 4px;">npm start</code></li>
-                                        <li style="margin-bottom: 10px;">Wait for the server to start</li>
-                                        <li style="margin-bottom: 10px;">Open: <code style="background: #fbbf24; padding: 2px 6px; border-radius: 4px;">http://localhost:4000</code></li>
-                                    </ol>
-                                </div>
-                                <button onclick="window.location.reload()" style="background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold;">
-                                    Refresh After Starting Server
-                                </button>
-                                <p style="color: #94a3b8; font-size: 14px; margin-top: 20px;">
-                                    Current URL: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${window.location.href}</code>
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    document.body.innerHTML = errorHTML;
-                    console.error('%c⚠️ ERROR: Application must be accessed via http://localhost:4000', 'color: #ef4444; font-size: 16px; font-weight: bold;');
-                    console.error('%cPlease start the server with: npm start', 'color: #f59e0b; font-size: 14px;');
-                    console.error('%cThen access at: http://localhost:4000', 'color: #f59e0b; font-size: 14px;');
-                    return;
-                }
-                
                 this.currentUser = null;
                 this.currentRole = null;
                 this.data = this.initializeData();
@@ -6206,8 +6206,7 @@
                     time: document.getElementById('job-time').value,
                     clientName: document.getElementById('client-name').value,
                     clientPhone: document.getElementById('client-phone').value,
-                    apartmentSize: document.getElementById('apartment-size').value,
-                    apartmentSizeCustom: document.getElementById('apartment-size-custom').value || '',
+                    clientEmail: document.getElementById('client-email').value,
                     moveFrom: document.getElementById('move-from').value,
                     moveTo: document.getElementById('move-to').value,
                     teamLeader: document.getElementById('team-leader-assign').value,
@@ -6237,23 +6236,16 @@
                 console.log('Project form data:', jobData);
 
                 // Validate required fields
-                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo || !jobData.apartmentSize) {
+                if (!jobData.projectName || !jobData.clientName || !jobData.date || !jobData.time || !jobData.moveFrom || !jobData.moveTo) {
                     console.error('Validation failed - missing required fields:', {
                         projectName: jobData.projectName,
                         clientName: jobData.clientName,
                         date: jobData.date,
                         time: jobData.time,
                         moveFrom: jobData.moveFrom,
-                        moveTo: jobData.moveTo,
-                        apartmentSize: jobData.apartmentSize
+                        moveTo: jobData.moveTo
                     });
-                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, Locations, and Apartment Size)', 'error');
-                    return;
-                }
-                
-                // Validate custom apartment size if selected
-                if (jobData.apartmentSize === 'custom' && !jobData.apartmentSizeCustom) {
-                    this.showNotification('Please enter custom apartment size', 'error');
+                    this.showNotification('Please fill in all required fields (Project Name, Customer Name, Date, Time, and Locations)', 'error');
                     return;
                 }
 
@@ -6575,8 +6567,7 @@
                 });
 
                 // Logout
-                const logoutBtn = document.getElementById('logout-btn');
-                if (logoutBtn) logoutBtn.addEventListener('click', () => this.handleLogout());
+                document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
 
                 // Job completion
                 const submitCompletion = document.getElementById('submit-completion');
@@ -6589,76 +6580,30 @@
                 if (cancelApproval) cancelApproval.addEventListener('click', () => this.hideModals());
 
                 // Job editing
-                const updateJobBtn = document.getElementById('update-job');
-                if (updateJobBtn) updateJobBtn.addEventListener('click', () => this.updateJob());
-                
-                const cancelEditJobBtn = document.getElementById('cancel-edit-job');
-                if (cancelEditJobBtn) cancelEditJobBtn.addEventListener('click', () => this.hideModals());
+                document.getElementById('update-job').addEventListener('click', () => this.updateJob());
 
                 // Supervisor editing
-                const updateSupervisorBtn = document.getElementById('update-supervisor');
-                if (updateSupervisorBtn) updateSupervisorBtn.addEventListener('click', () => this.updateSupervisor());
-                const cancelEditSupervisorBtn = document.getElementById('cancel-edit-supervisor');
-                if (cancelEditSupervisorBtn) cancelEditSupervisorBtn.addEventListener('click', () => this.hideModals());
+                document.getElementById('update-supervisor').addEventListener('click', () => this.updateSupervisor());
+                document.getElementById('cancel-edit-supervisor').addEventListener('click', () => this.hideModals());
 
                 // Team Leader editing
-                const updateTeamLeaderBtn = document.getElementById('update-teamleader');
-                if (updateTeamLeaderBtn) updateTeamLeaderBtn.addEventListener('click', () => this.updateTeamLeader());
-                const cancelEditTeamLeaderBtn = document.getElementById('cancel-edit-teamleader');
-                if (cancelEditTeamLeaderBtn) cancelEditTeamLeaderBtn.addEventListener('click', () => this.hideModals());
+                document.getElementById('update-teamleader').addEventListener('click', () => this.updateTeamLeader());
+                document.getElementById('cancel-edit-teamleader').addEventListener('click', () => this.hideModals());
 
                 // Staff editing
-                const updateStaffBtn = document.getElementById('update-staff');
-                if (updateStaffBtn) updateStaffBtn.addEventListener('click', () => this.updateStaff());
-                const cancelEditStaffBtn = document.getElementById('cancel-edit-staff');
-                if (cancelEditStaffBtn) cancelEditStaffBtn.addEventListener('click', () => this.hideModals());
+                document.getElementById('update-staff').addEventListener('click', () => this.updateStaff());
+                document.getElementById('cancel-edit-staff').addEventListener('click', () => this.hideModals());
 
-                // Add buttons (with null checking and direct event listeners)
-                // Note: These are now handled by the global button delegation handler below
-                
-                // Also attach direct listeners (as primary method)
-                const addSupervisorBtn = document.getElementById('add-supervisor-btn');
-                if (addSupervisorBtn) {
-                    addSupervisorBtn.removeEventListener('click', this._addSupervisorHandler);
-                    this._addSupervisorHandler = () => this.showAddSupervisorModal();
-                    addSupervisorBtn.addEventListener('click', this._addSupervisorHandler);
-                }
-                
-                const addTeamLeaderBtn = document.getElementById('add-teamleader-btn');
-                if (addTeamLeaderBtn) {
-                    addTeamLeaderBtn.removeEventListener('click', this._addTeamLeaderHandler);
-                    this._addTeamLeaderHandler = () => this.showAddTeamLeaderModal();
-                    addTeamLeaderBtn.addEventListener('click', this._addTeamLeaderHandler);
-                }
-                
-                const addStaffBtn = document.getElementById('add-staff-btn');
-                if (addStaffBtn) {
-                    addStaffBtn.removeEventListener('click', this._addStaffHandler);
-                    this._addStaffHandler = () => this.showAddStaffModal();
-                    addStaffBtn.addEventListener('click', this._addStaffHandler);
-                }
-                
-                const addInventoryControllerBtn = document.getElementById('add-inventorycontroller-btn');
-                if (addInventoryControllerBtn) {
-                    // Remove inline onclick if present
-                    addInventoryControllerBtn.removeAttribute('onclick');
-                    addInventoryControllerBtn.removeEventListener('click', this._addInventoryControllerHandler);
-                    this._addInventoryControllerHandler = () => this.showAddInventoryControllerModal();
-                    addInventoryControllerBtn.addEventListener('click', this._addInventoryControllerHandler);
-                }
+                // Add buttons
+                document.getElementById('add-supervisor-btn').addEventListener('click', () => this.showAddSupervisorModal());
+                document.getElementById('add-teamleader-btn').addEventListener('click', () => this.showAddTeamLeaderModal());
+                document.getElementById('add-staff-btn').addEventListener('click', () => this.showAddStaffModal());
 
-                // Save new items (with null checking)
-                const saveSupervisorBtn = document.getElementById('save-supervisor');
-                if (saveSupervisorBtn) saveSupervisorBtn.addEventListener('click', () => this.addSupervisor());
-                
-                const saveTeamLeaderBtn = document.getElementById('save-teamleader');
-                if (saveTeamLeaderBtn) saveTeamLeaderBtn.addEventListener('click', () => this.addTeamLeader());
-                
-                const saveStaffBtn = document.getElementById('save-staff');
-                if (saveStaffBtn) saveStaffBtn.addEventListener('click', () => this.addStaff());
-                
-                const saveSurveyBtn = document.getElementById('save-survey');
-                if (saveSurveyBtn) saveSurveyBtn.addEventListener('click', () => this.addSurvey());
+                // Save new items
+                document.getElementById('save-supervisor').addEventListener('click', () => this.addSupervisor());
+                document.getElementById('save-teamleader').addEventListener('click', () => this.addTeamLeader());
+                document.getElementById('save-staff').addEventListener('click', () => this.addStaff());
+                document.getElementById('save-survey').addEventListener('click', () => this.addSurvey());
                 
                 // Inventory Controller modals
                 document.getElementById('update-inventorycontroller')?.addEventListener('click', () => this.updateInventoryController());
@@ -6704,27 +6649,6 @@
                 document.getElementById('cancel-add-supervisor')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('cancel-add-teamleader')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('cancel-add-staff')?.addEventListener('click', () => this.hideModals());
-                
-                // Handle all close buttons (X) in modals
-                document.querySelectorAll('.modal .close').forEach(closeBtn => {
-                    closeBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const modal = closeBtn.closest('.modal');
-                        if (modal) {
-                            this.hideModals();
-                        }
-                    });
-                });
-                
-                // Close modal when clicking outside (on overlay)
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            this.hideModals();
-                        }
-                    });
-                });
 
                 // Submenu toggle for Projects
                 document.querySelectorAll('.has-submenu > a').forEach(link => {
@@ -6755,141 +6679,6 @@
                         }
                     });
                 });
-
-                // Comprehensive button event delegation system
-                // Store reference to this for event delegation
-                const self = this;
-                
-                // Remove old global button delegation handler if exists
-                if (this._globalButtonDelegationHandler) {
-                    document.removeEventListener('click', this._globalButtonDelegationHandler, true);
-                }
-                
-                // Create global button delegation handler
-                this._globalButtonDelegationHandler = function(e) {
-                    const target = e.target;
-                    const button = target.closest('button') || target.closest('a.btn');
-                    if (!button) return;
-                    
-                    const buttonId = button.id || '';
-                    const buttonClass = button.className || '';
-                    const buttonText = button.textContent.trim();
-                    const onclickAttr = button.getAttribute('onclick');
-                    
-                    // If button has onclick attribute, let it handle it (but we'll also handle missing handlers)
-                    // We'll handle buttons without handlers here
-                    
-                    // Map button IDs to handler functions
-                    const buttonHandlerMap = {
-                        // Add buttons
-                        'add-supervisor-btn': () => self.showAddSupervisorModal(),
-                        'add-teamleader-btn': () => self.showAddTeamLeaderModal(),
-                        'add-staff-btn': () => self.showAddStaffModal(),
-                        'add-inventorycontroller-btn': () => self.showAddInventoryControllerModal(),
-                        'add-survey-btn': () => self.showAddSurveyModal(),
-                        'add-material-btn': () => self.showAddMaterialModal(),
-                        'add-custom-item-btn': () => self.showAddCustomItemModal(),
-                        
-                        // Save buttons
-                        'save-supervisor': () => self.addSupervisor(),
-                        'save-teamleader': () => self.addTeamLeader(),
-                        'save-staff': () => self.addStaff(),
-                        'save-inventorycontroller': () => self.saveInventoryController(),
-                        'save-material': () => self.saveMaterial(),
-                        'save-survey': () => self.addSurvey(),
-                        'save-custom-item': () => self.addCustomItem(),
-                        
-                        // Update buttons
-                        'update-supervisor': () => self.updateSupervisor(),
-                        'update-teamleader': () => self.updateTeamLeader(),
-                        'update-staff': () => self.updateStaff(),
-                        'update-job': () => self.updateJob(),
-                        'update-inventorycontroller': () => self.updateInventoryController(),
-                        
-                        // Close/Details buttons
-                        'close-job-details': () => self.hideModals(),
-                        'close-supervisor-details': () => self.hideModals(),
-                        'close-teamleader-details': () => self.hideModals(),
-                        'close-staff-details': () => self.hideModals(),
-                        'close-inventorycontroller-details': () => self.hideModals(),
-                        'close-survey-details': () => self.hideModals(),
-                        
-                        // Cancel buttons
-                        'cancel-add-supervisor': () => self.hideModals(),
-                        'cancel-add-teamleader': () => self.hideModals(),
-                        'cancel-add-staff': () => self.hideModals(),
-                        'cancel-add-inventorycontroller': () => self.hideModals(),
-                        'cancel-add-material': () => self.hideModals(),
-                        'cancel-add-survey': () => self.hideModals(),
-                        'cancel-edit-supervisor': () => self.hideModals(),
-                        'cancel-edit-teamleader': () => self.hideModals(),
-                        'cancel-edit-staff': () => self.hideModals(),
-                        'cancel-edit-job': () => self.hideModals(),
-                        'cancel-edit-inventorycontroller': () => self.hideModals(),
-                        'cancel-complete-survey': () => self.hideModals(),
-                        'cancel-custom-item': () => self.hideModals(),
-                        'cancel-completion': () => self.hideModals(),
-                        'cancel-approval': () => self.hideModals(),
-                        
-                        // Action buttons
-                        'submit-completion': () => self.submitJobCompletion(),
-                        'approve-job': () => self.approveJobCompletion(),
-                        'submit-survey': () => self.completeSurvey(),
-                        'submit-bill-btn': () => self.submitBill(),
-                        'download-survey-report': () => self.downloadSurveyReport(),
-                        
-                        // Refresh buttons
-                        'refresh-tracking-btn': () => self.refreshTracking(),
-                    };
-                    
-                    // Skip if button already has a direct event listener attached (check for onclick or existing handler)
-                    // Only handle buttons that truly need delegation
-                    if (onclickAttr) {
-                        // Button has onclick - let it handle it naturally, don't interfere
-                        return;
-                    }
-                    
-                    // Check if button ID has a handler in our map
-                    if (buttonId && buttonHandlerMap[buttonId]) {
-                        // Only handle if we're sure this button needs delegation
-                        // Don't prevent default or stop propagation - let event flow naturally
-                        console.log(`Button clicked via delegation: ${buttonId}`);
-                        try {
-                            buttonHandlerMap[buttonId]();
-                        } catch (err) {
-                            console.error(`Error in delegation handler for ${buttonId}:`, err);
-                        }
-                        // Don't return here - let the event continue to bubble for other handlers
-                        return;
-                    }
-                    
-                    // Remove onclick handler fallback - buttons with onclick should work naturally
-                    // The onclick attribute handlers will execute automatically, we don't need to handle them
-                    
-                    // Handle buttons by text content as fallback (for buttons without IDs)
-                    const buttonTextLower = buttonText.toLowerCase();
-                    if (buttonTextLower.includes('add material') && typeof self.showAddMaterialModal === 'function') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Button clicked via text fallback: Add Material');
-                        self.showAddMaterialModal();
-                        return;
-                    }
-                    if (buttonTextLower.includes('refresh') && buttonClass.includes('inventory')) {
-                        // Check context - if in inventory section, call loadInventory
-                        if (button.closest('#inventory-content')) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Button clicked via text fallback: Refresh Inventory');
-                            self.loadInventory();
-                            return;
-                        }
-                    }
-                };
-                
-                // Attach global delegation handler (use bubble phase, not capture)
-                // This ensures onclick handlers run first, and we only catch what's left
-                document.addEventListener('click', this._globalButtonDelegationHandler, false);
 
                 // Cancel buttons
                 document.querySelectorAll('.btn-secondary').forEach(btn => {
@@ -9237,6 +9026,7 @@
                     row.innerHTML = `
                         <td>${sup.name}</td>
                         <td>${sup.phone}</td>
+                        <td>${sup.email}</td>
                         <td><span class="status-badge status-${sup.status}">${this.formatStatus(sup.status)}</span></td>
                         <td>
                             <button class="btn btn-primary btn-sm view-supervisor-btn" data-id="${sup.id}">View</button>
@@ -9684,7 +9474,9 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
+                    const email = row.cells[2]?.textContent.toLowerCase() || '';
+                    
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9696,7 +9488,9 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
+                    const email = row.cells[2]?.textContent.toLowerCase() || '';
+                    
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9708,7 +9502,9 @@
                 rows.forEach(row => {
                     const name = row.cells[0]?.textContent.toLowerCase() || '';
                     const phone = row.cells[1]?.textContent.toLowerCase() || '';
-                    const matches = name.includes(searchTerm) || phone.includes(searchTerm);
+                    const email = row.cells[2]?.textContent.toLowerCase() || '';
+                    
+                    const matches = name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 });
             }
@@ -9717,7 +9513,7 @@
             exportJobsCSV() {
                 const jobs = this.data.jobs.filter(job => job.status !== 'completed');
                 const csv = this.convertToCSV(jobs, [
-                    'id', 'clientName', 'phone', 'date', 'movingFrom', 'movingTo', 
+                    'id', 'clientName', 'email', 'phone', 'date', 'movingFrom', 'movingTo', 
                     'apartmentSize', 'teamLeader', 'status', 'requirementsAcknowledged'
                 ]);
                 this.downloadCSV(csv, 'current-jobs.csv');
@@ -10150,49 +9946,18 @@
 
             // Modal methods
             showModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (!modal) {
-                    console.error(`Modal not found: ${modalId}`);
-                    this.showNotification(`Modal "${modalId}" not found. Please refresh the page.`, 'error');
-                    return;
-                }
-                console.log(`Opening modal: ${modalId}`);
-                console.log('Modal element:', modal);
-                console.log('Modal current display:', window.getComputedStyle(modal).display);
-                
-                // Force show the modal
-                modal.style.display = 'flex';
-                modal.classList.add('active');
-                modal.setAttribute('data-modal-active', 'true');
-                
-                // Also ensure body doesn't scroll
-                document.body.style.overflow = 'hidden';
-                
-                // Double-check it's visible
-                setTimeout(() => {
-                    const computedStyle = window.getComputedStyle(modal);
-                    console.log('Modal computed display after show:', computedStyle.display);
-                    console.log('Modal visibility:', computedStyle.visibility);
-                    console.log('Modal z-index:', computedStyle.zIndex);
-                    if (computedStyle.display !== 'flex' && computedStyle.display !== 'block') {
-                        console.warn('Modal display not set correctly, forcing...');
-                        modal.style.setProperty('display', 'flex', 'important');
-                    }
-                }, 10);
+                document.getElementById(modalId).style.display = 'flex';
             }
 
             hideModals() {
                 document.querySelectorAll('.modal').forEach(modal => {
                     modal.style.display = 'none';
-                    modal.classList.remove('active');
                 });
                 // Also hide custom modals that don't use the .modal class
                 const statusModal = document.getElementById('status-image-modal');
                 if (statusModal) statusModal.style.display = 'none';
                 const completionModal = document.getElementById('completion-modal');
                 if (completionModal) completionModal.style.display = 'none';
-                // Restore body scroll
-                document.body.style.overflow = '';
             }
 
             // Helper function to get correct image URL for current platform
@@ -10234,51 +9999,26 @@
 
             // Add Modal Methods
             showAddSupervisorModal() {
-                console.log('showAddSupervisorModal called');
-                const form = document.getElementById('add-supervisor-form');
-                if (form) form.reset();
-                const modal = document.getElementById('add-supervisor-modal');
-                if (!modal) {
-                    console.error('Add Supervisor modal not found');
-                    this.showNotification('Modal not found. Please refresh the page.', 'error');
-                    return;
-                }
+                document.getElementById('add-supervisor-form').reset();
                 this.showModal('add-supervisor-modal');
-                console.log('Add Supervisor modal should be visible now');
             }
 
             showAddTeamLeaderModal() {
-                console.log('showAddTeamLeaderModal called');
-                const form = document.getElementById('add-teamleader-form');
-                if (form) form.reset();
-                const modal = document.getElementById('add-teamleader-modal');
-                if (!modal) {
-                    console.error('Add Team Leader modal not found');
-                    this.showNotification('Modal not found. Please refresh the page.', 'error');
-                    return;
-                }
+                document.getElementById('add-teamleader-form').reset();
                 this.showModal('add-teamleader-modal');
-                console.log('Add Team Leader modal should be visible now');
             }
 
             showAddStaffModal() {
-                console.log('showAddStaffModal called');
-                const form = document.getElementById('add-staff-form');
-                if (form) form.reset();
-                
+                document.getElementById('add-staff-form').reset();
                 // Populate team leaders dropdown
                 const teamLeaderSelect = document.getElementById('new-staff-teamleader');
-                if (teamLeaderSelect) {
                 teamLeaderSelect.innerHTML = '<option value="">Select Team Leader</option>';
-                    if (this.data.teamLeaders && this.data.teamLeaders.length > 0) {
                 this.data.teamLeaders.forEach(tl => {
                     const option = document.createElement('option');
                     option.value = tl.name;
                     option.textContent = tl.name;
                     teamLeaderSelect.appendChild(option);
                 });
-                    }
-                }
                 
                 // Hide designation field for supervisors (admin only)
                 const designationGroup = document.getElementById('new-staff-designation-group');
@@ -10293,28 +10033,12 @@
                     }
                 }
                 
-                const modal = document.getElementById('add-staff-modal');
-                if (!modal) {
-                    console.error('Add Staff modal not found');
-                    this.showNotification('Modal not found. Please refresh the page.', 'error');
-                    return;
-                }
                 this.showModal('add-staff-modal');
-                console.log('Add Staff modal should be visible now');
             }
 
             showAddInventoryControllerModal() {
-                console.log('showAddInventoryControllerModal called');
-                const form = document.getElementById('add-inventorycontroller-form');
-                if (form) form.reset();
-                const modal = document.getElementById('add-inventorycontroller-modal');
-                if (!modal) {
-                    console.error('Add Inventory Controller modal not found');
-                    this.showNotification('Modal not found. Please refresh the page.', 'error');
-                    return;
-                }
+                document.getElementById('add-inventorycontroller-form').reset();
                 this.showModal('add-inventorycontroller-modal');
-                console.log('Add Inventory Controller modal should be visible now');
             }
 
             showAddMaterialModal() {
@@ -10336,6 +10060,7 @@
                 document.getElementById('edit-job-time').value = job.time || '';
                 document.getElementById('edit-client-name').value = job.clientName;
                 document.getElementById('edit-client-phone').value = job.clientPhone;
+                document.getElementById('edit-client-email').value = job.clientEmail;
                 document.getElementById('edit-apartment-size').value = job.apartmentSize;
                 document.getElementById('edit-apartment-size-custom').value = job.apartmentSizeCustom || '';
                 document.getElementById('edit-move-from').value = job.moveFrom;
@@ -10409,6 +10134,7 @@
                     time: document.getElementById('edit-job-time').value,
                     clientName: document.getElementById('edit-client-name').value,
                     clientPhone: document.getElementById('edit-client-phone').value,
+                    clientEmail: document.getElementById('edit-client-email').value,
                     apartmentSize: document.getElementById('edit-apartment-size').value,
                     apartmentSizeCustom: document.getElementById('edit-apartment-size-custom').value,
                     moveFrom: document.getElementById('edit-move-from').value,
@@ -10516,16 +10242,23 @@
                 // Get form values
                 const name = document.getElementById('new-supervisor-name').value.trim();
                 const phone = document.getElementById('new-supervisor-phone').value.trim();
+                const email = document.getElementById('new-supervisor-email').value.trim();
                 const designation = document.getElementById('new-supervisor-designation').value.trim();
                 const username = document.getElementById('new-supervisor-username').value.trim();
                 const password = document.getElementById('new-supervisor-password').value;
 
-                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty' });
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
 
                 // Validate required fields
-                if (!name || !phone || !username || !password) {
+                if (!name || !phone || !email || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Validate email format
+                if (email && !this.isValidEmail(email)) {
+                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10544,6 +10277,7 @@
                 const newSupervisor = {
                     name,
                     phone,
+                    email,
                     designation: designation || 'Supervisor',
                     username,
                     password,
@@ -10588,16 +10322,23 @@
                 // Get form values
                 const name = document.getElementById('new-teamleader-name').value.trim();
                 const phone = document.getElementById('new-teamleader-phone').value.trim();
+                const email = document.getElementById('new-teamleader-email').value.trim();
                 const designation = document.getElementById('new-teamleader-designation').value.trim();
                 const username = document.getElementById('new-teamleader-username').value.trim();
                 const password = document.getElementById('new-teamleader-password').value;
 
-                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty' });
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty' });
 
                 // Validate required fields
-                if (!name || !phone || !username || !password) {
+                if (!name || !phone || !email || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Validate email format
+                if (email && !this.isValidEmail(email)) {
+                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10616,6 +10357,7 @@
                 const newTeamLeader = {
                     name,
                     phone,
+                    email,
                     designation: designation || 'Team Leader',
                     username,
                     password,
@@ -10663,15 +10405,16 @@
                 // Get form values
                 const name = document.getElementById('new-staff-name').value.trim();
                 const phone = document.getElementById('new-staff-phone').value.trim();
+                const email = document.getElementById('new-staff-email').value.trim();
                 const designation = this.currentRole === 'admin' ? document.getElementById('new-staff-designation').value.trim() : '';
                 const username = document.getElementById('new-staff-username').value.trim();
                 const password = document.getElementById('new-staff-password').value;
                 const teamLeader = document.getElementById('new-staff-teamleader').value;
 
-                console.log('Form values:', { name, phone, designation, username, password: password ? '***' : 'empty', teamLeader });
+                console.log('Form values:', { name, phone, email, designation, username, password: password ? '***' : 'empty', teamLeader });
 
                 // Validate required fields (designation only required for admin)
-                if (!name || !phone || !username || !password) {
+                if (!name || !phone || !email || !username || !password) {
                     console.error('Validation failed - missing required fields');
                     this.showNotification('Please fill in all required fields', 'error');
                     return;
@@ -10680,6 +10423,12 @@
                 // Validate designation for admin
                 if (this.currentRole === 'admin' && !designation) {
                     this.showNotification('Please select a designation', 'error');
+                    return;
+                }
+
+                // Validate email format
+                if (email && !this.isValidEmail(email)) {
+                    this.showNotification('Please enter a valid email address', 'error');
                     return;
                 }
 
@@ -10698,6 +10447,7 @@
                 const newStaff = {
                     name,
                     phone,
+                    email,
                     designation: this.currentRole === 'admin' ? (designation || 'Staff') : 'Staff', // Only admin can set designation
                     username,
                     password,
@@ -10977,6 +10727,7 @@
                     companyName: document.getElementById('pl-company-name').value.trim(),
                     personName: document.getElementById('pl-person-name').value.trim(),
                     mobile: document.getElementById('pl-mobile').value.trim(),
+                    email: document.getElementById('pl-email').value.trim(),
                     source: document.getElementById('pl-source').value.trim(),
                     serviceTypes: serviceTypes,
                     origin: document.getElementById('pl-origin').value.trim(),
@@ -11234,6 +10985,7 @@
                 if (data.companyName) document.getElementById('pl-company-name').value = data.companyName;
                 if (data.personName) document.getElementById('pl-person-name').value = data.personName;
                 if (data.mobile) document.getElementById('pl-mobile').value = data.mobile;
+                if (data.email) document.getElementById('pl-email').value = data.email;
                 if (data.source) document.getElementById('pl-source').value = data.source;
                 
                 // Populate service types
@@ -11376,6 +11128,7 @@
                                             <div><strong>Company:</strong> ${pl.companyName || 'N/A'}</div>
                                             <div><strong>Person:</strong> ${pl.personName || 'N/A'}</div>
                                             <div><strong>Mobile:</strong> ${pl.mobile || 'N/A'}</div>
+                                            <div><strong>Email:</strong> ${pl.email || 'N/A'}</div>
                                             <div><strong>Service:</strong> ${(pl.serviceTypes || []).join(', ') || 'N/A'}</div>
                                             <div><strong>Source:</strong> ${pl.source || 'N/A'}</div>
                                             <div><strong>Origin:</strong> ${pl.origin || 'N/A'} ${pl.originDate ? `(${pl.originDate} ${pl.originTime || ''})` : ''}</div>
@@ -11598,6 +11351,10 @@
                     <div class="detail-row">
                         <div class="detail-label">Phone:</div>
                         <div class="detail-value">${job.clientPhone || job.phone || 'N/A'}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Email:</div>
+                        <div class="detail-value">${job.clientEmail || job.email || 'N/A'}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Moving Date:</div>
@@ -12110,6 +11867,7 @@
                 document.getElementById('edit-supervisor-id').value = supervisor.id;
                 document.getElementById('edit-supervisor-name').value = supervisor.name;
                 document.getElementById('edit-supervisor-phone').value = supervisor.phone;
+                document.getElementById('edit-supervisor-email').value = supervisor.email;
                 document.getElementById('edit-supervisor-designation').value = supervisor.designation;
                 document.getElementById('edit-supervisor-username').value = supervisor.username;
                 document.getElementById('edit-supervisor-password').value = '';
@@ -12124,6 +11882,7 @@
                 document.getElementById('edit-teamleader-id').value = teamLeader.id;
                 document.getElementById('edit-teamleader-name').value = teamLeader.name;
                 document.getElementById('edit-teamleader-phone').value = teamLeader.phone;
+                document.getElementById('edit-teamleader-email').value = teamLeader.email;
                 document.getElementById('edit-teamleader-designation').value = teamLeader.designation;
                 document.getElementById('edit-teamleader-username').value = teamLeader.username;
                 document.getElementById('edit-teamleader-password').value = '';
@@ -12138,6 +11897,7 @@
                 document.getElementById('edit-staff-id').value = staff.id;
                 document.getElementById('edit-staff-name').value = staff.name;
                 document.getElementById('edit-staff-phone').value = staff.phone;
+                document.getElementById('edit-staff-email').value = staff.email;
                 document.getElementById('edit-staff-designation').value = staff.designation;
                 document.getElementById('edit-staff-username').value = staff.username;
                 document.getElementById('edit-staff-password').value = '';
@@ -12178,6 +11938,7 @@
                     const oldUsername = supervisor.username;
                     supervisor.name = document.getElementById('edit-supervisor-name').value;
                     supervisor.phone = document.getElementById('edit-supervisor-phone').value;
+                    supervisor.email = document.getElementById('edit-supervisor-email').value;
                     supervisor.designation = document.getElementById('edit-supervisor-designation').value;
                     const newUsername = document.getElementById('edit-supervisor-username').value;
                     supervisor.username = newUsername;
@@ -12216,6 +11977,7 @@
                     const oldUsername = teamLeader.username;
                     teamLeader.name = document.getElementById('edit-teamleader-name').value;
                     teamLeader.phone = document.getElementById('edit-teamleader-phone').value;
+                    teamLeader.email = document.getElementById('edit-teamleader-email').value;
                     teamLeader.designation = document.getElementById('edit-teamleader-designation').value;
                     const newUsername = document.getElementById('edit-teamleader-username').value;
                     teamLeader.username = newUsername;
@@ -12253,6 +12015,7 @@
                     const oldUsername = staff.username;
                     staff.name = document.getElementById('edit-staff-name').value;
                     staff.phone = document.getElementById('edit-staff-phone').value;
+                    staff.email = document.getElementById('edit-staff-email').value;
                     // Only admin can update designation
                     if (this.currentRole === 'admin') {
                         staff.designation = document.getElementById('edit-staff-designation').value;
@@ -12433,6 +12196,7 @@
                 document.getElementById('edit-inventorycontroller-id').value = ic.id;
                 document.getElementById('edit-inventorycontroller-name').value = ic.name || '';
                 document.getElementById('edit-inventorycontroller-phone').value = ic.phone || '';
+                document.getElementById('edit-inventorycontroller-email').value = ic.email || '';
                 document.getElementById('edit-inventorycontroller-username').value = ic.username || '';
                 document.getElementById('edit-inventorycontroller-status').value = ic.status || 'available';
                 document.getElementById('edit-inventorycontroller-password').value = '';
@@ -12472,6 +12236,7 @@
                 const updates = {
                     name: document.getElementById('edit-inventorycontroller-name').value,
                     phone: document.getElementById('edit-inventorycontroller-phone').value,
+                    email: document.getElementById('edit-inventorycontroller-email').value,
                     username: document.getElementById('edit-inventorycontroller-username').value,
                     status: document.getElementById('edit-inventorycontroller-status').value
                 };
@@ -12519,6 +12284,7 @@
                 const formData = {
                     name: document.getElementById('new-inventorycontroller-name').value,
                     phone: document.getElementById('new-inventorycontroller-phone').value,
+                    email: document.getElementById('new-inventorycontroller-email').value,
                     username: document.getElementById('new-inventorycontroller-username').value,
                     password: document.getElementById('new-inventorycontroller-password').value,
                     status: 'available'

@@ -6842,20 +6842,23 @@
                         'refresh-tracking-btn': () => self.refreshTracking(),
                     };
                     
-                    // Check if button ID has a handler
+                    // Check if button ID has a handler in our map
                     if (buttonId && buttonHandlerMap[buttonId]) {
-                        // Only handle if no onclick attribute (to avoid double execution)
-                        if (!onclickAttr || onclickAttr.includes('app.')) {
+                        // Only handle if button doesn't have onclick attribute (to avoid double execution)
+                        // Buttons with onclick should let the onclick handler work naturally
+                        if (!onclickAttr) {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log(`Button clicked via delegation: ${buttonId}`);
                             buttonHandlerMap[buttonId]();
                             return;
                         }
+                        // If button has onclick AND is in our map, let onclick handle it (don't interfere)
+                        // This prevents breaking buttons that already have onclick handlers
                     }
                     
-                    // Handle buttons with onclick that might be broken (if not already handled by ID map)
-                    if (onclickAttr && onclickAttr.includes('app.') && !buttonHandlerMap[buttonId]) {
+                    // Only handle buttons with onclick if they DON'T have an ID in our map (broken buttons)
+                    if (onclickAttr && onclickAttr.includes('app.') && (!buttonId || !buttonHandlerMap[buttonId])) {
                         // Extract function calls from onclick (handle multiple calls)
                         const functionMatches = onclickAttr.matchAll(/app\.(\w+)\s*\(([^)]*)\)/g);
                         

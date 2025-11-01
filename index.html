@@ -5541,6 +5541,40 @@
         // Complete implementation with all view buttons working
         class MoveIt247 {
             constructor() {
+                // Check if running via file:// protocol and show warning
+                if (window.location.protocol === 'file:') {
+                    const errorHTML = `
+                        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 99999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 40px; text-align: center; font-family: Arial, sans-serif;">
+                            <div style="max-width: 600px;">
+                                <h1 style="color: #ef4444; font-size: 32px; margin-bottom: 20px;">⚠️ Access Error</h1>
+                                <p style="color: #64748b; font-size: 18px; margin-bottom: 30px; line-height: 1.6;">
+                                    This application must be accessed via a web server, not directly from the file system.
+                                </p>
+                                <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                                    <h2 style="color: #92400e; margin-top: 0;">How to Fix:</h2>
+                                    <ol style="color: #78350f; text-align: left; margin: 0; padding-left: 20px;">
+                                        <li style="margin-bottom: 10px;">Open a terminal in the project folder</li>
+                                        <li style="margin-bottom: 10px;">Run: <code style="background: #fbbf24; padding: 2px 6px; border-radius: 4px;">npm start</code></li>
+                                        <li style="margin-bottom: 10px;">Wait for the server to start</li>
+                                        <li style="margin-bottom: 10px;">Open: <code style="background: #fbbf24; padding: 2px 6px; border-radius: 4px;">http://localhost:4000</code></li>
+                                    </ol>
+                                </div>
+                                <button onclick="window.location.reload()" style="background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold;">
+                                    Refresh After Starting Server
+                                </button>
+                                <p style="color: #94a3b8; font-size: 14px; margin-top: 20px;">
+                                    Current URL: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${window.location.href}</code>
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    document.body.innerHTML = errorHTML;
+                    console.error('%c⚠️ ERROR: Application must be accessed via http://localhost:4000', 'color: #ef4444; font-size: 16px; font-weight: bold;');
+                    console.error('%cPlease start the server with: npm start', 'color: #f59e0b; font-size: 14px;');
+                    console.error('%cThen access at: http://localhost:4000', 'color: #f59e0b; font-size: 14px;');
+                    return;
+                }
+                
                 this.currentUser = null;
                 this.currentRole = null;
                 this.data = this.initializeData();

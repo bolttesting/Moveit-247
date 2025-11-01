@@ -6607,21 +6607,64 @@
                 const cancelEditStaffBtn = document.getElementById('cancel-edit-staff');
                 if (cancelEditStaffBtn) cancelEditStaffBtn.addEventListener('click', () => this.hideModals());
 
-                // Add buttons (with null checking)
+                // Add buttons (with null checking and event delegation as backup)
+                // Use event delegation to catch clicks even if buttons are dynamically shown
+                document.addEventListener('click', (e) => {
+                    if (e.target.id === 'add-supervisor-btn' || e.target.closest('#add-supervisor-btn')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.showAddSupervisorModal();
+                        return;
+                    }
+                    if (e.target.id === 'add-teamleader-btn' || e.target.closest('#add-teamleader-btn')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.showAddTeamLeaderModal();
+                        return;
+                    }
+                    if (e.target.id === 'add-staff-btn' || e.target.closest('#add-staff-btn')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.showAddStaffModal();
+                        return;
+                    }
+                    if (e.target.id === 'add-inventorycontroller-btn' || e.target.closest('#add-inventorycontroller-btn')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.showAddInventoryControllerModal();
+                        return;
+                    }
+                });
+                
+                // Also attach direct listeners (as primary method)
                 const addSupervisorBtn = document.getElementById('add-supervisor-btn');
-                if (addSupervisorBtn) addSupervisorBtn.addEventListener('click', () => this.showAddSupervisorModal());
+                if (addSupervisorBtn) {
+                    addSupervisorBtn.removeEventListener('click', this._addSupervisorHandler);
+                    this._addSupervisorHandler = () => this.showAddSupervisorModal();
+                    addSupervisorBtn.addEventListener('click', this._addSupervisorHandler);
+                }
                 
                 const addTeamLeaderBtn = document.getElementById('add-teamleader-btn');
-                if (addTeamLeaderBtn) addTeamLeaderBtn.addEventListener('click', () => this.showAddTeamLeaderModal());
+                if (addTeamLeaderBtn) {
+                    addTeamLeaderBtn.removeEventListener('click', this._addTeamLeaderHandler);
+                    this._addTeamLeaderHandler = () => this.showAddTeamLeaderModal();
+                    addTeamLeaderBtn.addEventListener('click', this._addTeamLeaderHandler);
+                }
                 
                 const addStaffBtn = document.getElementById('add-staff-btn');
-                if (addStaffBtn) addStaffBtn.addEventListener('click', () => this.showAddStaffModal());
+                if (addStaffBtn) {
+                    addStaffBtn.removeEventListener('click', this._addStaffHandler);
+                    this._addStaffHandler = () => this.showAddStaffModal();
+                    addStaffBtn.addEventListener('click', this._addStaffHandler);
+                }
                 
                 const addInventoryControllerBtn = document.getElementById('add-inventorycontroller-btn');
                 if (addInventoryControllerBtn) {
                     // Remove inline onclick if present
                     addInventoryControllerBtn.removeAttribute('onclick');
-                    addInventoryControllerBtn.addEventListener('click', () => this.showAddInventoryControllerModal());
+                    addInventoryControllerBtn.removeEventListener('click', this._addInventoryControllerHandler);
+                    this._addInventoryControllerHandler = () => this.showAddInventoryControllerModal();
+                    addInventoryControllerBtn.addEventListener('click', this._addInventoryControllerHandler);
                 }
 
                 // Save new items (with null checking)
@@ -9971,18 +10014,29 @@
 
             // Modal methods
             showModal(modalId) {
-                document.getElementById(modalId).style.display = 'flex';
+                const modal = document.getElementById(modalId);
+                if (!modal) {
+                    console.error(`Modal not found: ${modalId}`);
+                    return;
+                }
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                // Also ensure body doesn't scroll
+                document.body.style.overflow = 'hidden';
             }
 
             hideModals() {
                 document.querySelectorAll('.modal').forEach(modal => {
                     modal.style.display = 'none';
+                    modal.classList.remove('active');
                 });
                 // Also hide custom modals that don't use the .modal class
                 const statusModal = document.getElementById('status-image-modal');
                 if (statusModal) statusModal.style.display = 'none';
                 const completionModal = document.getElementById('completion-modal');
                 if (completionModal) completionModal.style.display = 'none';
+                // Restore body scroll
+                document.body.style.overflow = '';
             }
 
             // Helper function to get correct image URL for current platform
@@ -10024,26 +10078,51 @@
 
             // Add Modal Methods
             showAddSupervisorModal() {
-                document.getElementById('add-supervisor-form').reset();
+                console.log('showAddSupervisorModal called');
+                const form = document.getElementById('add-supervisor-form');
+                if (form) form.reset();
+                const modal = document.getElementById('add-supervisor-modal');
+                if (!modal) {
+                    console.error('Add Supervisor modal not found');
+                    this.showNotification('Modal not found. Please refresh the page.', 'error');
+                    return;
+                }
                 this.showModal('add-supervisor-modal');
+                console.log('Add Supervisor modal should be visible now');
             }
 
             showAddTeamLeaderModal() {
-                document.getElementById('add-teamleader-form').reset();
+                console.log('showAddTeamLeaderModal called');
+                const form = document.getElementById('add-teamleader-form');
+                if (form) form.reset();
+                const modal = document.getElementById('add-teamleader-modal');
+                if (!modal) {
+                    console.error('Add Team Leader modal not found');
+                    this.showNotification('Modal not found. Please refresh the page.', 'error');
+                    return;
+                }
                 this.showModal('add-teamleader-modal');
+                console.log('Add Team Leader modal should be visible now');
             }
 
             showAddStaffModal() {
-                document.getElementById('add-staff-form').reset();
+                console.log('showAddStaffModal called');
+                const form = document.getElementById('add-staff-form');
+                if (form) form.reset();
+                
                 // Populate team leaders dropdown
                 const teamLeaderSelect = document.getElementById('new-staff-teamleader');
+                if (teamLeaderSelect) {
                 teamLeaderSelect.innerHTML = '<option value="">Select Team Leader</option>';
+                    if (this.data.teamLeaders && this.data.teamLeaders.length > 0) {
                 this.data.teamLeaders.forEach(tl => {
                     const option = document.createElement('option');
                     option.value = tl.name;
                     option.textContent = tl.name;
                     teamLeaderSelect.appendChild(option);
                 });
+                    }
+                }
                 
                 // Hide designation field for supervisors (admin only)
                 const designationGroup = document.getElementById('new-staff-designation-group');
@@ -10058,12 +10137,28 @@
                     }
                 }
                 
+                const modal = document.getElementById('add-staff-modal');
+                if (!modal) {
+                    console.error('Add Staff modal not found');
+                    this.showNotification('Modal not found. Please refresh the page.', 'error');
+                    return;
+                }
                 this.showModal('add-staff-modal');
+                console.log('Add Staff modal should be visible now');
             }
 
             showAddInventoryControllerModal() {
-                document.getElementById('add-inventorycontroller-form').reset();
+                console.log('showAddInventoryControllerModal called');
+                const form = document.getElementById('add-inventorycontroller-form');
+                if (form) form.reset();
+                const modal = document.getElementById('add-inventorycontroller-modal');
+                if (!modal) {
+                    console.error('Add Inventory Controller modal not found');
+                    this.showNotification('Modal not found. Please refresh the page.', 'error');
+                    return;
+                }
                 this.showModal('add-inventorycontroller-modal');
+                console.log('Add Inventory Controller modal should be visible now');
             }
 
             showAddMaterialModal() {

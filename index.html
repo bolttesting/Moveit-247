@@ -3334,8 +3334,8 @@
             </div>
             <div class="sidebar-menu">
                 <ul>
-                    <li class="active"><a href="#dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li class="has-submenu">
+                    <li class="active" id="dashboard-menu-item"><a href="#dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="has-submenu" id="projects-menu-item">
                         <a href="#jobs"><i class="fas fa-tasks"></i> Projects <i class="fas fa-chevron-down" style="float: right; font-size: 0.8em; margin-top: 3px;"></i></a>
                         <ul class="submenu">
                             <li><a href="#add-projects"><i class="fas fa-plus"></i> Add Projects</a></li>
@@ -5331,7 +5331,7 @@
                                 <button type="button" class="btn btn-sm btn-primary" id="add-custom-item-btn" onclick="app.showAddCustomItemModal()">Add Custom Item</button>
                             </div>
                         </div>
-                        <div class="table-responsive" id="packing-list-table-wrapper" style="overflow-x:auto; overflow-y:auto; max-height:400px; -webkit-overflow-scrolling:touch;">
+                        <div class="table-responsive" id="packing-list-table-wrapper" style="overflow-x:auto; overflow-y:auto; max-height:600px; -webkit-overflow-scrolling:touch;">
                             <table class="table" id="packing-list-items-table" style="font-size:13px; min-width:600px; width:100%;">
                                 <thead>
                                     <tr>
@@ -6962,6 +6962,8 @@
             updateMenuForRole() {
                 const role = (this.currentRole || '').toLowerCase();
                 console.log('updateMenuForRole called, role:', role);
+                const dashboardMenuItem = document.getElementById('dashboard-menu-item');
+                const projectsMenuItem = document.getElementById('projects-menu-item');
                 const supervisorsItem = document.getElementById('supervisors-menu-item');
                 const teamLeadersItem = document.getElementById('teamleaders-menu-item');
                 const staffItem = document.getElementById('staff-menu-item');
@@ -7050,6 +7052,9 @@
                     if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'none'; // Supervisor does NOT see live tracking
                 } else if (role === 'teamleader') {
                     console.log('Setting up team leader menu...');
+                    // Hide Dashboard and Projects from team leaders
+                    if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
+                    if (projectsMenuItem) projectsMenuItem.style.display = 'none';
                     // Team leaders can see jobs, pending approvals, surveys, and manage their job workflow
                     if (surveysItem) surveysItem.style.display = 'block'; // Team leaders can see assigned surveys
                     if (pendingApprovalItem) {
@@ -7075,6 +7080,9 @@
                     }
                 } else if (role === 'staff') {
                     console.log('Setting up staff menu...');
+                    // Hide Dashboard and Projects from staff
+                    if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
+                    if (projectsMenuItem) projectsMenuItem.style.display = 'none';
                     // Staff can see their assigned jobs, profile, and job history (including jobs they completed as promoted team leader)
                     if (addJobCard) addJobCard.style.display = 'none';
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';

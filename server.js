@@ -876,43 +876,71 @@ app.get('/api/file/:filename', (req, res) => {
 
 // Mark notification as read - moved to proper location below
 
-// Live Tracking APIs
+// Live Tracking APIs - Admin only
 app.get('/api/tracking', (req, res) => {
   try {
     const db = readDb();
+    const { username } = req.query;
+    
+    // Only admin can access tracking data
+    if (!username) {
+      return res.status(400).json({ error: 'Username required' });
+    }
+    
+    const user = db.users[username];
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    }
+    
     const tracking = db.tracking || {};
     const teamLeaders = db.teamLeaders || [];
+    const supervisors = db.supervisors || [];
     const staff = db.staff || [];
     const jobs = db.jobs || [];
     
     // Get all team leaders including promoted staff
     const allTeamLeaders = [
-      ...teamLeaders.map(tl => ({ ...tl, isPromoted: false })),
+      ...teamLeaders.map(tl => ({ ...tl, isPromoted: false, type: 'teamleader' })),
       ...staff.filter(s => s.isTeamLeader === true).map(s => ({ 
         username: s.username, 
         name: s.name, 
-        isPromoted: true 
+        isPromoted: true,
+        type: 'teamleader'
       }))
     ];
     
-    // Build tracking data with team leader info
-    const trackingData = allTeamLeaders.map(tl => {
-      const locationData = tracking[tl.username] || {};
+    // Get all supervisors
+    const allSupervisors = supervisors.map(sv => ({
+      username: sv.username,
+      name: sv.name,
+      type: 'supervisor'
+    }));
+    
+    // Combine team leaders and supervisors for tracking
+    const allTrackableUsers = [...allTeamLeaders, ...allSupervisors];
+    
+    // Build tracking data
+    const trackingData = allTrackableUsers.map(user => {
+      const locationData = tracking[user.username] || {};
       
-      // Find current active job for this team leader
-      const activeJob = jobs.find(j => 
-        j.teamLeader === tl.name && 
-        ['assigned', 'arrived', 'packing-start', 'first-location-completed', 'arrived-second-location', 'unpacking-start'].includes(j.status)
-      );
+      // Find current active job for this user (only team leaders have active jobs)
+      let activeJob = null;
+      if (user.type === 'teamleader') {
+        activeJob = jobs.find(j => 
+          j.teamLeader === user.name && 
+          ['assigned', 'arrived', 'packing-start', 'first-location-completed', 'arrived-second-location', 'unpacking-start'].includes(j.status)
+        );
+      }
       
       return {
-        username: tl.username,
-        name: tl.name,
+        username: user.username,
+        name: user.name,
+        type: user.type,
         latitude: locationData.latitude || null,
         longitude: locationData.longitude || null,
         lastUpdate: locationData.lastUpdate || null,
         currentJob: activeJob ? activeJob.id : null,
-        isPromoted: tl.isPromoted || false
+        isPromoted: user.isPromoted || false
       };
     });
     
@@ -967,7 +995,7 @@ app.post('/api/tracking/update', (req, res) => {
       db.tracking = {};
     }
     
-    // Update team leader location with timestamp
+    // Update location for team leaders and supervisors (silent tracking)
     db.tracking[username] = {
       latitude,
       longitude,
@@ -975,7 +1003,8 @@ app.post('/api/tracking/update', (req, res) => {
     };
     
     writeDb(db);
-    console.log(`📍 Location updated for ${username}: ${latitude}, ${longitude}`);
+    // Log silently without user-identifying info in production
+    console.log(`📍 Location updated: ${latitude}, ${longitude}`);
     res.json({ success: true, message: 'Location updated successfully' });
   } catch (error) {
     console.error('Error updating location:', error);

@@ -6613,42 +6613,8 @@
                 const cancelEditStaffBtn = document.getElementById('cancel-edit-staff');
                 if (cancelEditStaffBtn) cancelEditStaffBtn.addEventListener('click', () => this.hideModals());
 
-                // Add buttons (with null checking and event delegation as backup)
-                // Store reference to this for event delegation
-                const self = this;
-                // Use event delegation to catch clicks even if buttons are dynamically shown
-                // Remove old delegation handler if exists
-                if (this._addButtonsDelegationHandler) {
-                    document.removeEventListener('click', this._addButtonsDelegationHandler, true);
-                }
-                this._addButtonsDelegationHandler = function(e) {
-                    const target = e.target;
-                    if (target.id === 'add-supervisor-btn' || target.closest('#add-supervisor-btn')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self.showAddSupervisorModal();
-                        return;
-                    }
-                    if (target.id === 'add-teamleader-btn' || target.closest('#add-teamleader-btn')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self.showAddTeamLeaderModal();
-                        return;
-                    }
-                    if (target.id === 'add-staff-btn' || target.closest('#add-staff-btn')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self.showAddStaffModal();
-                        return;
-                    }
-                    if (target.id === 'add-inventorycontroller-btn' || target.closest('#add-inventorycontroller-btn')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self.showAddInventoryControllerModal();
-                        return;
-                    }
-                };
-                document.addEventListener('click', this._addButtonsDelegationHandler, true);
+                // Add buttons (with null checking and direct event listeners)
+                // Note: These are now handled by the global button delegation handler below
                 
                 // Also attach direct listeners (as primary method)
                 const addSupervisorBtn = document.getElementById('add-supervisor-btn');

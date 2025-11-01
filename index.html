@@ -3338,9 +3338,9 @@
                     <li class="has-submenu" id="projects-menu-item">
                         <a href="#jobs"><i class="fas fa-tasks"></i> Projects <i class="fas fa-chevron-down" style="float: right; font-size: 0.8em; margin-top: 3px;"></i></a>
                         <ul class="submenu">
-                            <li><a href="#add-projects"><i class="fas fa-plus"></i> Add Projects</a></li>
+                            <li id="add-projects-menu-item"><a href="#add-projects"><i class="fas fa-plus"></i> Add Projects</a></li>
                             <li><a href="#current-projects"><i class="fas fa-list"></i> Current Projects</a></li>
-                            <li><a href="#project-task"><i class="fas fa-tasks"></i> Project Task</a></li>
+                            <li id="project-task-menu-item"><a href="#project-task"><i class="fas fa-tasks"></i> Project Task</a></li>
                         </ul>
                     </li>
                     <li id="supervisors-menu-item"><a href="#supervisors"><i class="fas fa-user-tie"></i> Supervisors</a></li>
@@ -6964,6 +6964,8 @@
                 console.log('updateMenuForRole called, role:', role);
                 const dashboardMenuItem = document.getElementById('dashboard-menu-item');
                 const projectsMenuItem = document.getElementById('projects-menu-item');
+                const addProjectsMenuItem = document.getElementById('add-projects-menu-item');
+                const projectTaskMenuItem = document.getElementById('project-task-menu-item');
                 const supervisorsItem = document.getElementById('supervisors-menu-item');
                 const teamLeadersItem = document.getElementById('teamleaders-menu-item');
                 const staffItem = document.getElementById('staff-menu-item');
@@ -7055,6 +7057,9 @@
                     // Hide Dashboard from team leaders, but show Projects menu
                     if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
                     if (projectsMenuItem) projectsMenuItem.style.display = 'block'; // Show Projects menu
+                    // Hide Add Projects and Project Task from team leaders, only show Current Projects
+                    if (addProjectsMenuItem) addProjectsMenuItem.style.display = 'none';
+                    if (projectTaskMenuItem) projectTaskMenuItem.style.display = 'none';
                     // Hide Surveys from team leaders
                     if (surveysItem) surveysItem.style.display = 'none';
                     // Team leaders can see jobs, pending approvals, and manage their job workflow
@@ -7084,6 +7089,9 @@
                     // Hide Dashboard from staff, but show Projects menu
                     if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
                     if (projectsMenuItem) projectsMenuItem.style.display = 'block'; // Show Projects menu
+                    // Hide Add Projects and Project Task from staff, only show Current Projects
+                    if (addProjectsMenuItem) addProjectsMenuItem.style.display = 'none';
+                    if (projectTaskMenuItem) projectTaskMenuItem.style.display = 'none';
                     // Hide Surveys from staff
                     if (surveysItem) surveysItem.style.display = 'none';
                     // Staff can see their assigned jobs, profile, and job history (including jobs they completed as promoted team leader)

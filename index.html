@@ -9404,9 +9404,19 @@
                     ` : '<p>No completion data available</p>'}
                 `;
 
-                // Set up approve button
+                // Set up approve button - only show for admin and supervisor
                 const approveBtn = document.getElementById('approve-job');
-                approveBtn.onclick = () => this.approveJob(jobId);
+                const canApprove = this.currentRole === 'admin' || this.currentRole === 'supervisor';
+                
+                if (approveBtn) {
+                    if (canApprove) {
+                        approveBtn.style.display = 'block';
+                        approveBtn.onclick = () => this.approveJob(jobId);
+                    } else {
+                        // Hide approve button for team leaders and other roles
+                        approveBtn.style.display = 'none';
+                    }
+                }
                 
                 this.showModal('job-approval-modal');
             }

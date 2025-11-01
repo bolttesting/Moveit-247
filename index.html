@@ -7065,9 +7065,9 @@
                     // Hide Add Projects and Project Task from team leaders, only show Current Projects
                     if (addProjectsMenuItem) addProjectsMenuItem.style.display = 'none';
                     if (projectTaskMenuItem) projectTaskMenuItem.style.display = 'none';
-                    // Hide Surveys from team leaders
-                    if (surveysItem) surveysItem.style.display = 'none';
-                    // Team leaders can see jobs, pending approvals, and manage their job workflow
+                    // Show Surveys to team leaders (they can see assigned surveys)
+                    if (surveysItem) surveysItem.style.display = 'block';
+                    // Team leaders can see jobs, pending approvals, surveys, and manage their job workflow
                     if (pendingApprovalItem) {
                         pendingApprovalItem.style.display = 'block';
                         console.log('Showing pending approval menu for team leader');

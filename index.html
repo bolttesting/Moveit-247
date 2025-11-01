@@ -10136,6 +10136,11 @@
                     return;
                 }
 
+                // Add username for inventory tracking
+                if (this.currentUser && this.currentUser.username) {
+                    updatedJob.username = this.currentUser.username;
+                }
+                
                 // Update job via API
                 fetch(`/api/jobs/${jobId}`, {
                     method: 'PUT',

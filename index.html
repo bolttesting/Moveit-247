@@ -7052,11 +7052,12 @@
                     if (liveTrackingMenuItem) liveTrackingMenuItem.style.display = 'none'; // Supervisor does NOT see live tracking
                 } else if (role === 'teamleader') {
                     console.log('Setting up team leader menu...');
-                    // Hide Dashboard and Projects from team leaders
+                    // Hide Dashboard from team leaders, but show Projects menu
                     if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
-                    if (projectsMenuItem) projectsMenuItem.style.display = 'none';
-                    // Team leaders can see jobs, pending approvals, surveys, and manage their job workflow
-                    if (surveysItem) surveysItem.style.display = 'block'; // Team leaders can see assigned surveys
+                    if (projectsMenuItem) projectsMenuItem.style.display = 'block'; // Show Projects menu
+                    // Hide Surveys from team leaders
+                    if (surveysItem) surveysItem.style.display = 'none';
+                    // Team leaders can see jobs, pending approvals, and manage their job workflow
                     if (pendingApprovalItem) {
                         pendingApprovalItem.style.display = 'block';
                         console.log('Showing pending approval menu for team leader');
@@ -7080,9 +7081,11 @@
                     }
                 } else if (role === 'staff') {
                     console.log('Setting up staff menu...');
-                    // Hide Dashboard and Projects from staff
+                    // Hide Dashboard from staff, but show Projects menu
                     if (dashboardMenuItem) dashboardMenuItem.style.display = 'none';
-                    if (projectsMenuItem) projectsMenuItem.style.display = 'none';
+                    if (projectsMenuItem) projectsMenuItem.style.display = 'block'; // Show Projects menu
+                    // Hide Surveys from staff
+                    if (surveysItem) surveysItem.style.display = 'none';
                     // Staff can see their assigned jobs, profile, and job history (including jobs they completed as promoted team leader)
                     if (addJobCard) addJobCard.style.display = 'none';
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';
@@ -7140,9 +7143,9 @@
                 // Load section data (only if needed)
                 switch(section) {
                     case 'dashboard': 
-                        // Redirect team leaders and staff away from dashboard
+                        // Redirect team leaders and staff away from dashboard to current-projects
                         if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
-                            this.navigateTo('surveys');
+                            this.navigateTo('current-projects');
                             return;
                         }
                         // Inventory controllers should not see dashboard - redirect to inventory
@@ -7154,9 +7157,9 @@
                         break;
                     case 'jobs':
                     case 'add-projects':
-                        // Redirect team leaders and staff away from add-projects
+                        // Redirect team leaders and staff away from add-projects to current-projects
                         if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
-                            this.navigateTo('surveys');
+                            this.navigateTo('current-projects');
                             return;
                         }
                         // Show add projects tab
@@ -7172,11 +7175,7 @@
                         this.loadJobs(); 
                         break;
                     case 'current-projects':
-                        // Redirect team leaders and staff away from current-projects
-                        if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
-                            this.navigateTo('surveys');
-                            return;
-                        }
+                        // Allow team leaders and staff to see current-projects
                         // Show current projects tab
                         document.querySelectorAll('.tab-content').forEach(tab => {
                             tab.style.display = 'none';

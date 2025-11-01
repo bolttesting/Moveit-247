@@ -7168,7 +7168,7 @@
                         }
                         await this.loadDashboard(); 
                         break;
-                    case 'jobs':
+                    case 'jobs': 
                     case 'add-projects':
                         // Redirect team leaders and staff away from add-projects to current-projects
                         if (this.currentRole === 'teamleader' || this.currentRole === 'staff') {
@@ -9054,7 +9054,11 @@
 
                 // Filter surveys based on role
                 let surveysToShow = this.data.surveys;
-                if (this.currentRole === 'supervisor' || this.currentRole === 'teamleader') {
+                const isPromotedTeamLeader = this.currentRole === 'staff' && this.currentUser && 
+                                            (this.currentUser.isTeamLeader === true || 
+                                             (this.data.staff && this.data.staff.find(s => s.username === this.currentUser.username && s.isTeamLeader === true)));
+                
+                if (this.currentRole === 'supervisor' || this.currentRole === 'teamleader' || isPromotedTeamLeader) {
                     // Show only surveys assigned to current user
                     const assignedName = this.currentUser.name;
                     surveysToShow = this.data.surveys.filter(s => s.assignedTo === assignedName);
@@ -10145,7 +10149,7 @@
                 if (this.currentUser && this.currentUser.username) {
                     updatedJob.username = this.currentUser.username;
                 }
-                
+
                 // Update job via API
                 fetch(`/api/jobs/${jobId}`, {
                     method: 'PUT',

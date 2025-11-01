@@ -6608,33 +6608,41 @@
                 if (cancelEditStaffBtn) cancelEditStaffBtn.addEventListener('click', () => this.hideModals());
 
                 // Add buttons (with null checking and event delegation as backup)
+                // Store reference to this for event delegation
+                const self = this;
                 // Use event delegation to catch clicks even if buttons are dynamically shown
-                document.addEventListener('click', (e) => {
-                    if (e.target.id === 'add-supervisor-btn' || e.target.closest('#add-supervisor-btn')) {
+                // Remove old delegation handler if exists
+                if (this._addButtonsDelegationHandler) {
+                    document.removeEventListener('click', this._addButtonsDelegationHandler, true);
+                }
+                this._addButtonsDelegationHandler = function(e) {
+                    const target = e.target;
+                    if (target.id === 'add-supervisor-btn' || target.closest('#add-supervisor-btn')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        this.showAddSupervisorModal();
+                        self.showAddSupervisorModal();
                         return;
                     }
-                    if (e.target.id === 'add-teamleader-btn' || e.target.closest('#add-teamleader-btn')) {
+                    if (target.id === 'add-teamleader-btn' || target.closest('#add-teamleader-btn')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        this.showAddTeamLeaderModal();
+                        self.showAddTeamLeaderModal();
                         return;
                     }
-                    if (e.target.id === 'add-staff-btn' || e.target.closest('#add-staff-btn')) {
+                    if (target.id === 'add-staff-btn' || target.closest('#add-staff-btn')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        this.showAddStaffModal();
+                        self.showAddStaffModal();
                         return;
                     }
-                    if (e.target.id === 'add-inventorycontroller-btn' || e.target.closest('#add-inventorycontroller-btn')) {
+                    if (target.id === 'add-inventorycontroller-btn' || target.closest('#add-inventorycontroller-btn')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        this.showAddInventoryControllerModal();
+                        self.showAddInventoryControllerModal();
                         return;
                     }
-                });
+                };
+                document.addEventListener('click', this._addButtonsDelegationHandler, true);
                 
                 // Also attach direct listeners (as primary method)
                 const addSupervisorBtn = document.getElementById('add-supervisor-btn');

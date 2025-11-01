@@ -10,7 +10,7 @@
    ```
    Or:
    ```bash
-   node android/generate-icons.js
+   node android/generate-icons.mjs
    ```
 4. **Sync with Capacitor**:
    ```bash

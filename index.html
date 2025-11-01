@@ -7097,8 +7097,16 @@
                     // Hide Add Projects and Project Task from staff, only show Current Projects
                     if (addProjectsMenuItem) addProjectsMenuItem.style.display = 'none';
                     if (projectTaskMenuItem) projectTaskMenuItem.style.display = 'none';
-                    // Hide Surveys from staff
-                    if (surveysItem) surveysItem.style.display = 'none';
+                    
+                    // Check if staff is promoted to team leader (isTeamLeader: true)
+                    const isPromotedTeamLeader = this.currentUser && (this.currentUser.isTeamLeader === true || 
+                                                                      (this.data.staff && this.data.staff.find(s => s.username === this.currentUser.username && s.isTeamLeader === true)));
+                    
+                    // Show Surveys only to promoted team leaders, hide from regular staff
+                    if (surveysItem) {
+                        surveysItem.style.display = isPromotedTeamLeader ? 'block' : 'none';
+                    }
+                    
                     // Staff can see their assigned jobs, profile, and job history (including jobs they completed as promoted team leader)
                     if (addJobCard) addJobCard.style.display = 'none';
                     if (jobsMenuItem) jobsMenuItem.style.display = 'block';

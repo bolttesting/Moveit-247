@@ -6842,74 +6842,29 @@
                         'refresh-tracking-btn': () => self.refreshTracking(),
                     };
                     
-                    // Check if button ID has a handler in our map
-                    if (buttonId && buttonHandlerMap[buttonId]) {
-                        // Only handle if button doesn't have onclick attribute (to avoid double execution)
-                        // Buttons with onclick should let the onclick handler work naturally
-                        if (!onclickAttr) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log(`Button clicked via delegation: ${buttonId}`);
-                            buttonHandlerMap[buttonId]();
-                            return;
-                        }
-                        // If button has onclick AND is in our map, let onclick handle it (don't interfere)
-                        // This prevents breaking buttons that already have onclick handlers
+                    // Skip if button already has a direct event listener attached (check for onclick or existing handler)
+                    // Only handle buttons that truly need delegation
+                    if (onclickAttr) {
+                        // Button has onclick - let it handle it naturally, don't interfere
+                        return;
                     }
                     
-                    // Only handle buttons with onclick if they DON'T have an ID in our map (broken buttons)
-                    if (onclickAttr && onclickAttr.includes('app.') && (!buttonId || !buttonHandlerMap[buttonId])) {
-                        // Extract function calls from onclick (handle multiple calls)
-                        const functionMatches = onclickAttr.matchAll(/app\.(\w+)\s*\(([^)]*)\)/g);
-                        
-                        for (const match of functionMatches) {
-                            const funcName = match[1];
-                            const params = match[2];
-                            
-                            // Check if function exists
-                            if (typeof self[funcName] === 'function') {
-                                console.log(`Handling onclick via delegation: ${funcName}(${params})`);
-                                
-                                // Parse and call function with params
-                                try {
-                                    if (params && params.trim()) {
-                                        // Try to evaluate params (for simple cases)
-                                        const parsedParams = params.split(',').map(p => {
-                                            p = p.trim();
-                                            if (p === 'event' || p === 'e') return e;
-                                            if ((p.startsWith("'") && p.endsWith("'")) || (p.startsWith('"') && p.endsWith('"'))) {
-                                                return p.slice(1, -1); // Remove quotes
-                                            }
-                                            if (!isNaN(p) && p !== '') return Number(p);
-                                            if (p === 'true') return true;
-                                            if (p === 'false') return false;
-                                            // Try to evaluate as expression for things like 'job.id'
-                                            try {
-                                                // Check if it's a variable reference (like 'job.id')
-                                                if (p.includes('.')) {
-                                                    // Don't try to evaluate complex expressions, pass as string
-                                                    return p;
-                                                }
-                                                return eval(p); // Only for simple literals
-                                            } catch {
-                                                return p; // Return as string if evaluation fails
-                                            }
-                                        });
-                                        self[funcName](...parsedParams);
-                                    } else {
-                                        self[funcName]();
-                                    }
-                                    // Prevent default to avoid double execution
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    return; // Only handle first function call
-                                } catch (err) {
-                                    console.error(`Error calling ${funcName}:`, err);
-                                    // Fall back to letting onclick handle it
-                                }
-                            }
+                    // Check if button ID has a handler in our map
+                    if (buttonId && buttonHandlerMap[buttonId]) {
+                        // Only handle if we're sure this button needs delegation
+                        // Don't prevent default or stop propagation - let event flow naturally
+                        console.log(`Button clicked via delegation: ${buttonId}`);
+                        try {
+                            buttonHandlerMap[buttonId]();
+                        } catch (err) {
+                            console.error(`Error in delegation handler for ${buttonId}:`, err);
                         }
+                        // Don't return here - let the event continue to bubble for other handlers
+                        return;
                     }
+                    
+                    // Remove onclick handler fallback - buttons with onclick should work naturally
+                    // The onclick attribute handlers will execute automatically, we don't need to handle them
                     
                     // Handle buttons by text content as fallback (for buttons without IDs)
                     const buttonTextLower = buttonText.toLowerCase();
@@ -6932,8 +6887,9 @@
                     }
                 };
                 
-                // Attach global delegation handler
-                document.addEventListener('click', this._globalButtonDelegationHandler, true);
+                // Attach global delegation handler (use bubble phase, not capture)
+                // This ensures onclick handlers run first, and we only catch what's left
+                document.addEventListener('click', this._globalButtonDelegationHandler, false);
 
                 // Cancel buttons
                 document.querySelectorAll('.btn-secondary').forEach(btn => {

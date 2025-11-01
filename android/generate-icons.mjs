@@ -6,7 +6,7 @@
  * 
  * Usage:
  * 1. Place your logo image (PNG) in the android folder as "logo-source.png"
- * 2. Run: node android/generate-icons.js
+ * 2. Run: node android/generate-icons.mjs
  * 3. The script will generate all required icon sizes automatically
  * 
  * Requirements:
@@ -14,8 +14,13 @@
  * - sharp package (will be installed automatically)
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Icon sizes for each density
 const iconSizes = {
@@ -39,19 +44,19 @@ async function generateIcons() {
       console.log('1. Save your "Move it" logo as a PNG file');
       console.log('2. Rename it to "logo-source.png"');
       console.log('3. Place it in the android folder');
-      console.log('4. Run this script again: node android/generate-icons.js');
+      console.log('4. Run this script again: node android/generate-icons.mjs');
+      console.log('   Or use: npm run generate-icons');
       process.exit(1);
     }
 
     // Try to use sharp (modern, fast image processing)
     let sharp;
     try {
-      sharp = require('sharp');
+      sharp = (await import('sharp')).default;
     } catch (e) {
       console.log('📦 Installing sharp package...');
-      const { execSync } = require('child_process');
-      execSync('npm install sharp --save-dev', { cwd: __dirname + '/..', stdio: 'inherit' });
-      sharp = require('sharp');
+      execSync('npm install sharp --save-dev', { cwd: path.join(__dirname, '..'), stdio: 'inherit' });
+      sharp = (await import('sharp')).default;
     }
 
     console.log('🎨 Generating Android app icons...\n');
@@ -72,7 +77,7 @@ async function generateIcons() {
 
       console.log(`✨ Generating ${folder} (${size}x${size}px)...`);
 
-      // Generate ic_launcher.png (square icon)
+      // Generate ic_launcher.png (square icon with white background)
       await image
         .clone()
         .resize(size, size, {
@@ -81,7 +86,7 @@ async function generateIcons() {
         })
         .toFile(path.join(folderPath, 'ic_launcher.png'));
 
-      // Generate ic_launcher_foreground.png (same as launcher for adaptive icons)
+      // Generate ic_launcher_foreground.png (transparent background for adaptive icons)
       await image
         .clone()
         .resize(size, size, {
@@ -90,7 +95,7 @@ async function generateIcons() {
         })
         .toFile(path.join(folderPath, 'ic_launcher_foreground.png'));
 
-      // Generate ic_launcher_round.png (same as launcher)
+      // Generate ic_launcher_round.png (same as launcher for round icons)
       await image
         .clone()
         .resize(size, size, {
@@ -110,7 +115,7 @@ async function generateIcons() {
   } catch (error) {
     console.error('❌ Error generating icons:', error.message);
     
-    if (error.message.includes('sharp')) {
+    if (error.message.includes('sharp') || error.message.includes('Cannot find module')) {
       console.log('\n💡 Alternative: Use Android Asset Studio');
       console.log('Visit: https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html');
       console.log('Upload your logo and download the generated icons.');

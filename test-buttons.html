@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Button Functionality Test Runner</h1>
+        <p>This script will test all buttons in the application to verify they're working correctly.</p>
+        <button onclick="runButtonTests()">Run Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            resultsDiv.innerHTML += `<span class="${className}">${message}</span>\n`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        function runButtonTests() {
+            clearResults();
+            log('🧪 Starting Button Functionality Tests...\n', 'info');
+            
+            const tests = { passed: 0, failed: 0, errors: [] };
+            
+            function test(name, condition, errorMsg) {
+                if (condition) {
+                    log(`✅ ${name}`, 'success');
+                    tests.passed++;
+                } else {
+                    log(`❌ ${name}: ${errorMsg}`, 'error');
+                    tests.failed++;
+                    tests.errors.push(`${name}: ${errorMsg}`);
+                }
+            }
+            
+            // Open the main app in an iframe
+            log('📂 Loading application...\n', 'info');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'index.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            iframe.style.border = '1px solid #ddd';
+            iframe.style.marginTop = '20px';
+            
+            iframe.onload = function() {
+                log('✅ Application loaded\n', 'success');
+                
+                try {
+                    const appWindow = iframe.contentWindow;
+                    const appDocument = iframe.contentDocument || appWindow.document;
+                    
+                    // Wait a bit for app initialization
+                    setTimeout(() => {
+                        log('\n🔍 Checking button existence and event listeners...\n', 'info');
+                        
+                        // Test Add buttons
+                        log('📋 Testing Add Buttons:', 'info');
+                        const addSupervisorBtn = appDocument.getElementById('add-supervisor-btn');
+                        test('Add Supervisor button exists', addSupervisorBtn !== null, 'Button not found');
+                        if (addSupervisorBtn) {
+                            test('Add Supervisor button is visible', 
+                                addSupervisorBtn.offsetParent !== null, 'Button is hidden');
+                            // Check for event listeners
+                            const hasOnClick = addSupervisorBtn.onclick !== null || 
+                                             addSupervisorBtn.getAttribute('onclick') !== null;
+                            test('Add Supervisor has click handler', hasOnClick, 'No click handler');
+                            
+                            // Try clicking
+                            try {
+                                log('  ⏳ Testing Add Supervisor button click...', 'info');
+                                addSupervisorBtn.click();
+                                setTimeout(() => {
+                                    const modal = appDocument.getElementById('add-supervisor-modal');
+                                    const modalVisible = modal && 
+                                        (modal.classList.contains('active') || 
+                                         modal.style.display !== 'none');
+                                    test('Add Supervisor button opens modal', modalVisible, 'Modal did not open');
+                                }, 200);
+                            } catch (e) {
+                                test('Add Supervisor click handler', false, `Error: ${e.message}`);
+                            }
+                        }
+                        
+                        const addTeamLeaderBtn = appDocument.getElementById('add-teamleader-btn');
+                        test('Add Team Leader button exists', addTeamLeaderBtn !== null, 'Button not found');
+                        
+                        const addStaffBtn = appDocument.getElementById('add-staff-btn');
+                        test('Add Staff button exists', addStaffBtn !== null, 'Button not found');
+                        
+                        const addInventoryControllerBtn = appDocument.getElementById('add-inventorycontroller-btn');
+                        test('Add Inventory Controller button exists', addInventoryControllerBtn !== null, 'Button not found');
+                        
+                        // Test functions
+                        log('\n📋 Testing Modal Functions:', 'info');
+                        const app = appWindow.app;
+                        test('app object exists', app !== null && app !== undefined, 'app object not found');
+                        if (app) {
+                            test('showAddSupervisorModal function exists', 
+                                typeof app.showAddSupervisorModal === 'function',
+                                'showAddSupervisorModal function not found');
+                            
+                            test('showAddTeamLeaderModal function exists',
+                                typeof app.showAddTeamLeaderModal === 'function',
+                                'showAddTeamLeaderModal function not found');
+                            
+                            test('showAddStaffModal function exists',
+                                typeof app.showAddStaffModal === 'function',
+                                'showAddStaffModal function not found');
+                            
+                            test('showAddInventoryControllerModal function exists',
+                                typeof app.showAddInventoryControllerModal === 'function',
+                                'showAddInventoryControllerModal function not found');
+                        }
+                        
+                        // Summary
+                        log('\n' + '='.repeat(50), 'info');
+                        log('📊 Test Summary:', 'info');
+                        log(`✅ Passed: ${tests.passed}`, 'success');
+                        log(`❌ Failed: ${tests.failed}`, tests.failed > 0 ? 'error' : 'success');
+                        log('='.repeat(50), 'info');
+                        
+                        if (tests.errors.length > 0) {
+                            log('\n⚠️ Errors Found:', 'error');
+                            tests.errors.forEach(err => log(`  - ${err}`, 'error'));
+                        }
+                        
+                        if (tests.failed === 0) {
+                            log('\n🎉 All tests passed!', 'success');
+                        } else {
+                            log(`\n⚠️ ${tests.failed} test(s) failed.`, 'error');
+                        }
+                    }, 2000);
+                } catch (e) {
+                    log(`❌ Error: ${e.message}`, 'error');
+                    log('Stack: ' + e.stack, 'error');
+                }
+            };
+            
+            resultsDiv.parentElement.appendChild(iframe);
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('ℹ️ Click "Run Tests" to start testing buttons', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+

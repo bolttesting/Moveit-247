@@ -5692,6 +5692,9 @@
                 this.currentRole = null;
                 this.data = this.initializeData();
                 this.itemCatalog = []; // Will be loaded when needed
+                // Performance cache: store API responses for 30 seconds
+                this.apiCache = {};
+                this.cacheTimeout = 30000; // 30 seconds
                 this.initializeApp();
             }
 
@@ -5875,20 +5878,31 @@
             }
 
             loadDataForDropdowns() {
-                // Load team leaders and staff for dropdowns
-                this.fetchPeople('teamLeaders');
-                this.fetchPeople('staff');
-                // Load users for profile updates
-                this.fetchUsers();
+                // Parallelize all dropdown data loading for faster performance
+                Promise.all([
+                    this.fetchPeople('teamLeaders'),
+                    this.fetchPeople('staff'),
+                    this.fetchUsers()
+                ]).catch(err => console.error('Error loading dropdown data:', err));
             }
 
-            async fetchUsers() {
+            async fetchUsers(forceRefresh = false) {
+                const cacheKey = 'users';
+                const now = Date.now();
+                
+                // Check cache first
+                if (!forceRefresh && this.apiCache[cacheKey] && (now - this.apiCache[cacheKey].timestamp) < this.cacheTimeout) {
+                    this.data.users = this.apiCache[cacheKey].data;
+                    return Promise.resolve();
+                }
+                
                 try {
                     const response = await fetch('/api/users');
                     if (!response.ok) throw new Error('Failed to fetch users');
                     const data = await response.json();
                     this.data.users = data;
-                    console.log('Users loaded:', this.data.users);
+                    // Update cache
+                    this.apiCache[cacheKey] = { data, timestamp: now };
                 } catch (error) {
                     console.error('Error fetching users:', error);
                 }
@@ -5919,17 +5933,17 @@
                 if (force || !this.lastDataRefresh || (now - this.lastDataRefresh) > 30000) {
                     this.showLoading('Loading data...');
                     Promise.all([
-                        this.fetchJobs(),
-                        this.fetchPeople('supervisors'),
-                        this.fetchPeople('teamLeaders'),
-                        this.fetchPeople('staff')
+                        this.fetchJobs(force),
+                        this.fetchPeople('supervisors', force),
+                        this.fetchPeople('teamLeaders', force),
+                        this.fetchPeople('staff', force)
                     ]).then(() => {
+                        this.lastDataRefresh = now;
                         this.loadDashboard();
                         this.hideLoading();
                     }).catch(() => {
                         this.hideLoading();
                     });
-                    this.lastDataRefresh = now;
                 }
             }
 
@@ -8500,12 +8514,23 @@
                 console.log('🛑 Location tracking stopped');
             }
 
-            async fetchJobs() {
+            async fetchJobs(forceRefresh = false) {
+                const cacheKey = 'jobs';
+                const now = Date.now();
+                
+                // Check cache first
+                if (!forceRefresh && this.apiCache[cacheKey] && (now - this.apiCache[cacheKey].timestamp) < this.cacheTimeout) {
+                    this.data.jobs = this.apiCache[cacheKey].data;
+                    return Promise.resolve();
+                }
+                
                 try {
                     const response = await fetch('/api/jobs');
                     if (!response.ok) throw new Error('Failed to fetch jobs');
                     const data = await response.json();
                     this.data.jobs = data;
+                    // Update cache
+                    this.apiCache[cacheKey] = { data, timestamp: now };
                 } catch (error) {
                     console.error('Error fetching jobs:', error);
                     this.showNotification('Failed to load jobs', 'error');
@@ -8756,20 +8781,34 @@
                 if (overlay) overlay.remove();
             }
 
-            async fetchPeople(type) {
+            async fetchPeople(type, forceRefresh = false) {
+                let path;
+                if (type === 'teamLeaders') {
+                    path = 'teamleaders';
+                } else if (type === 'inventoryControllers') {
+                    path = 'inventorycontrollers';
+                } else {
+                    path = type;
+                }
+                
+                const cacheKey = `people_${type}`;
+                const now = Date.now();
+                
+                // Check cache first
+                if (!forceRefresh && this.apiCache[cacheKey] && (now - this.apiCache[cacheKey].timestamp) < this.cacheTimeout) {
+                    this.data[type] = this.apiCache[cacheKey].data;
+                    this.setupUsers();
+                    return Promise.resolve();
+                }
+                
                 try {
-                    let path;
-                    if (type === 'teamLeaders') {
-                        path = 'teamleaders';
-                    } else if (type === 'inventoryControllers') {
-                        path = 'inventorycontrollers';
-                    } else {
-                        path = type;
-                    }
                     const response = await fetch(`/api/${path}`);
                     if (!response.ok) throw new Error(`Failed to fetch ${type}`);
                     const data = await response.json();
                     this.data[type] = data;
+                    
+                    // Update cache
+                    this.apiCache[cacheKey] = { data, timestamp: now };
                     
                     // Update users collection after fetching people data
                     this.setupUsers();

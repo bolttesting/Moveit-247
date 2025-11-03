@@ -3,135 +3,680 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoveIt 247 - Moving Company</title>
+    <title>MovePro | Enterprise Moving Company Management Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #667eea;
-            --accent: #4facfe;
+            --primary: #0066ff;
+            --primary-dark: #0052cc;
+            --accent: #00d4ff;
             --dark: #0f172a;
+            --darker: #020617;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gradient: linear-gradient(135deg, var(--primary), var(--accent));
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-dark: rgba(0, 0, 0, 0.2);
         }
-        * { box-sizing: border-box; }
-        body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:#0b1220; }
-        header { position: sticky; top:0; background: #ffffffb3; backdrop-filter: blur(8px); border-bottom:1px solid #eef2f7; z-index:10; }
-        .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-        .nav { display:flex; align-items:center; justify-content:space-between; height:64px; }
-        .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
-        .brand i { color: var(--primary); }
-        .nav a.btn { padding:10px 16px; border-radius:10px; text-decoration:none; color:#fff; background: linear-gradient(135deg, var(--primary), var(--accent)); font-weight:700; cursor:pointer; touch-action:manipulation; user-select:none; display:inline-flex; align-items:center; min-height:44px; }
-        .hero { background: radial-gradient(1200px 600px at 0% 0%, #eef2ff, #fff); padding: 72px 0; }
-        .hero-grid { display:grid; grid-template-columns: 1.2fr 0.8fr; gap:40px; align-items:center; }
-        h1 { font-size: 44px; line-height:1.1; margin:0 0 16px; color: var(--dark); }
-        p.lead { font-size: 18px; color:#4b5563; margin:0 0 24px; }
-        .cta { display:flex; gap:12px; flex-wrap:wrap; }
-        .btn-primary { padding:14px 22px; border-radius:12px; border:none; background: linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; font-weight:800; text-decoration:none; cursor:pointer; touch-action:manipulation; user-select:none; display:inline-flex; align-items:center; justify-content:center; min-height:44px; }
-        .btn-outline { padding:14px 22px; border-radius:12px; border:2px solid #e2e8f0; color:#0f172a; background:#fff; text-decoration:none; font-weight:700; cursor:pointer; touch-action:manipulation; user-select:none; display:inline-flex; align-items:center; justify-content:center; min-height:44px; }
-        .card { background:#fff; border:1px solid #eef2f7; border-radius:16px; padding:18px; box-shadow: 0 10px 25px rgba(2,6,23,0.04); }
-        .hero-illus { display:grid; gap:14px; }
-        .features { padding: 56px 0; background:#fff; }
-        .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
-        .feature h3 { margin:10px 0 6px; font-size:18px; }
-        .feature p { margin:0; color:#475569; font-size:14px; }
-        footer { padding:40px 0; background:#0f172a; color:#94a3b8; }
-        footer a { color:#e2e8f0; text-decoration:none; cursor:pointer; touch-action:manipulation; }
-        @media (max-width: 900px){ 
-            .hero-grid{ grid-template-columns:1fr; } 
-            .grid{ grid-template-columns:1fr; } 
-            .nav a.btn { padding:12px 20px; font-size:15px; }
-            .btn-primary, .btn-outline { padding:16px 24px; font-size:16px; min-height:48px; }
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
         }
-        @media (max-width: 480px) {
-            .nav { padding:0 16px; }
-            .nav a.btn { padding:10px 16px; font-size:14px; white-space:nowrap; }
-            .btn-primary, .btn-outline { padding:14px 20px; font-size:15px; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--darker);
+            color: #fff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Advanced Header with Glass Morphism */
+        header { 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            background: rgba(2, 6, 23, 0.8); 
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 0 40px; 
+        }
+        
+        .nav { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            height: 80px; 
+        }
+        
+        .brand { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+        
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: white;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .nav-cta {
+            padding: 12px 28px;
+            border-radius: 12px;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.3);
+        }
+        
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 102, 255, 0.4);
+        }
+
+        /* Premium Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 40% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                var(--darker);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.02)" points="0,800 800,0 1000,200 200,1000"/></svg>'),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle fill="rgba(255,255,255,0.03)" cx="200" cy="200" r="400"/></svg>');
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+        
+        .btn-primary {
+            padding: 16px 32px;
+            border-radius: 12px;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 102, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            padding: 16px 32px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        /* Advanced Features Grid */
+        .features {
+            padding: 120px 0;
+            background: var(--dark);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 102, 255, 0.1);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 102, 255, 0.3);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .feature-description {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        /* Advanced Footer */
+        footer {
+            background: var(--darker);
+            padding: 80px 0 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+        
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+        
+        .footer-description {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .footer-heading {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .footer-link {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #94a3b8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            h1 {
+                font-size: 3rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .cta-group {
+                flex-direction: column;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
         }
     </style>
     <script>
         function goToPortal(){ location.href = '/portal'; }
+        
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(2, 6, 23, 0.95)';
+                header.style.backdropFilter = 'blur(20px)';
+            } else {
+                header.style.background = 'rgba(2, 6, 23, 0.8)';
+            }
+        });
     </script>
 </head>
 <body>
+    <!-- Premium Header -->
     <header>
-        <div class="container nav">
-            <div class="brand"><i class="fa-solid fa-truck-moving"></i> MoveIt 247</div>
-            <nav>
-                <a class="btn" href="/portal">Login to Portal</a>
-            </nav>
+        <div class="container">
+            <div class="nav">
+                <div class="brand">
+                    <div class="brand-logo">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                    <span>MovePro</span>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#" class="nav-link">Solutions</a>
+                    <a href="#" class="nav-link">Pricing</a>
+                    <a href="#" class="nav-link">Enterprise</a>
+                    <a href="#" class="nav-link">Resources</a>
+                </div>
+                
+                <a href="/portal" class="nav-cta" onclick="goToPortal()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Launch Portal
+                </a>
+            </div>
         </div>
     </header>
 
+    <!-- Premium Hero Section -->
     <section class="hero">
-        <div class="container hero-grid">
-            <div>
-                <h1>Stress‑free moving services, managed end‑to‑end</h1>
-                <p class="lead">Book, track, and complete your move with live updates, digital documents, and a dedicated moving team. Transparent pricing and professional service—24/7.</p>
-                <div class="cta">
-                    <a class="btn-primary" href="/portal">Login to Portal</a>
-                    <a class="btn-outline" href="#features">Explore Features</a>
-                </div>
-                <div style="display:flex; gap:18px; align-items:center; margin-top:20px; color:#475569;">
-                    <div><i class="fa-solid fa-shield-halved" style="color:#16a34a"></i> Insured</div>
-                    <div><i class="fa-solid fa-clock" style="color:#2563eb"></i> On‑time</div>
-                    <div><i class="fa-solid fa-star" style="color:#f59e0b"></i> 4.9 Rated</div>
-                </div>
-            </div>
-            <div class="hero-illus">
-                <div class="card">
-                    <strong>Book & Track</strong>
-                    <div style="height:8px"></div>
-                    Create jobs, assign teams, and get live status updates from pickup to completion.
-                </div>
-                <div class="card">
-                    <strong>Digital Documents</strong>
-                    <div style="height:8px"></div>
-                    Upload permits, IDs, and signatures directly in the portal.
-                </div>
-                <div class="card">
-                    <strong>Live GPS</strong>
-                    <div style="height:8px"></div>
-                    Track your moving team on the map in real‑time.
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="features" class="features">
         <div class="container">
-            <h2 style="margin:0 0 16px;">Why MoveIt 247</h2>
-            <div class="grid">
-                <div class="feature card">
-                    <i class="fa-solid fa-list-check" style="color:var(--primary);"></i>
-                    <h3>Job Management</h3>
-                    <p>Create jobs, assign teams, manage status & history.</p>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-crown"></i>
+                    Enterprise-Grade Moving Platform
                 </div>
-                <div class="feature card">
-                    <i class="fa-solid fa-bell" style="color:var(--primary);"></i>
-                    <h3>Realtime Notifications</h3>
-                    <p>Stay in sync with instant updates across roles.</p>
+                
+                <h1>Revolutionize Your Moving Business Operations</h1>
+                
+                <p class="hero-subtitle">
+                    The world's most advanced SaaS platform for moving companies. Streamline operations, 
+                    automate workflows, and scale your business with enterprise-grade technology.
+                </p>
+                
+                <div class="cta-group">
+                    <a href="/portal" class="btn-primary" onclick="goToPortal()">
+                        <i class="fas fa-rocket"></i>
+                        Start Free Trial
+                    </a>
+                    <a href="#" class="btn-secondary">
+                        <i class="fas fa-play-circle"></i>
+                        Watch Demo
+                    </a>
                 </div>
-                <div class="feature card">
-                    <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i>
-                    <h3>Reports & Insights</h3>
-                    <p>Performance dashboards, exports, and analytics.</p>
+                
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">Uptime SLA</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">500+</div>
+                        <div class="stat-label">Companies</div>
+                    </div>
                 </div>
-            </div>
-            <div style="margin-top:24px; text-align:center;">
-                <a class="btn-primary" href="/portal">Go to Portal</a>
             </div>
         </div>
     </section>
 
-    <footer>
-        <div class="container" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-            <div>© <span id="y"></span> MoveIt 247. All rights reserved.</div>
-            <div style="display:flex; gap:12px;">
-                <a href="/portal">Portal</a>
-                <a href="#features">Features</a>
+    <!-- Advanced Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-bolt"></i>
+                    ENTERPRISE FEATURES
+                </div>
+                <h2 class="section-title">Everything You Need to Scale</h2>
+                <p class="section-subtitle">
+                    Advanced tools and features designed for growing moving companies and enterprise operations.
+                </p>
+            </div>
+            
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="feature-title">AI-Powered Dispatch</h3>
+                    <p class="feature-description">
+                        Intelligent crew assignment and route optimization using machine learning algorithms.
+                    </p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-network"></i>
+                    </div>
+                    <h3 class="feature-title">Real-Time Analytics</h3>
+                    <p class="feature-description">
+                        Live business intelligence dashboards with predictive analytics and KPI tracking.
+                    </p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Mobile Crew Suite</h3>
+                    <p class="feature-description">
+                        Native iOS and Android apps for field crews with offline capabilities.
+                    </p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <h3 class="feature-title">Enterprise Security</h3>
+                    <p class="feature-description">
+                        SOC 2 compliant with end-to-end encryption and advanced access controls.
+                    </p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3 class="feature-title">API Ecosystem</h3>
+                    <p class="feature-description">
+                        Robust REST API with webhooks and pre-built integrations for your tech stack.
+                    </p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="feature-title">White-Label Platform</h3>
+                    <p class="feature-description">
+                        Fully customizable branding and domain mapping for agencies and resellers.
+                    </p>
+                </div>
             </div>
         </div>
-        <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+    </section>
+
+    <!-- Premium Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="brand-logo">
+                            <i class="fas fa-truck-loading"></i>
+                        </div>
+                        <span>MovePro</span>
+                    </div>
+                    <p class="footer-description">
+                        The world's most advanced moving company management platform. 
+                        Trusted by enterprises and growing businesses worldwide.
+                    </p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-heading">Product</div>
+                    <a href="#features" class="footer-link">Features</a>
+                    <a href="#" class="footer-link">Solutions</a>
+                    <a href="#" class="footer-link">Pricing</a>
+                    <a href="#" class="footer-link">Enterprise</a>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-heading">Resources</div>
+                    <a href="#" class="footer-link">Documentation</a>
+                    <a href="#" class="footer-link">API Reference</a>
+                    <a href="#" class="footer-link">Help Center</a>
+                    <a href="#" class="footer-link">Community</a>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-heading">Company</div>
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link">Careers</a>
+                    <a href="#" class="footer-link">Contact</a>
+                    <a href="#" class="footer-link">Partners</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div>© <span id="year"></span> MovePro. All rights reserved.</div>
+                <div>
+                    <a href="/portal" class="footer-link" onclick="goToPortal()">Portal Login</a>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
-
-

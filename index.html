@@ -29,6 +29,18 @@
     
     <!-- FORCE MOBILE CSS & SCROLL HINTS - NO CACHE -->
     <script>
+        // Disable verbose console logging in production without affecting warnings/errors
+        (function(){
+            try {
+                var isDebug = !!(window && window.DEBUG);
+                if (!isDebug && window && window.console) {
+                    var noop = function(){};
+                    if (typeof window.console.log === 'function') window.console.log = noop;
+                    if (typeof window.console.info === 'function') window.console.info = noop;
+                    if (typeof window.console.debug === 'function') window.console.debug = noop;
+                }
+            } catch (e) { /* ignore */ }
+        })();
         // Inject mobile CSS immediately (treat tablets/phones as mobile)
         if (window.innerWidth <= 768) {
             const style = document.createElement('style');

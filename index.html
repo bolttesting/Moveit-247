@@ -413,7 +413,7 @@
             position: relative;
             /* Add margin-top to account for header + status bar space */
             margin-top: calc(env(safe-area-inset-top, 24px) + 80px);
-            margin-bottom: 60px;
+            margin-bottom: calc(env(safe-area-inset-bottom, 0) + 60px);
             margin-left: auto;
             margin-right: auto;
             border: none;

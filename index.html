@@ -6262,6 +6262,15 @@
                             </div>
                         `;
                     }).join('');
+                    
+                    // Initialize previousValue for all type selects
+                    setTimeout(() => {
+                        container.querySelectorAll('.material-type').forEach(select => {
+                            if (!select.previousValue) {
+                                select.previousValue = 'new';
+                            }
+                        });
+                    }, 100);
                 } catch (error) {
                     console.error('Error loading materials:', error);
                     container.innerHTML = '<p style="color: #ef4444;">Failed to load materials</p>';
@@ -10800,20 +10809,39 @@
                     body: JSON.stringify(updatedJob)
                 })
                 .then(res => res.json())
-                .then(updated => {
+                .then(async updated => {
                     // Update local data
                     const index = this.data.jobs.findIndex(j => j.id == jobId);
                     if (index !== -1) {
                         this.data.jobs[index] = updated;
                     }
                     
-                    this.showNotification('Job updated successfully!', 'success');
+                    // Check if job details modal is open
+                    const jobDetailsModal = document.getElementById('job-details-modal');
+                    const isJobDetailsOpen = jobDetailsModal && jobDetailsModal.style.display === 'flex';
+                    
+                    this.showNotification('Project updated successfully!', 'success');
                     this.hideModals();
+                    
+                    // Refresh jobs data and UI
+                    await this.fetchJobs(true); // Force refresh
                     this.populateCurrentJobs();
+                    
+                    // If job details was open, refresh it
+                    if (isJobDetailsOpen) {
+                        setTimeout(() => {
+                            this.showJobDetails(jobId);
+                        }, 100);
+                    }
+                    
+                    // Reload inventory to reflect deductions
+                    if (this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor') {
+                        this.loadInventory();
+                    }
                 })
                 .catch(err => {
                     console.error('Error updating job:', err);
-                    this.showNotification('Error updating job', 'error');
+                    this.showNotification('Failed to update project', 'error');
                 });
             }
 
@@ -12561,16 +12589,52 @@
                     <div class="detail-row">
                         <div class="detail-label">External Survey Form:</div>
                         <div class="detail-value">
-                            <div class="image-gallery">
-                                <div class="image-item" onclick="app.showImageModal('${job.externalSurveyForm}')">
-                                    <img src="${app.getImageUrl(job.externalSurveyForm)}" alt="External Survey Form" onerror="this.style.display='none'">
-                                    <div style="margin-top: 8px;">
-                                        <a href="${app.getImageUrl(job.externalSurveyForm)}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-external-link-alt"></i> View/Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            ${(() => {
+                                const fileUrl = job.externalSurveyForm;
+                                const fileUrlLower = fileUrl.toLowerCase();
+                                const isImage = fileUrlLower.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i);
+                                const isPdf = fileUrlLower.match(/\.pdf$/i);
+                                const isWord = fileUrlLower.match(/\.(doc|docx)$/i);
+                                const isHtml = fileUrlLower.match(/\.(html|htm)$/i);
+                                const fileUrlForDisplay = app.getImageUrl(fileUrl);
+                                
+                                if (isImage) {
+                                    return `
+                                        <div class="image-gallery">
+                                            <div class="image-item" onclick="app.showImageModal('${fileUrl}')">
+                                                <img src="${fileUrlForDisplay}" alt="External Survey Form" onerror="this.style.display='none'">
+                                                <div style="margin-top: 8px;">
+                                                    <a href="${fileUrlForDisplay}" target="_blank" download class="btn btn-sm btn-primary" style="width: 100%;">
+                                                        <i class="fas fa-external-link-alt"></i> View/Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    const icon = isPdf ? 'fa-file-pdf' : isWord ? 'fa-file-word' : isHtml ? 'fa-file-code' : 'fa-file';
+                                    const fileType = isPdf ? 'PDF' : isWord ? 'Word Document' : isHtml ? 'HTML' : 'Document';
+                                    return `
+                                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                                <i class="fas ${icon}" style="font-size: 32px; color: ${isPdf ? '#ef4444' : isWord ? '#2563eb' : '#6366f1'};"></i>
+                                                <div style="flex: 1;">
+                                                    <strong style="display: block; margin-bottom: 4px;">${fileType} Survey Form</strong>
+                                                    <small style="color: #64748b;">Click to view or download</small>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                <a href="${fileUrlForDisplay}" target="_blank" class="btn btn-sm btn-primary" style="flex: 1; min-width: 120px;">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="${fileUrlForDisplay}" download class="btn btn-sm btn-success" style="flex: 1; min-width: 120px;">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            })()}
                         </div>
                     </div>
                     ` : ''}
@@ -14952,9 +15016,18 @@
                     this.showNotification('Job completed and submitted for approval!', 'success');
                     
                     // Refresh the jobs list and reload the dashboard
-                    await this.fetchJobs();
+                    await this.fetchJobs(true); // Force refresh
                     this.populateCurrentJobs();
                     await this.loadDashboard();
+                    
+                    // Check if job details modal is open and refresh it
+                    const jobDetailsModal = document.getElementById('job-details-modal');
+                    const isJobDetailsOpen = jobDetailsModal && jobDetailsModal.style.display === 'flex';
+                    if (isJobDetailsOpen) {
+                        setTimeout(() => {
+                            this.showJobDetails(jobId);
+                        }, 100);
+                    }
                 })
                 .catch((error) => {
                     console.error('Completion error:', error);

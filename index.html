@@ -3727,10 +3727,16 @@
                                     </div>
                                     <div class="form-group" style="grid-column: 1 / -1;">
                                         <label>Survey Form</label>
-                                        <select class="form-control" id="survey-form-select">
-                                            <option value="">None - Select from Survey History</option>
-                                        </select>
-                                        <small style="color: #64748b;">Attach a completed survey form from history</small>
+                                        <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                                            <select class="form-control" id="survey-form-select" style="flex: 1;">
+                                                <option value="">Loading surveys...</option>
+                                            </select>
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="app.fetchZohoSurveys()" style="white-space: nowrap;">
+                                                <i class="fas fa-sync-alt"></i> Fetch from Zoho
+                                            </button>
+                                        </div>
+                                        <small style="color: #64748b;">Attach a completed survey form from history or fetch from Zoho Survey</small>
+                                        <div id="zoho-survey-status" style="margin-top: 5px;"></div>
                                     </div>
                                     <div class="form-group" style="grid-column: 1 / -1;">
                                         <label>Upload External Survey Form (Optional)</label>
@@ -6368,25 +6374,92 @@
                 const select = document.getElementById('survey-form-select');
                 if (!select) return;
                 
+                // Show loading state
+                select.innerHTML = '<option value="">Loading surveys...</option>';
+                
                 try {
                     const response = await fetch('/api/surveys');
-                    if (!response.ok) return;
+                    if (!response.ok) {
+                        select.innerHTML = '<option value="">None - Select from Survey History</option>';
+                        return;
+                    }
                     const surveys = await response.json();
                     
-                    // Clear existing options except first one
+                    // Clear existing options
                     select.innerHTML = '<option value="">None - Select from Survey History</option>';
                     
-                    // Add completed surveys
-                    surveys
-                        .filter(s => s.status === 'completed')
-                        .forEach(survey => {
+                    // Add completed surveys from local system
+                    const completedSurveys = surveys.filter(s => s.status === 'completed');
+                    if (completedSurveys.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Local Surveys';
+                        completedSurveys.forEach(survey => {
                             const option = document.createElement('option');
-                            option.value = survey.id;
+                            option.value = `local_${survey.id}`;
                             option.textContent = `Survey #${survey.id} - ${survey.clientName} (${survey.surveyDate})`;
-                            select.appendChild(option);
+                            optgroup.appendChild(option);
                         });
+                        select.appendChild(optgroup);
+                    }
                 } catch (error) {
-                    console.error('Error loading surveys:', error);
+                    console.error('Error loading local surveys:', error);
+                    select.innerHTML = '<option value="">None - Select from Survey History</option>';
+                }
+            }
+
+            async fetchZohoSurveys() {
+                const select = document.getElementById('survey-form-select');
+                const statusDiv = document.getElementById('zoho-survey-status');
+                
+                if (!select) return;
+                
+                // Show loading state
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: #6366f1;"><i class="fas fa-spinner fa-spin"></i> Fetching surveys from Zoho...</span>';
+                }
+                
+                try {
+                    const response = await fetch('/api/zoho/surveys');
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({ message: 'Failed to fetch surveys from Zoho' }));
+                        throw new Error(error.message || 'Failed to fetch surveys from Zoho');
+                    }
+                    
+                    const data = await response.json();
+                    const zohoSurveys = data.surveys || [];
+                    
+                    // Remove existing Zoho optgroup if it exists
+                    const existingZohoGroup = select.querySelector('optgroup[label="Zoho Surveys"]');
+                    if (existingZohoGroup) {
+                        existingZohoGroup.remove();
+                    }
+                    
+                    // Add Zoho surveys
+                    if (zohoSurveys.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Zoho Surveys';
+                        zohoSurveys.forEach(survey => {
+                            const option = document.createElement('option');
+                            option.value = `zoho_${survey.survey_id || survey.id}`;
+                            option.textContent = `${survey.survey_name || survey.name || 'Survey'} - ${survey.response_id || survey.id || 'Response'}`;
+                            option.dataset.zohoData = JSON.stringify(survey);
+                            optgroup.appendChild(option);
+                        });
+                        select.appendChild(optgroup);
+                        
+                        if (statusDiv) {
+                            statusDiv.innerHTML = `<span style="color: #059669;"><i class="fas fa-check-circle"></i> Found ${zohoSurveys.length} survey(s) from Zoho</span>`;
+                        }
+                    } else {
+                        if (statusDiv) {
+                            statusDiv.innerHTML = '<span style="color: #64748b;"><i class="fas fa-info-circle"></i> No surveys found in Zoho</span>';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching Zoho surveys:', error);
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `<span style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> ${error.message || 'Failed to fetch from Zoho'}</span>`;
+                    }
                 }
             }
 
@@ -6421,7 +6494,25 @@
                     itemImages: document.getElementById('item-images')?.dataset.uploadUrls ? JSON.parse(document.getElementById('item-images').dataset.uploadUrls) : [],
                     instructions: document.getElementById('job-instructions')?.value || '',
                     stuffDetails: document.getElementById('stuff-details')?.value || '',
-                    surveyFormId: document.getElementById('survey-form-select')?.value || '',
+                    surveyFormId: (() => {
+                        const surveyValue = document.getElementById('survey-form-select')?.value || '';
+                        // Handle both local and Zoho surveys
+                        if (surveyValue.startsWith('local_')) {
+                            return surveyValue.replace('local_', '');
+                        } else if (surveyValue.startsWith('zoho_')) {
+                            // Store Zoho survey info separately
+                            const option = document.getElementById('survey-form-select').querySelector(`option[value="${surveyValue}"]`);
+                            if (option && option.dataset.zohoData) {
+                                try {
+                                    return JSON.parse(option.dataset.zohoData);
+                                } catch(e) {
+                                    return surveyValue;
+                                }
+                            }
+                            return surveyValue;
+                        }
+                        return surveyValue;
+                    })(),
                     externalSurveyForm: document.getElementById('external-survey-form')?.dataset.uploadUrl || ''
                 };
 

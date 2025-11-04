@@ -12,6 +12,141 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Zoho CRM Configuration
+const ZOHO_API_VERSION = process.env.ZOHO_API_VERSION || 'v2';
+const ZOHO_REGION = process.env.ZOHO_REGION || 'com'; // Options: com, eu, in, jp, au
+const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID || '';
+const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET || '';
+const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN || '';
+const ZOHO_ORG_ID = process.env.ZOHO_ORG_ID || '';
+
+// Cache for access token
+let zohoAccessToken = null;
+let zohoTokenExpiry = 0;
+
+// Zoho CRM Integration Helper Functions
+async function getZohoAccessToken() {
+  try {
+    // Check if we have a valid cached token
+    const now = Date.now();
+    if (zohoAccessToken && now < zohoTokenExpiry) {
+      return zohoAccessToken;
+    }
+
+    // Get new access token using refresh token
+    const response = await fetch(
+      `https://accounts.zoho.${ZOHO_REGION}/oauth/v2/token?refresh_token=${ZOHO_REFRESH_TOKEN}&client_id=${ZOHO_CLIENT_ID}&client_secret=${ZOHO_CLIENT_SECRET}&grant_type=refresh_token`,
+      { method: 'POST' }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to get Zoho access token:', errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    zohoAccessToken = data.access_token;
+    // Token expires in ~55 minutes, cache for 50 minutes
+    zohoTokenExpiry = now + (50 * 60 * 1000);
+
+    console.log('✅ Successfully obtained Zoho access token');
+    return zohoAccessToken;
+  } catch (error) {
+    console.error('Error getting Zoho access token:', error);
+    return null;
+  }
+}
+
+async function submitSurveyToZoho(survey, packingList) {
+  try {
+    // Check if Zoho is configured
+    if (!ZOHO_CLIENT_ID || !ZOHO_CLIENT_SECRET || !ZOHO_REFRESH_TOKEN) {
+      console.log('⚠️  Zoho CRM not configured, skipping integration');
+      return { success: false, reason: 'not_configured' };
+    }
+
+    const accessToken = await getZohoAccessToken();
+    if (!accessToken) {
+      return { success: false, reason: 'auth_failed' };
+    }
+
+    // Prepare lead/contact data for Zoho CRM
+    const leadData = {
+      Last_Name: packingList?.personName || survey.clientName || 'Survey Lead',
+      Mobile: packingList?.mobile || survey.clientNumber || '',
+      Email: packingList?.email || '',
+      Company: packingList?.companyName || '',
+      Description: `Survey Completed\n\nSurvey Details:\n- Location: ${survey.location || 'N/A'}\n- Apartment Size: ${survey.apartmentSize || 'N/A'}\n- Survey Date: ${survey.surveyDate || 'N/A'} ${survey.surveyTime || ''}\n\n${
+        packingList ? `Service Type: ${packingList.serviceTypes?.join(', ') || 'N/A'}\nOrigin: ${packingList.origin || 'N/A'}\nDestination: ${packingList.destination || 'N/A'}\nTotal CBM: ${packingList.totalCbm || 0}\nTotal Value: ${packingList.totalValue || 0} AED\n` : ''
+      }Comments: ${survey.surveyData?.comments || 'N/A'}\nClient Instructions: ${survey.surveyData?.clientInstructions || 'N/A'}`,
+      Lead_Status: 'Not Contacted',
+      Lead_Source: packingList?.source || 'Survey Form',
+      // Add custom fields if your Zoho CRM has them
+      // Custom_Field_1: survey.clientNumber,
+      // Custom_Field_2: survey.location
+    };
+
+    // Create lead in Zoho CRM
+    const zohoApiUrl = `https://www.zohoapis.${ZOHO_REGION}/crm/${ZOHO_API_VERSION}/Leads`;
+    const response = await fetch(zohoApiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Zoho-oauthtoken ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: [leadData]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to create lead in Zoho CRM:', errorText);
+      return { success: false, reason: 'api_error', error: errorText };
+    }
+
+    const result = await response.json();
+    console.log('✅ Successfully created lead in Zoho CRM:', result);
+
+    // If there's packing list data, you could also create an attached note or deal
+    if (packingList && packingList.items && packingList.items.length > 0) {
+      // Optional: Create a note with packing list details
+      try {
+        const noteData = {
+          Note_Title: `Packing List - ${packingList.serialNo || survey.id}`,
+          Note_Content: `Items List:\n${packingList.items.map((item, idx) => 
+            `${idx + 1}. ${item.name}: ${item.pieces} pcs (${item.totalCbm} CBM)`
+          ).join('\n')}\n\nTotal Boxes: ${packingList.totalBoxes}\nTotal CBM: ${packingList.totalCbm}\nAmount: ${packingList.amount} AED`
+        };
+
+        // Attach note to the created lead
+        if (result.data && result.data.length > 0 && result.data[0].details) {
+          const leadId = result.data[0].details.id;
+          const notesUrl = `https://www.zohoapis.${ZOHO_REGION}/crm/${ZOHO_API_VERSION}/Leads/${leadId}/Notes`;
+          
+          await fetch(notesUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Zoho-oauthtoken ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: [noteData] })
+          });
+        }
+      } catch (noteError) {
+        console.error('Error creating note in Zoho:', noteError);
+        // Don't fail the whole process if note creation fails
+      }
+    }
+
+    return { success: true, zohoData: result };
+  } catch (error) {
+    console.error('Error submitting survey to Zoho:', error);
+    return { success: false, reason: 'exception', error: error.message };
+  }
+}
+
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -1038,8 +1173,104 @@ app.put('/api/surveys', (req, res) => {
 app.put('/api/surveys/:id', updateRoute('surveys', 'id'));
 app.delete('/api/surveys/:id', deleteRoute('surveys', 'id'));
 
+// Zoho Survey API - Fetch surveys from Zoho Survey
+app.get('/api/zoho/surveys', async (req, res) => {
+  try {
+    // Check if Zoho is configured
+    if (!ZOHO_CLIENT_ID || !ZOHO_CLIENT_SECRET || !ZOHO_REFRESH_TOKEN) {
+      return res.status(400).json({ 
+        error: 'Zoho not configured',
+        message: 'Please configure Zoho credentials in environment variables'
+      });
+    }
+
+    const accessToken = await getZohoAccessToken();
+    if (!accessToken) {
+      return res.status(401).json({ 
+        error: 'Authentication failed',
+        message: 'Failed to get Zoho access token'
+      });
+    }
+
+    // Zoho Survey API - List surveys
+    // Note: Zoho Survey API endpoint may vary. This is a common pattern.
+    // You may need to adjust based on your Zoho Survey API version
+    const zohoSurveyApiUrl = `https://surveys.zoho.com/api/v1/surveys`;
+    
+    const response = await fetch(zohoSurveyApiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Zoho-oauthtoken ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Zoho Survey API error:', errorText);
+      
+      // If the endpoint doesn't exist, try alternative endpoint pattern
+      // Some Zoho Survey APIs use different endpoints
+      const altUrl = `https://surveys.zoho.${ZOHO_REGION}/api/v1/surveys`;
+      const altResponse = await fetch(altUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Zoho-oauthtoken ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!altResponse.ok) {
+        return res.status(altResponse.status).json({ 
+          error: 'Failed to fetch surveys from Zoho',
+          message: 'Zoho Survey API endpoint not accessible. Please check API configuration.',
+          details: await altResponse.text().catch(() => 'Unknown error')
+        });
+      }
+
+      const altData = await altResponse.json();
+      const surveys = Array.isArray(altData.surveys) ? altData.surveys : 
+                     Array.isArray(altData.data) ? altData.data : 
+                     Array.isArray(altData) ? altData : [];
+
+      return res.json({ 
+        success: true, 
+        surveys: surveys.map(s => ({
+          survey_id: s.survey_id || s.id || s.surveyId,
+          survey_name: s.survey_name || s.name || s.title || 'Untitled Survey',
+          response_id: s.response_id || s.id,
+          created_at: s.created_at || s.createdAt || s.date_created,
+          status: s.status || 'active'
+        }))
+      });
+    }
+
+    const data = await response.json();
+    const surveys = Array.isArray(data.surveys) ? data.surveys : 
+                   Array.isArray(data.data) ? data.data : 
+                   Array.isArray(data) ? data : [];
+
+    res.json({ 
+      success: true, 
+      surveys: surveys.map(s => ({
+        survey_id: s.survey_id || s.id || s.surveyId,
+        survey_name: s.survey_name || s.name || s.title || 'Untitled Survey',
+        response_id: s.response_id || s.id,
+        created_at: s.created_at || s.createdAt || s.date_created,
+        status: s.status || 'active'
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching Zoho surveys:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch surveys from Zoho',
+      message: error.message 
+    });
+  }
+});
+
 // Complete survey endpoint
-app.post('/api/surveys/:id/complete', (req, res) => {
+app.post('/api/surveys/:id/complete', async (req, res) => {
   try {
     const db = readDb();
     const id = String(req.params.id);
@@ -1067,6 +1298,18 @@ app.post('/api/surveys/:id/complete', (req, res) => {
     }
     
     writeDb(db);
+    
+    // Submit survey to Zoho CRM (async, non-blocking)
+    submitSurveyToZoho(survey, packingList).then(result => {
+      if (result.success) {
+        console.log('✅ Survey successfully submitted to Zoho CRM');
+      } else {
+        console.log(`⚠️  Zoho CRM submission skipped: ${result.reason}`);
+      }
+    }).catch(err => {
+      console.error('Error in Zoho submission:', err);
+    });
+    
     res.json(survey);
   } catch (error) {
     console.error('Error completing survey:', error);

@@ -8,13 +8,17 @@
     "start": "node server.js",
     "dev": "node --env-file=.env server.js",
     "generate-icons": "node generate-icons.js",
-    "generate-splash": "node generate-splash.js"
+    "generate-splash": "node generate-splash.js",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:build": "npx cap sync ios && cd ios/App && pod install"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/geolocation": "^7.1.5",
+    "@capacitor/ios": "^7.4.4",
     "@capacitor/local-notifications": "^7.0.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",

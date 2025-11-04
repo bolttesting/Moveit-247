@@ -1,13 +1,32 @@
 {
   "appId": "com.moveit247.portal",
-  "appName": "Moveit 24/7",
-  "webDir": "mobile-www",
+  "appName": "MoveIt 247",
+  "webDir": "www",
+  "bundledWebRuntime": false,
   "server": {
-    "url": "https://moveit-247-production.up.railway.app/",
     "cleartext": true,
-    "allowNavigation": ["moveit-247-production.up.railway.app"]
+    "allowNavigation": ["*"]
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": true,
+    "allowsLinkPreview": false,
+    "backgroundColor": "#667eea"
   },
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": true,
+    "backgroundColor": "#667eea"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#667eea",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
   }
 }

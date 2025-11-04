@@ -63,6 +63,7 @@ A comprehensive management system for moving and logistics companies, built with
 - 🖼️ **Image Gallery**: View all uploaded images and documents
 - 🔍 **Search & Filter**: Find jobs, staff, and reports easily
 - 📄 **Data Export**: Download reports in CSV or PDF format
+- 🔗 **Zoho CRM Integration**: Automatic lead creation from completed surveys
 
 ## 🚀 Quick Start
 
@@ -177,7 +178,33 @@ Create a `.env` file:
 ```
 PORT=4000
 NODE_ENV=production
+
+# Optional: Zoho CRM Integration
+# See ZOHO_SETUP.md for complete setup instructions
+ZOHO_CLIENT_ID=your_client_id
+ZOHO_CLIENT_SECRET=your_client_secret
+ZOHO_REFRESH_TOKEN=your_refresh_token
+ZOHO_REGION=com
+ZOHO_API_VERSION=v2
 ```
+
+### Zoho CRM Integration
+
+MoveIt 247 can automatically sync completed surveys to Zoho CRM, creating leads with all survey and packing list details.
+
+**Quick Setup:**
+1. Follow the detailed guide in [ZOHO_SETUP.md](./ZOHO_SETUP.md)
+2. Get your API credentials from https://api-console.zoho.com/
+3. Add credentials to your `.env` file
+4. Restart the server
+
+**Features:**
+- Automatic lead creation when surveys are completed
+- Packing list items attached as notes
+- Full survey details in CRM
+- Non-blocking integration (surveys save even if Zoho is down)
+
+The integration is completely optional. Surveys will work normally without it.
 
 ## 🛠️ Development
 

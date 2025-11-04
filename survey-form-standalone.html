@@ -349,32 +349,8 @@
                 <h4>Totals</h4>
                 <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="form-group">
-                        <label>Total Curtains/Blinds</label>
-                        <input type="number" class="form-control" id="pl-total-curtains" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Total Wall Fixtures</label>
-                        <input type="number" class="form-control" id="pl-total-fixtures" min="0" value="0">
-                    </div>
-                    <div class="form-group">
                         <label>BLDG. PERMIT</label>
                         <input type="text" class="form-control" id="pl-permit">
-                    </div>
-                    <div class="form-group">
-                        <label>Total Boxes</label>
-                        <input type="number" class="form-control" id="pl-total-boxes" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Total Packages</label>
-                        <input type="number" class="form-control" id="pl-total-packages" min="0" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Commodity</label>
-                        <input type="text" class="form-control" id="pl-commodity">
-                    </div>
-                    <div class="form-group">
-                        <label>Total Value of Goods</label>
-                        <input type="number" class="form-control" id="pl-total-value" min="0" step="0.01" value="0">
                     </div>
                     <div class="form-group">
                         <label>Total Working Days</label>
@@ -387,10 +363,6 @@
                     <div class="form-group">
                         <label>Total CBM</label>
                         <input type="number" class="form-control" id="pl-total-cbm" min="0" step="0.01" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Estimated KG</label>
-                        <input type="number" class="form-control" id="pl-estimated-kg" min="0" step="0.01" value="0" readonly>
                     </div>
                     <div class="form-group">
                         <label>Amount of the Move</label>
@@ -606,7 +578,6 @@
 
         function updatePackingListTotals() {
             let totalCbm = 0;
-            let totalPackages = 0;
             
             const rows = document.querySelectorAll('#packing-list-items-tbody tr');
             rows.forEach(row => {
@@ -614,15 +585,86 @@
                 const pieces = parseInt(row.querySelector('.item-pieces')?.value || 0);
                 const totalRowCbm = cbm * pieces;
                 totalCbm += totalRowCbm;
-                totalPackages += pieces;
                 
                 const totalCell = row.querySelector('.item-total-cbm');
                 if (totalCell) totalCell.textContent = totalRowCbm.toFixed(2);
             });
             
             document.getElementById('pl-total-cbm').value = totalCbm.toFixed(2);
-            document.getElementById('pl-total-packages').value = totalPackages;
-            document.getElementById('pl-estimated-kg').value = (totalCbm * 300).toFixed(2); // 300 kg per CBM
+        }
+        
+        // Sample item catalog - replace with API call if needed
+        const itemCatalog = [
+            { name: '1 Seater Sofa', cbm: 0.57 },
+            { name: '2 Seater Sofa', cbm: 1.00 },
+            { name: '3 Seater Sofa', cbm: 1.50 },
+            { name: '3 Seater Bench', cbm: 0.42 },
+            { name: '4 Seater Bench', cbm: 0.56 },
+            { name: 'Antenna', cbm: 0.14 },
+            { name: 'Arm Chair', cbm: 0.57 },
+            { name: 'Bedside Table', cbm: 0.14 },
+            { name: 'Bookshelf', cbm: 0.28 },
+            { name: 'Coffee Table', cbm: 0.42 },
+            { name: 'Dining Chair', cbm: 0.14 },
+            { name: 'Dining Table', cbm: 0.85 },
+            { name: 'Dryer', cbm: 0.30 },
+            { name: 'Exercise Machine', cbm: 0.50 },
+            { name: 'Fish Tank', cbm: 0.28 },
+            { name: 'Foot Rest', cbm: 0.30 },
+            { name: 'Freezer', cbm: 0.39 },
+            { name: 'Fridge', cbm: 0.99 },
+            { name: 'TV Stand', cbm: 0.42 },
+            { name: 'Wardrobe', cbm: 1.70 }
+        ];
+        
+        async function loadItemCatalog() {
+            try {
+                // Try to fetch from API if available
+                const response = await fetch('/api/items');
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.items || data || [];
+                }
+            } catch (error) {
+                console.log('API not available, using sample catalog');
+            }
+            // Return sample catalog if API is not available
+            return itemCatalog;
+        }
+        
+        async function populateItemsTable(existingItems = []) {
+            const tbody = document.getElementById('packing-list-items-tbody');
+            if (!tbody) {
+                console.error('packing-list-items-tbody not found');
+                return;
+            }
+            
+            let itemsToAdd = [];
+            
+            if (existingItems.length > 0) {
+                // Use existing items from saved data
+                itemsToAdd = existingItems;
+            } else {
+                // Load from catalog
+                const catalog = await loadItemCatalog();
+                itemsToAdd = catalog;
+            }
+            
+            // Clear table
+            tbody.innerHTML = '';
+            
+            if (itemsToAdd.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">No items available.</td></tr>';
+                return;
+            }
+            
+            itemsToAdd.forEach((item, index) => {
+                const row = createItemRow(item, index);
+                tbody.appendChild(row);
+            });
+            
+            // Update totals
+            updatePackingListTotals();
         }
 
         function filterPackingListItems() {
@@ -678,17 +720,10 @@
                 clientInstructions: document.getElementById('survey-client-instructions').value,
                 terms: document.getElementById('pl-terms').value,
                 totals: {
-                    totalCurtains: document.getElementById('pl-total-curtains').value,
-                    totalFixtures: document.getElementById('pl-total-fixtures').value,
                     permit: document.getElementById('pl-permit').value,
-                    totalBoxes: document.getElementById('pl-total-boxes').value,
-                    totalPackages: document.getElementById('pl-total-packages').value,
-                    commodity: document.getElementById('pl-commodity').value,
-                    totalValue: document.getElementById('pl-total-value').value,
                     workingDays: document.getElementById('pl-working-days').value,
                     trips: document.getElementById('pl-trips').value,
                     totalCbm: document.getElementById('pl-total-cbm').value,
-                    estimatedKg: document.getElementById('pl-estimated-kg').value,
                     amount: document.getElementById('pl-amount').value
                 },
                 items: Array.from(document.querySelectorAll('#packing-list-items-tbody tr')).map(row => ({
@@ -714,8 +749,9 @@
         });
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             initSignatures();
+            await populateItemsTable();
             updatePackingListTotals();
         });
 

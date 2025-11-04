@@ -5540,17 +5540,6 @@
                             <label>Client Instructions</label>
                             <textarea class="form-control" id="survey-client-instructions" rows="4" placeholder="Any special instructions or requirements from the client"></textarea>
                         </div>
-                        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); margin-top:15px;">
-                            <div class="form-group">
-                                <label>Estimator Name</label>
-                                <input type="text" class="form-control" id="pl-estimator">
-                            </div>
-                            <div class="form-group">
-                                <label>Stamp/Seal</label>
-                                <input type="file" class="form-control" id="pl-stamp" accept="image/*">
-                                <div id="pl-stamp-preview" style="margin-top:10px;"></div>
-                            </div>
-                        </div>
                         <div class="form-group" style="margin-top:15px;">
                             <label>Terms & Conditions</label>
                             <textarea class="form-control" id="pl-terms" rows="3" placeholder="Terms and conditions..."></textarea>
@@ -5613,8 +5602,8 @@
     </div>
 
     <!-- Survey Details Modal -->
-    <div class="modal" id="survey-details-modal">
-        <div class="modal-content" style="max-width: 1200px; max-height: 95vh; overflow-y: auto;">
+    <div class="modal" id="survey-details-modal" style="display: flex; align-items: center; justify-content: center;">
+        <div class="modal-content" style="max-width: 1200px; max-height: 95vh; overflow-y: auto; margin: auto;">
             <div class="modal-header">
                 <h3>Survey Details</h3>
                 <span class="close">&times;</span>
@@ -6764,18 +6753,6 @@
                 // Packing List Custom Item Modal
                 document.getElementById('save-custom-item')?.addEventListener('click', () => this.addCustomItem());
                 document.getElementById('cancel-custom-item')?.addEventListener('click', () => this.hideModals());
-                
-                // Stamp preview
-                document.getElementById('pl-stamp')?.addEventListener('change', (e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            const preview = document.getElementById('pl-stamp-preview');
-                            preview.innerHTML = `<img src="${event.target.result}" style="max-width:200px; max-height:200px; border:1px solid #ddd; border-radius:4px;">`;
-                        };
-                        reader.readAsDataURL(e.target.files[0]);
-                    }
-                });
 
                 // Template form
                 document.getElementById('template-form').addEventListener('submit', (e) => {
@@ -10765,7 +10742,6 @@
                 document.getElementById('survey-comments').value = '';
                 document.getElementById('survey-client-instructions').value = '';
                 document.getElementById('survey-images-preview').innerHTML = '';
-                document.getElementById('pl-stamp-preview').innerHTML = '';
                 
                 // Reset checkboxes
                 ['pl-type-cargo', 'pl-type-commercial', 'pl-type-local', 'pl-type-international', 'pl-type-storage'].forEach(id => {
@@ -10859,17 +10835,6 @@
                 const customerSig = document.getElementById('pl-customer-signature')?.toDataURL() || '';
                 const moveitSig = document.getElementById('pl-moveit-signature')?.toDataURL() || '';
 
-                // Upload stamp if provided
-                let stampUrl = '';
-                const stampInput = document.getElementById('pl-stamp');
-                if (stampInput && stampInput.files && stampInput.files[0]) {
-                    try {
-                        stampUrl = await this.uploadFile(stampInput.files[0]);
-                    } catch (error) {
-                        console.error('Error uploading stamp:', error);
-                    }
-                }
-
                 // Upload images
                 const uploadedImages = [];
                 if (imagesInput && imagesInput.files && imagesInput.files.length > 0) {
@@ -10912,8 +10877,6 @@
                     totalCbm: parseFloat(document.getElementById('pl-total-cbm').value || 0),
                     estimatedKg: parseFloat(document.getElementById('pl-estimated-kg').value || 0),
                     amount: parseFloat(document.getElementById('pl-amount').value || 0),
-                    estimator: document.getElementById('pl-estimator').value.trim(),
-                    stamp: stampUrl,
                     terms: document.getElementById('pl-terms').value.trim(),
                     customerSignature: customerSig,
                     moveitSignature: moveitSig
@@ -11125,22 +11088,39 @@
             }
 
             addCustomItem() {
-                const name = document.getElementById('custom-item-name').value.trim();
-                const cbm = parseFloat(document.getElementById('custom-item-cbm').value || 0);
+                const name = document.getElementById('custom-item-name')?.value.trim();
+                const cbm = parseFloat(document.getElementById('custom-item-cbm')?.value || 0);
                 
-                if (!name || cbm <= 0) {
+                if (!name || cbm <= 0 || isNaN(cbm)) {
                     this.showNotification('Please enter item name and valid CBM', 'error');
                     return;
                 }
                 
                 // Add to table
                 const tbody = document.getElementById('packing-list-items-tbody');
-                const row = this.createItemRow({ name, cbm }, tbody.children.length);
+                if (!tbody) {
+                    this.showNotification('Packing list table not found', 'error');
+                    return;
+                }
+                
+                // Check if item already exists
+                const existingItems = Array.from(tbody.querySelectorAll('.item-name'));
+                const itemExists = existingItems.some(item => item.textContent.trim().toLowerCase() === name.toLowerCase());
+                
+                if (itemExists) {
+                    this.showNotification('This item already exists in the list', 'error');
+                    return;
+                }
+                
+                const row = this.createItemRow({ name, cbm, pieces: 0 }, tbody.children.length);
                 tbody.appendChild(row);
+                
+                // Reset form
+                document.getElementById('add-custom-item-form').reset();
                 
                 this.hideModals();
                 this.updatePackingListTotals();
-                this.showNotification('Custom item added', 'success');
+                this.showNotification('Custom item added successfully', 'success');
             }
 
             populatePackingListForm(data) {
@@ -11180,7 +11160,6 @@
                 if (data.workingDays) document.getElementById('pl-working-days').value = data.workingDays;
                 if (data.trips) document.getElementById('pl-trips').value = data.trips;
                 if (data.amount) document.getElementById('pl-amount').value = data.amount;
-                if (data.estimator) document.getElementById('pl-estimator').value = data.estimator;
                 if (data.terms) document.getElementById('pl-terms').value = data.terms;
                 
                 // Load signatures if they exist
@@ -11199,12 +11178,6 @@
                         img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
                         img.src = data.moveitSignature;
                     }
-                }
-                
-                // Load stamp if exists
-                if (data.stamp) {
-                    const preview = document.getElementById('pl-stamp-preview');
-                    preview.innerHTML = `<img src="${this.getImageUrl(data.stamp)}" style="max-width:200px; max-height:200px; border:1px solid #ddd; border-radius:4px;">`;
                 }
             }
 

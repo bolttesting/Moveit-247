@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoveIt 247 - Packing List Survey Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h4 {
+            margin: 0 0 15px;
+            color: #1e293b;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .close:hover {
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e293b;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: crosshair;
+            background: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Packing List - Survey Form</h1>
+        
+        <form id="complete-survey-form">
+            <!-- Survey Details Section -->
+            <div class="card">
+                <h4>Survey Details</h4>
+                <div id="survey-details-preview">
+                    <p style="color: #64748b;">Survey information will be displayed here</p>
+                </div>
+            </div>
+
+            <!-- Customer & Move Details Section -->
+            <div class="card">
+                <h4>Customer & Move Details</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" class="form-control" id="pl-company-name">
+                    </div>
+                    <div class="form-group">
+                        <label>Person Name *</label>
+                        <input type="text" class="form-control" id="pl-person-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile No. *</label>
+                        <input type="tel" class="form-control" id="pl-mobile" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="pl-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Source</label>
+                        <input type="text" class="form-control" id="pl-source">
+                    </div>
+                    <div class="form-group">
+                        <label>Service Type</label>
+                        <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:8px;">
+                            <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-cargo" value="Cargo"> Cargo</label>
+                            <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-commercial" value="Commercial"> Commercial</label>
+                            <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-local" value="Local"> Local</label>
+                            <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-international" value="International"> International</label>
+                            <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="pl-type-storage" value="Storage"> Storage</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Origin Address</label>
+                        <input type="text" class="form-control" id="pl-origin">
+                        <div style="display:flex; gap:10px; margin-top:8px;">
+                            <input type="date" class="form-control" id="pl-origin-date" style="flex:1;">
+                            <input type="time" class="form-control" id="pl-origin-time" style="flex:1;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination Address</label>
+                        <input type="text" class="form-control" id="pl-destination">
+                        <div style="display:flex; gap:10px; margin-top:8px;">
+                            <input type="date" class="form-control" id="pl-dest-date" style="flex:1;">
+                            <input type="time" class="form-control" id="pl-dest-time" style="flex:1;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table Section -->
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <h4 style="margin:0;">Items List</h4>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <input type="text" id="packing-list-search" placeholder="Search items..." class="form-control" style="min-width:200px; max-width:300px;" onkeyup="filterPackingListItems()">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="showAddCustomItemModal()">Add Custom Item</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="packing-list-items-table">
+                        <thead>
+                            <tr>
+                                <th style="width:200px;">Items</th>
+                                <th style="width:80px;">CBM</th>
+                                <th style="width:100px;">Nos. of Pcs</th>
+                                <th style="width:100px;">Total CBM</th>
+                                <th style="width:100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="packing-list-items-tbody">
+                            <!-- Items will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="card">
+                <h4>Totals</h4>
+                <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="form-group">
+                        <label>Total Curtains/Blinds</label>
+                        <input type="number" class="form-control" id="pl-total-curtains" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Wall Fixtures</label>
+                        <input type="number" class="form-control" id="pl-total-fixtures" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>BLDG. PERMIT</label>
+                        <input type="text" class="form-control" id="pl-permit">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Boxes</label>
+                        <input type="number" class="form-control" id="pl-total-boxes" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Packages</label>
+                        <input type="number" class="form-control" id="pl-total-packages" min="0" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Commodity</label>
+                        <input type="text" class="form-control" id="pl-commodity">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Value of Goods</label>
+                        <input type="number" class="form-control" id="pl-total-value" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Working Days</label>
+                        <input type="number" class="form-control" id="pl-working-days" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>No. of Trips</label>
+                        <input type="number" class="form-control" id="pl-trips" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total CBM</label>
+                        <input type="number" class="form-control" id="pl-total-cbm" min="0" step="0.01" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated KG</label>
+                        <input type="number" class="form-control" id="pl-estimated-kg" min="0" step="0.01" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount of the Move</label>
+                        <input type="number" class="form-control" id="pl-amount" min="0" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information Section -->
+            <div class="card">
+                <h4>Additional Information</h4>
+                <div class="form-group">
+                    <label>Upload Apartment Images</label>
+                    <input type="file" class="form-control" id="survey-images" accept="image/*" multiple onchange="handleImagePreview(this)">
+                    <div class="image-preview" id="survey-images-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label>Comments/Notes</label>
+                    <textarea class="form-control" id="survey-comments" rows="4" placeholder="Add any comments or notes about the apartment, items, condition, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Client Instructions</label>
+                    <textarea class="form-control" id="survey-client-instructions" rows="4" placeholder="Any special instructions or requirements from the client"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Terms & Conditions</label>
+                    <textarea class="form-control" id="pl-terms" rows="3" placeholder="Terms and conditions..."></textarea>
+                </div>
+            </div>
+
+            <!-- Signatures Section -->
+            <div class="card">
+                <h4>Signatures</h4>
+                <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="form-group">
+                        <label>Customer Signature</label>
+                        <canvas id="pl-customer-signature" width="400" height="150"></canvas>
+                        <div style="margin-top:10px;">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="clearSignature('pl-customer-signature')">Clear</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>MoveIt Signature</label>
+                        <canvas id="pl-moveit-signature" width="400" height="150"></canvas>
+                        <div style="margin-top:10px;">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="clearSignature('pl-moveit-signature')">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary" style="padding: 15px 40px; font-size: 16px;">Submit Packing List</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Add Custom Item Modal -->
+    <div class="modal" id="add-custom-item-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Custom Item</h3>
+                <span class="close" onclick="hideModal('add-custom-item-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-custom-item-form">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" class="form-control" id="custom-item-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CBM (Cubic Meter) *</label>
+                        <input type="number" class="form-control" id="custom-item-cbm" step="0.01" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('add-custom-item-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addCustomItem()">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize signature canvases
+        function initSignatures() {
+            ['pl-customer-signature', 'pl-moveit-signature'].forEach(canvasId => {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let isDrawing = false;
+                
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseout', stopDrawing);
+                
+                // Touch events for mobile
+                canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    ctx.beginPath();
+                    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                    isDrawing = true;
+                });
+                
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (!isDrawing) return;
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                    ctx.stroke();
+                });
+                
+                canvas.addEventListener('touchend', stopDrawing);
+                
+                function startDrawing(e) {
+                    isDrawing = true;
+                    const rect = canvas.getBoundingClientRect();
+                    ctx.beginPath();
+                    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+                }
+                
+                function draw(e) {
+                    if (!isDrawing) return;
+                    const rect = canvas.getBoundingClientRect();
+                    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+                
+                function stopDrawing() {
+                    isDrawing = false;
+                }
+            });
+        }
+
+        function clearSignature(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showAddCustomItemModal() {
+            document.getElementById('add-custom-item-form').reset();
+            showModal('add-custom-item-modal');
+        }
+
+        function addCustomItem() {
+            const name = document.getElementById('custom-item-name').value.trim();
+            const cbm = parseFloat(document.getElementById('custom-item-cbm').value || 0);
+            
+            if (!name || cbm <= 0 || isNaN(cbm)) {
+                alert('Please enter item name and valid CBM');
+                return;
+            }
+            
+            const tbody = document.getElementById('packing-list-items-tbody');
+            if (!tbody) {
+                alert('Packing list table not found');
+                return;
+            }
+            
+            // Check if item already exists
+            const existingItems = Array.from(tbody.querySelectorAll('.item-name'));
+            const itemExists = existingItems.some(item => item.textContent.trim().toLowerCase() === name.toLowerCase());
+            
+            if (itemExists) {
+                alert('This item already exists in the list');
+                return;
+            }
+            
+            const row = createItemRow({ name, cbm, pieces: 0 }, tbody.children.length);
+            tbody.appendChild(row);
+            
+            document.getElementById('add-custom-item-form').reset();
+            hideModal('add-custom-item-modal');
+            updatePackingListTotals();
+            alert('Custom item added successfully');
+        }
+
+        function createItemRow(item, index) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="item-name">${item.name || ''}</td>
+                <td class="item-cbm" style="text-align:center;">${(item.cbm || 0).toFixed(2)}</td>
+                <td><input type="number" class="form-control item-pieces" min="0" value="${item.pieces || 0}" onchange="updatePackingListTotals()" style="width:80px;"></td>
+                <td class="item-total-cbm" style="text-align:center;">${((item.cbm || 0) * (item.pieces || 0)).toFixed(2)}</td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeItemFromTable(this)">Remove</button></td>
+            `;
+            return row;
+        }
+
+        function removeItemFromTable(btn) {
+            btn.closest('tr').remove();
+            updatePackingListTotals();
+        }
+
+        function updatePackingListTotals() {
+            let totalCbm = 0;
+            let totalPackages = 0;
+            
+            const rows = document.querySelectorAll('#packing-list-items-tbody tr');
+            rows.forEach(row => {
+                const cbm = parseFloat(row.querySelector('.item-cbm')?.textContent || 0);
+                const pieces = parseInt(row.querySelector('.item-pieces')?.value || 0);
+                const totalRowCbm = cbm * pieces;
+                totalCbm += totalRowCbm;
+                totalPackages += pieces;
+                
+                const totalCell = row.querySelector('.item-total-cbm');
+                if (totalCell) totalCell.textContent = totalRowCbm.toFixed(2);
+            });
+            
+            document.getElementById('pl-total-cbm').value = totalCbm.toFixed(2);
+            document.getElementById('pl-total-packages').value = totalPackages;
+            document.getElementById('pl-estimated-kg').value = (totalCbm * 300).toFixed(2); // 300 kg per CBM
+        }
+
+        function filterPackingListItems() {
+            const searchTerm = document.getElementById('packing-list-search')?.value.toLowerCase() || '';
+            const rows = document.querySelectorAll('#packing-list-items-tbody tr');
+            
+            rows.forEach(row => {
+                const itemName = row.querySelector('.item-name')?.textContent.toLowerCase() || '';
+                if (itemName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function handleImagePreview(input) {
+            const preview = document.getElementById('survey-images-preview');
+            preview.innerHTML = '';
+            
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        // Form submission
+        document.getElementById('complete-survey-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = {
+                companyName: document.getElementById('pl-company-name').value,
+                personName: document.getElementById('pl-person-name').value,
+                mobile: document.getElementById('pl-mobile').value,
+                email: document.getElementById('pl-email').value,
+                source: document.getElementById('pl-source').value,
+                serviceTypes: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                origin: document.getElementById('pl-origin').value,
+                originDate: document.getElementById('pl-origin-date').value,
+                originTime: document.getElementById('pl-origin-time').value,
+                destination: document.getElementById('pl-destination').value,
+                destDate: document.getElementById('pl-dest-date').value,
+                destTime: document.getElementById('pl-dest-time').value,
+                comments: document.getElementById('survey-comments').value,
+                clientInstructions: document.getElementById('survey-client-instructions').value,
+                terms: document.getElementById('pl-terms').value,
+                totals: {
+                    totalCurtains: document.getElementById('pl-total-curtains').value,
+                    totalFixtures: document.getElementById('pl-total-fixtures').value,
+                    permit: document.getElementById('pl-permit').value,
+                    totalBoxes: document.getElementById('pl-total-boxes').value,
+                    totalPackages: document.getElementById('pl-total-packages').value,
+                    commodity: document.getElementById('pl-commodity').value,
+                    totalValue: document.getElementById('pl-total-value').value,
+                    workingDays: document.getElementById('pl-working-days').value,
+                    trips: document.getElementById('pl-trips').value,
+                    totalCbm: document.getElementById('pl-total-cbm').value,
+                    estimatedKg: document.getElementById('pl-estimated-kg').value,
+                    amount: document.getElementById('pl-amount').value
+                },
+                items: Array.from(document.querySelectorAll('#packing-list-items-tbody tr')).map(row => ({
+                    name: row.querySelector('.item-name').textContent,
+                    cbm: parseFloat(row.querySelector('.item-cbm').textContent),
+                    pieces: parseInt(row.querySelector('.item-pieces').value),
+                    totalCbm: parseFloat(row.querySelector('.item-total-cbm').textContent)
+                })),
+                customerSignature: document.getElementById('pl-customer-signature').toDataURL(),
+                moveitSignature: document.getElementById('pl-moveit-signature').toDataURL()
+            };
+            
+            console.log('Form Data:', formData);
+            alert('Form submitted! Check console for data. Integrate with your backend/Zoho API here.');
+            
+            // Here you can send the data to your backend or Zoho API
+            // Example:
+            // fetch('YOUR_API_ENDPOINT', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(formData)
+            // });
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initSignatures();
+            updatePackingListTotals();
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
+

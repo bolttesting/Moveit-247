@@ -4611,7 +4611,7 @@
                 <div class="signature-pad-container">
                     <canvas id="signature-pad" class="signature-pad" width="500" height="200"></canvas>
                     <div class="signature-controls">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); app.clearSignature()">Clear</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="clear-completion-signature-btn">Clear</button>
                         <button class="btn btn-primary btn-sm" onclick="app.saveSignature()">Save Signature</button>
                     </div>
                     <img id="signature-preview" class="signature-preview" style="display: none;">
@@ -5647,14 +5647,14 @@
                                 <label>Customer Signature</label>
                                 <canvas id="pl-customer-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
                                 <div style="margin-top:10px;">
-                                    <button type="button" class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); app.clearSignature('pl-customer-signature')">Clear</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="clear-customer-signature-btn">Clear</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>MoveIt Signature</label>
                                 <canvas id="pl-moveit-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
                                 <div style="margin-top:10px;">
-                                    <button type="button" class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); app.clearSignature('pl-moveit-signature')">Clear</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="clear-moveit-signature-btn">Clear</button>
                                 </div>
                             </div>
                         </div>
@@ -7126,6 +7126,29 @@
                 document.getElementById('cancel-complete-survey')?.addEventListener('click', () => this.hideModals());
                 document.getElementById('close-survey-details')?.addEventListener('click', () => this.hideModals());
                 
+                // Clear signature buttons - prevent form submission and modal close
+                document.getElementById('clear-customer-signature-btn')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    this.clearSignature('pl-customer-signature');
+                    return false;
+                });
+                document.getElementById('clear-moveit-signature-btn')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    this.clearSignature('pl-moveit-signature');
+                    return false;
+                });
+                document.getElementById('clear-completion-signature-btn')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    this.clearSignature();
+                    return false;
+                });
+                
                 // Packing List Custom Item Modal
                 document.getElementById('save-custom-item')?.addEventListener('click', () => this.addCustomItem());
                 document.getElementById('cancel-custom-item')?.addEventListener('click', () => this.hideModal('add-custom-item-modal'));
@@ -7135,6 +7158,15 @@
                     e.preventDefault();
                     this.saveTemplate();
                 });
+                
+                // Prevent form submission on complete survey form
+                const completeSurveyForm = document.getElementById('complete-survey-form');
+                if (completeSurveyForm) {
+                    completeSurveyForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        return false;
+                    });
+                }
 
                 // Cancel add buttons
                 document.getElementById('cancel-add-supervisor')?.addEventListener('click', () => this.hideModals());

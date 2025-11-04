@@ -5681,6 +5681,7 @@
                 this.currentRole = null;
                 this.data = this.initializeData();
                 this.itemCatalog = []; // Will be loaded when needed
+                this.customItems = []; // Store custom items added during form session
                 // Performance cache: store API responses for 30 seconds
                 this.apiCache = {};
                 this.cacheTimeout = 30000; // 30 seconds
@@ -6752,7 +6753,7 @@
                 
                 // Packing List Custom Item Modal
                 document.getElementById('save-custom-item')?.addEventListener('click', () => this.addCustomItem());
-                document.getElementById('cancel-custom-item')?.addEventListener('click', () => this.hideModals());
+                document.getElementById('cancel-custom-item')?.addEventListener('click', () => this.hideModal('add-custom-item-modal'));
 
                 // Template form
                 document.getElementById('template-form').addEventListener('submit', (e) => {
@@ -10752,6 +10753,11 @@
                 this.clearSignature('pl-customer-signature');
                 this.clearSignature('pl-moveit-signature');
                 
+                // Reset custom items when opening a new survey (not from saved data)
+                if (!survey.packingList) {
+                    this.customItems = [];
+                }
+                
                 // Load item catalog and populate items table
                 await this.loadItemCatalog();
                 this.populateItemsTable([]);
@@ -10928,21 +10934,48 @@
                     console.error('packing-list-items-tbody not found');
                     return;
                 }
+                
+                // If existingItems are provided (from saved data), use those
+                // Otherwise, merge catalog items with custom items
+                let itemsToAdd = [];
+                
+                if (existingItems.length > 0) {
+                    // Use existing items from saved data
+                    itemsToAdd = existingItems;
+                } else {
+                    // Start with catalog items
+                    const catalogItems = this.itemCatalog || [];
+                    
+                    // Merge with custom items (avoid duplicates)
+                    const allItemsMap = new Map();
+                    
+                    // Add catalog items first
+                    catalogItems.forEach(item => {
+                        allItemsMap.set(item.name.toLowerCase(), { ...item, isCustom: false });
+                    });
+                    
+                    // Add custom items (they override catalog items if same name)
+                    this.customItems.forEach(item => {
+                        allItemsMap.set(item.name.toLowerCase(), { ...item, isCustom: true });
+                    });
+                    
+                    itemsToAdd = Array.from(allItemsMap.values());
+                }
+                
+                // Clear table
                 tbody.innerHTML = '';
                 
-                // Add all items from catalog
-                const catalogToAdd = existingItems.length > 0 ? existingItems : this.itemCatalog || [];
-                
-                console.log('Populating items table:', catalogToAdd.length, 'items');
+                console.log('Populating items table:', itemsToAdd.length, 'items');
                 console.log('Item catalog length:', this.itemCatalog?.length || 0);
+                console.log('Custom items length:', this.customItems?.length || 0);
                 
-                if (catalogToAdd.length === 0) {
+                if (itemsToAdd.length === 0) {
                     console.warn('No items to display in packing list table');
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">No items available. Please refresh the page.</td></tr>';
                     return;
                 }
                 
-                catalogToAdd.forEach((item, index) => {
+                itemsToAdd.forEach((item, index) => {
                     const row = this.createItemRow(item, index);
                     tbody.appendChild(row);
                 });
@@ -10966,7 +10999,17 @@
             }
 
             removeItemFromTable(btn) {
-                btn.closest('tr').remove();
+                const row = btn.closest('tr');
+                const itemName = row.querySelector('.item-name')?.textContent.trim();
+                
+                // Remove from custom items if it's a custom item
+                if (itemName) {
+                    this.customItems = this.customItems.filter(item => 
+                        item.name.toLowerCase() !== itemName.toLowerCase()
+                    );
+                }
+                
+                row.remove();
                 this.updatePackingListTotals();
             }
 
@@ -11103,7 +11146,7 @@
                     return;
                 }
                 
-                // Check if item already exists
+                // Check if item already exists in table
                 const existingItems = Array.from(tbody.querySelectorAll('.item-name'));
                 const itemExists = existingItems.some(item => item.textContent.trim().toLowerCase() === name.toLowerCase());
                 
@@ -11112,15 +11155,37 @@
                     return;
                 }
                 
-                const row = this.createItemRow({ name, cbm, pieces: 0 }, tbody.children.length);
+                // Check if item already exists in custom items array
+                const customItemExists = this.customItems.some(item => item.name.toLowerCase() === name.toLowerCase());
+                if (customItemExists) {
+                    this.showNotification('This item already exists in the list', 'error');
+                    return;
+                }
+                
+                // Create custom item object
+                const customItem = { name, cbm, pieces: 0, isCustom: true };
+                
+                // Add to custom items array
+                this.customItems.push(customItem);
+                
+                // Add to table
+                const row = this.createItemRow(customItem, tbody.children.length);
                 tbody.appendChild(row);
                 
                 // Reset form
                 document.getElementById('add-custom-item-form').reset();
                 
-                this.hideModals();
+                // Only close the add custom item modal, not all modals
+                this.hideModal('add-custom-item-modal');
                 this.updatePackingListTotals();
                 this.showNotification('Custom item added successfully', 'success');
+            }
+            
+            hideModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.style.display = 'none';
+                }
             }
 
             populatePackingListForm(data) {

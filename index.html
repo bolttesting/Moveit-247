@@ -6231,9 +6231,9 @@
                                         <select class="form-control material-type" 
                                                 data-material-id="${material.id}" 
                                                 style="font-size: 12px; padding: 6px;"
-                                                onchange="app.validateMaterialQuantity(${material.id})"
+                                                onchange="app.handleMaterialTypeChange(${material.id})"
                                                 ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'disabled' : ''}>
-                                            <option value="new">New</option>
+                                            <option value="new" selected>New</option>
                                             <option value="old">Old</option>
                                         </select>
                                     </div>
@@ -6242,8 +6242,10 @@
                                         <input type="number" class="form-control material-quantity" 
                                                data-material-id="${material.id}" 
                                                data-material-name="${material.name}"
+                                               data-material-quantity-new="0"
+                                               data-material-quantity-old="0"
                                                min="0" 
-                                               max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
+                                               max="${this.currentRole === 'admin' || this.currentRole !== 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
                                                value="0"
                                                style="text-align: center; font-weight: bold; padding: 6px; font-size: 12px;"
                                                onchange="app.validateMaterialQuantity(${material.id})"
@@ -6270,8 +6272,44 @@
                 const quantityInput = document.querySelector(`.material-quantity[data-material-id="${materialId}"]`);
                 if (quantityInput) {
                     quantityInput.value = 0;
+                    quantityInput.dataset.materialQuantityNew = '0';
+                    quantityInput.dataset.materialQuantityOld = '0';
                     this.validateMaterialQuantity(materialId);
                 }
+            }
+
+            handleMaterialTypeChange(materialId) {
+                const typeSelect = document.querySelector(`.material-type[data-material-id="${materialId}"]`);
+                const quantityInput = document.querySelector(`.material-quantity[data-material-id="${materialId}"]`);
+                
+                if (!typeSelect || !quantityInput) return;
+                
+                const newType = typeSelect.value;
+                const storedNewQty = parseInt(quantityInput.dataset.materialQuantityNew || '0');
+                const storedOldQty = parseInt(quantityInput.dataset.materialQuantityOld || '0');
+                
+                // Store current quantity in the appropriate dataset before switching
+                const currentQty = parseInt(quantityInput.value) || 0;
+                const previousType = typeSelect.previousValue || 'new';
+                
+                if (previousType === 'new') {
+                    quantityInput.dataset.materialQuantityNew = currentQty.toString();
+                } else if (previousType === 'old') {
+                    quantityInput.dataset.materialQuantityOld = currentQty.toString();
+                }
+                
+                // Restore the quantity for the newly selected type
+                if (newType === 'new') {
+                    quantityInput.value = storedNewQty;
+                } else {
+                    quantityInput.value = storedOldQty;
+                }
+                
+                // Store the current type for next change
+                typeSelect.previousValue = newType;
+                
+                // Validate the new quantity
+                this.validateMaterialQuantity(materialId);
             }
 
             validateMaterialQuantity(materialId) {
@@ -6368,7 +6406,7 @@
                                         <select class="form-control edit-material-type" 
                                                 data-material-id="${material.id}" 
                                                 style="font-size: 12px; padding: 6px;"
-                                                onchange="app.validateEditMaterialQuantity(${material.id})">
+                                                onchange="app.handleEditMaterialTypeChange(${material.id})">
                                             <option value="new" ${existingType === 'new' ? 'selected' : ''}>New</option>
                                             <option value="old" ${existingType === 'old' ? 'selected' : ''}>Old</option>
                                         </select>
@@ -6378,6 +6416,8 @@
                                         <input type="number" class="form-control edit-material-quantity" 
                                                data-material-id="${material.id}" 
                                                data-material-name="${material.name}"
+                                               data-material-quantity-new="${existingType === 'new' ? existingQuantity : 0}"
+                                               data-material-quantity-old="${existingType === 'old' ? existingQuantity : 0}"
                                                min="0" 
                                                max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
                                                value="${existingQuantity}"
@@ -6395,6 +6435,16 @@
                             </div>
                         `;
                     }).join('');
+                    
+                    // Initialize previousValue for all type selects
+                    setTimeout(() => {
+                        container.querySelectorAll('.edit-material-type').forEach(select => {
+                            const materialId = parseInt(select.dataset.materialId);
+                            const existingMaterial = existingMaterials.find(em => em.id === materialId);
+                            const existingType = existingMaterial ? (existingMaterial.materialType || 'new') : 'new';
+                            select.previousValue = existingType;
+                        });
+                    }, 100);
                 } catch (error) {
                     console.error('Error loading materials:', error);
                     container.innerHTML = '<p style="color: #ef4444;">Failed to load materials</p>';
@@ -6405,8 +6455,44 @@
                 const quantityInput = document.querySelector(`.edit-material-quantity[data-material-id="${materialId}"]`);
                 if (quantityInput) {
                     quantityInput.value = 0;
+                    quantityInput.dataset.materialQuantityNew = '0';
+                    quantityInput.dataset.materialQuantityOld = '0';
                     this.validateEditMaterialQuantity(materialId);
                 }
+            }
+
+            handleEditMaterialTypeChange(materialId) {
+                const typeSelect = document.querySelector(`.edit-material-type[data-material-id="${materialId}"]`);
+                const quantityInput = document.querySelector(`.edit-material-quantity[data-material-id="${materialId}"]`);
+                
+                if (!typeSelect || !quantityInput) return;
+                
+                const newType = typeSelect.value;
+                const storedNewQty = parseInt(quantityInput.dataset.materialQuantityNew || '0');
+                const storedOldQty = parseInt(quantityInput.dataset.materialQuantityOld || '0');
+                
+                // Store current quantity in the appropriate dataset before switching
+                const currentQty = parseInt(quantityInput.value) || 0;
+                const previousType = typeSelect.previousValue || typeSelect.value === 'new' ? 'new' : 'old';
+                
+                if (previousType === 'new') {
+                    quantityInput.dataset.materialQuantityNew = currentQty.toString();
+                } else if (previousType === 'old') {
+                    quantityInput.dataset.materialQuantityOld = currentQty.toString();
+                }
+                
+                // Restore the quantity for the newly selected type
+                if (newType === 'new') {
+                    quantityInput.value = storedNewQty;
+                } else {
+                    quantityInput.value = storedOldQty;
+                }
+                
+                // Store the current type for next change
+                typeSelect.previousValue = newType;
+                
+                // Validate the new quantity
+                this.validateEditMaterialQuantity(materialId);
             }
 
             validateEditMaterialQuantity(materialId) {

@@ -602,6 +602,13 @@ function createRoute(key, idField = 'id') {
           db.inventory = { materials: [], transactions: [], pendingCollections: [] };
         }
         
+        // Ensure all materials have quantityNew and quantityOld (migration)
+        db.inventory.materials.forEach(m => {
+          if (m.quantityNew === undefined) m.quantityNew = 0;
+          if (m.quantityOld === undefined) m.quantityOld = 0;
+          m.quantity = (m.quantityNew || 0) + (m.quantityOld || 0);
+        });
+        
         // Check stock availability and deduct
         for (const mat of item.packingMaterials) {
           const material = db.inventory.materials.find(m => m.id === mat.id);
@@ -613,19 +620,47 @@ function createRoute(key, idField = 'id') {
           const quantity = parseInt(mat.quantity) || 0;
           if (quantity <= 0) continue;
           
-          // Check if enough stock (unless admin/inventoryController - they can override)
-          const user = db.users[req.body.username] || db.users['admin']; // Default to admin if not specified
-          if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
-            if (material.quantity < quantity) {
+          // Determine material type (old or new)
+          const materialType = mat.materialType || 'new'; // Default to 'new' if not specified
+          const isOld = materialType === 'old';
+          
+          // Check availability in the specific pool (old or new)
+          const availableInPool = isOld ? (material.quantityOld || 0) : (material.quantityNew || 0);
+          const totalAvailable = (material.quantityNew || 0) + (material.quantityOld || 0);
+          
+          // Check if enough stock (unless admin/inventoryController/supervisor)
+          const user = db.users[req.body.username] || db.users['admin'];
+          if (!user || (user.role !== 'admin' && user.role !== 'inventoryController' && user.role !== 'supervisor')) {
+            if (availableInPool < quantity && totalAvailable < quantity) {
               return res.status(400).json({ 
-                error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${quantity}` 
+                error: `Insufficient stock for ${material.name}. Available ${isOld ? 'old' : 'new'}: ${availableInPool}, Total: ${totalAvailable}, Required: ${quantity}` 
               });
             }
           }
           
-          // Deduct from inventory
-          const oldQuantity = material.quantity;
-          material.quantity -= quantity;
+          // Deduct from appropriate pool
+          if (isOld) {
+            // Try to deduct from old first, then from new if needed
+            if (material.quantityOld >= quantity) {
+              material.quantityOld -= quantity;
+            } else {
+              const remaining = quantity - material.quantityOld;
+              material.quantityOld = 0;
+              material.quantityNew = Math.max(0, (material.quantityNew || 0) - remaining);
+            }
+          } else {
+            // Try to deduct from new first, then from old if needed
+            if (material.quantityNew >= quantity) {
+              material.quantityNew -= quantity;
+            } else {
+              const remaining = quantity - material.quantityNew;
+              material.quantityNew = 0;
+              material.quantityOld = Math.max(0, (material.quantityOld || 0) - remaining);
+            }
+          }
+          
+          // Update total quantity
+          material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
           
           // Log transaction
           db.inventory.transactions.push({
@@ -634,14 +669,15 @@ function createRoute(key, idField = 'id') {
             materialId: mat.id,
             materialName: material.name,
             quantity: -quantity,
+            materialType: materialType,
             projectId: item.id,
             performedBy: user ? user.username : 'system',
             performedByName: user ? user.name : 'System',
             timestamp: new Date().toISOString(),
-            notes: `Assigned to project #${item.id}`
+            notes: `Assigned to project #${item.id} (${materialType})`
           });
           
-          console.log(`📦 Material ${material.name}: ${oldQuantity} → ${material.quantity} (assigned ${quantity} to project #${item.id})`);
+          console.log(`📦 Material ${material.name}: ${isOld ? 'Old' : 'New'} - ${quantity} assigned to project #${item.id}`);
         }
       }
       
@@ -670,83 +706,170 @@ function updateRoute(key, idField = 'id') {
           db.inventory = { materials: [], transactions: [], pendingCollections: [] };
         }
         
+        // Ensure all materials have quantityNew and quantityOld (migration)
+        db.inventory.materials.forEach(m => {
+          if (m.quantityNew === undefined) m.quantityNew = 0;
+          if (m.quantityOld === undefined) m.quantityOld = 0;
+          m.quantity = (m.quantityNew || 0) + (m.quantityOld || 0);
+        });
+        
         const oldMaterials = old.packingMaterials || [];
         const newMaterials = updated.packingMaterials || [];
         
-        // First, restore old materials back to inventory
-        for (const oldMat of oldMaterials) {
-          const material = db.inventory.materials.find(m => m.id === oldMat.id);
-          if (!material) continue;
-          
-          const oldQuantity = parseInt(oldMat.quantity) || 0;
-          if (oldQuantity <= 0) continue;
-          
-          // Restore quantity back to inventory
-          material.quantity += oldQuantity;
-          
-          // Log transaction for restoration
-          db.inventory.transactions.push({
-            id: Date.now() + Math.random(),
-            type: 'return',
-            materialId: oldMat.id,
-            materialName: material.name,
-            quantity: oldQuantity,
-            projectId: id,
-            performedBy: req.body.username || 'system',
-            performedByName: req.body.username || 'System',
-            timestamp: new Date().toISOString(),
-            notes: `Returned from project #${id} (update)`
-          });
-        }
+        // Create maps for easier comparison
+        const oldMatMap = new Map();
+        oldMaterials.forEach(m => {
+          const key = `${m.id}_${m.materialType || 'new'}`;
+          oldMatMap.set(key, { id: m.id, quantity: parseInt(m.quantity) || 0, materialType: m.materialType || 'new' });
+        });
         
-        // Now deduct new materials from inventory
-        for (const newMat of newMaterials) {
-          const material = db.inventory.materials.find(m => m.id === newMat.id);
-          if (!material) {
-            console.warn(`Material with id ${newMat.id} not found in inventory`);
-            continue;
+        const newMatMap = new Map();
+        newMaterials.forEach(m => {
+          const key = `${m.id}_${m.materialType || 'new'}`;
+          newMatMap.set(key, { id: m.id, quantity: parseInt(m.quantity) || 0, materialType: m.materialType || 'new' });
+        });
+        
+        // Find materials that changed (added, removed, or quantity/type changed)
+        const materialsToProcess = new Set();
+        [...oldMatMap.keys(), ...newMatMap.keys()].forEach(key => {
+          const oldMat = oldMatMap.get(key);
+          const newMat = newMatMap.get(key);
+          
+          if (!oldMat && newMat) {
+            // New material added
+            materialsToProcess.add(newMat.id);
+          } else if (oldMat && !newMat) {
+            // Material removed
+            materialsToProcess.add(oldMat.id);
+          } else if (oldMat && newMat && (oldMat.quantity !== newMat.quantity || oldMat.materialType !== newMat.materialType)) {
+            // Material changed
+            materialsToProcess.add(oldMat.id);
           }
-          
-          const newQuantity = parseInt(newMat.quantity) || 0;
-          if (newQuantity <= 0) continue;
-          
-          // Check if enough stock (unless admin/inventoryController - they can override)
-          const user = db.users[req.body.username] || db.users['admin']; // Default to admin if not specified
-          if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
-            if (material.quantity < newQuantity) {
-              // Restore already returned materials if insufficient stock
-              for (const oldMat of oldMaterials) {
-                const mat = db.inventory.materials.find(m => m.id === oldMat.id);
-                if (mat) {
-                  const oldQty = parseInt(oldMat.quantity) || 0;
-                  mat.quantity -= oldQty; // Reverse the restoration
-                }
-              }
-              return res.status(400).json({ 
-                error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${newQuantity}` 
-              });
+        });
+        
+        // Only process materials that actually changed to avoid duplicate transactions
+        if (materialsToProcess.size > 0) {
+          // First, restore old materials back to inventory (only for changed materials)
+          for (const oldMat of oldMaterials) {
+            if (!materialsToProcess.has(oldMat.id)) continue;
+            
+            const material = db.inventory.materials.find(m => m.id === oldMat.id);
+            if (!material) continue;
+            
+            const oldQuantity = parseInt(oldMat.quantity) || 0;
+            if (oldQuantity <= 0) continue;
+            
+            const oldType = oldMat.materialType || 'new';
+            
+            // Restore quantity back to appropriate pool
+            if (oldType === 'old') {
+              material.quantityOld = (material.quantityOld || 0) + oldQuantity;
+            } else {
+              material.quantityNew = (material.quantityNew || 0) + oldQuantity;
             }
+            material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
+            
+            // Log transaction for restoration
+            db.inventory.transactions.push({
+              id: Date.now() + Math.random(),
+              type: 'return',
+              materialId: oldMat.id,
+              materialName: material.name,
+              quantity: oldQuantity,
+              materialType: oldType,
+              projectId: id,
+              performedBy: req.body.username || 'system',
+              performedByName: req.body.username || 'System',
+              timestamp: new Date().toISOString(),
+              notes: `Returned from project #${id} (update)`
+            });
           }
           
-          // Deduct from inventory
-          const oldQuantity = material.quantity;
-          material.quantity -= newQuantity;
-          
-          // Log transaction
-          db.inventory.transactions.push({
-            id: Date.now() + Math.random(),
-            type: 'assignment',
-            materialId: newMat.id,
-            materialName: material.name,
-            quantity: -newQuantity,
-            projectId: id,
-            performedBy: user ? user.username : 'system',
-            performedByName: user ? user.name : 'System',
-            timestamp: new Date().toISOString(),
-            notes: `Assigned to project #${id} (update)`
-          });
-          
-          console.log(`📦 Material ${material.name}: ${oldQuantity} → ${material.quantity} (assigned ${newQuantity} to project #${id})`);
+          // Now deduct new materials from inventory (only for changed materials)
+          for (const newMat of newMaterials) {
+            if (!materialsToProcess.has(newMat.id)) continue;
+            
+            const material = db.inventory.materials.find(m => m.id === newMat.id);
+            if (!material) {
+              console.warn(`Material with id ${newMat.id} not found in inventory`);
+              continue;
+            }
+            
+            const newQuantity = parseInt(newMat.quantity) || 0;
+            if (newQuantity <= 0) continue;
+            
+            // Determine material type (old or new)
+            const materialType = newMat.materialType || 'new';
+            const isOld = materialType === 'old';
+            
+            // Check availability in the specific pool
+            const availableInPool = isOld ? (material.quantityOld || 0) : (material.quantityNew || 0);
+            const totalAvailable = (material.quantityNew || 0) + (material.quantityOld || 0);
+            
+            // Check if enough stock (unless admin/inventoryController/supervisor)
+            const user = db.users[req.body.username] || db.users['admin'];
+            if (!user || (user.role !== 'admin' && user.role !== 'inventoryController' && user.role !== 'supervisor')) {
+              if (availableInPool < newQuantity && totalAvailable < newQuantity) {
+                // Restore already returned materials if insufficient stock
+                for (const oldMat of oldMaterials) {
+                  if (!materialsToProcess.has(oldMat.id)) continue;
+                  const mat = db.inventory.materials.find(m => m.id === oldMat.id);
+                  if (mat) {
+                    const oldQty = parseInt(oldMat.quantity) || 0;
+                    const oldType = oldMat.materialType || 'new';
+                    if (oldType === 'old') {
+                      mat.quantityOld = Math.max(0, (mat.quantityOld || 0) - oldQty);
+                    } else {
+                      mat.quantityNew = Math.max(0, (mat.quantityNew || 0) - oldQty);
+                    }
+                    mat.quantity = (mat.quantityNew || 0) + (mat.quantityOld || 0);
+                  }
+                }
+                return res.status(400).json({ 
+                  error: `Insufficient stock for ${material.name}. Available ${isOld ? 'old' : 'new'}: ${availableInPool}, Total: ${totalAvailable}, Required: ${newQuantity}` 
+                });
+              }
+            }
+            
+            // Deduct from appropriate pool
+            if (isOld) {
+              if (material.quantityOld >= newQuantity) {
+                material.quantityOld -= newQuantity;
+              } else {
+                const remaining = newQuantity - material.quantityOld;
+                material.quantityOld = 0;
+                material.quantityNew = Math.max(0, (material.quantityNew || 0) - remaining);
+              }
+            } else {
+              if (material.quantityNew >= newQuantity) {
+                material.quantityNew -= newQuantity;
+              } else {
+                const remaining = newQuantity - material.quantityNew;
+                material.quantityNew = 0;
+                material.quantityOld = Math.max(0, (material.quantityOld || 0) - remaining);
+              }
+            }
+            
+            // Update total quantity
+            material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
+            
+            // Log transaction
+            db.inventory.transactions.push({
+              id: Date.now() + Math.random(),
+              type: 'assignment',
+              materialId: newMat.id,
+              materialName: material.name,
+              quantity: -newQuantity,
+              materialType: materialType,
+              projectId: id,
+              performedBy: user ? user.username : 'system',
+              performedByName: user ? user.name : 'System',
+              timestamp: new Date().toISOString(),
+              notes: `Assigned to project #${id} (update, ${materialType})`
+            });
+            
+            console.log(`📦 Material ${material.name}: ${isOld ? 'Old' : 'New'} - ${newQuantity} assigned to project #${id}`);
+          }
         }
       }
       

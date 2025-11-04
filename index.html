@@ -11620,12 +11620,6 @@
                 });
             }
 
-            clearSignature(canvasId) {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
 
             showAddCustomItemModal() {
                 document.getElementById('add-custom-item-form').reset();

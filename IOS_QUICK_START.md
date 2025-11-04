@@ -96,6 +96,7 @@ Quick steps:
 - **You cannot build iOS apps on Windows**
 - You need a **Mac** with **Xcode** to build iOS apps
 - You can prepare the code on Windows, but building must be done on macOS
+- **When you're on Mac:** Just open the project and tell me! I can help you run all the commands and set everything up automatically!
 
 ### Server Configuration:
 - The app is configured to work with your server

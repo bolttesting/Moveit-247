@@ -11459,14 +11459,21 @@
                         </tbody>
                     </table>
                 ` : '';
-                // Branding logo (if set)
+                // Branding logo (if set) - convert to absolute URL for PDF
                 let logoHtml = '';
                 try {
                     const branding = await fetch('/api/branding').then(r=>r.json());
                     if (branding && branding.logoUrl) {
-                        logoHtml = `<div style=\\"margin-bottom:12px;\\"><img src=\\"${this.getImageUrl(branding.logoUrl)}\\" style=\\"height:36px; width:auto;\\"/></div>`;
+                        let logoUrl = this.getImageUrl(branding.logoUrl);
+                        // Convert to absolute URL if relative
+                        if (!logoUrl.startsWith('http') && !logoUrl.startsWith('data:')) {
+                            logoUrl = window.location.origin + (logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl);
+                        }
+                        logoHtml = `<div style=\\"text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #e5e7eb;\\"><img src=\\"${logoUrl}\\" style=\\"max-height:60px; width:auto; display:block; margin:0 auto;\\" onerror=\\"this.style.display='none'\\"/></div>`;
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.error('Error loading logo for PDF:', e);
+                }
 
                 container.innerHTML = `
                     <div style="font-family: Arial, sans-serif; padding: 16px; color:#111827;">
@@ -11511,16 +11518,56 @@
                         ` : ''}
                         ${surveyData.comments ? `<div style=\"margin:12px 0;\"><strong>Comments/Notes:</strong><div style=\"white-space:pre-wrap; background:#f0f9ff; padding:10px; border-radius:8px;\">${surveyData.comments}</div></div>` : ''}
                         ${surveyData.clientInstructions ? `<div style=\"margin:12px 0;\"><strong>Client Instructions:</strong><div style=\"white-space:pre-wrap; background:#fef3c7; padding:10px; border-radius:8px;\">${surveyData.clientInstructions}</div></div>` : ''}
-                        ${images.length ? `<div style=\"margin:12px 0;\"><strong>Images:</strong><div style=\"display:flex; flex-wrap:wrap; gap:10px;\">${images.map(u => `<img src=\"${this.getImageUrl(u)}\" style=\"width:180px; height:auto; border:1px solid #e5e7eb; border-radius:6px;\"/>`).join('')}</div></div>` : ''}
+                        ${images.length ? `<div style=\"margin:12px 0;\"><strong>Images:</strong><div style=\"display:flex; flex-wrap:wrap; gap:10px;\">${images.map(u => {
+                            let imgUrl = this.getImageUrl(u);
+                            if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                                imgUrl = window.location.origin + (imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl);
+                            }
+                            return `<img src=\"${imgUrl}\" style=\"width:180px; height:auto; border:1px solid #e5e7eb; border-radius:6px;\" onerror=\"this.style.display='none'\"/>`;
+                        }).join('')}</div></div>` : ''}
                     </div>
                 `;
                 const w = window.open('', '_blank');
                 if (!w) return;
-                w.document.write('<html><head><title>Survey Report</title><style>@page{size:auto; margin:12mm;} body{margin:0;}</style></head><body>' + container.innerHTML + '</body></html>');
+                w.document.write('<html><head><title>Survey Report</title><style>@page{size:auto; margin:12mm;} body{margin:0;} img{max-width:100%; height:auto;}</style></head><body>' + container.innerHTML + '</body></html>');
                 w.document.close();
                 w.focus();
-                // Give images a moment to load before printing
-                setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+                // Wait for images (especially logo) to load before printing
+                const pdfImages = w.document.querySelectorAll('img');
+                let imagesLoaded = 0;
+                const totalImages = pdfImages.length;
+                
+                if (totalImages > 0) {
+                    pdfImages.forEach(img => {
+                        if (img.complete) {
+                            imagesLoaded++;
+                        } else {
+                            img.onload = () => {
+                                imagesLoaded++;
+                                if (imagesLoaded === totalImages) {
+                                    setTimeout(() => { try { w.print(); } catch (e) {} }, 300);
+                                }
+                            };
+                            img.onerror = () => {
+                                imagesLoaded++;
+                                if (imagesLoaded === totalImages) {
+                                    setTimeout(() => { try { w.print(); } catch (e) {} }, 300);
+                                }
+                            };
+                        }
+                    });
+                    
+                    // If all images are already loaded
+                    if (imagesLoaded === totalImages) {
+                        setTimeout(() => { try { w.print(); } catch (e) {} }, 1000);
+                    } else {
+                        // Fallback timeout in case images don't load
+                        setTimeout(() => { try { w.print(); } catch (e) {} }, 3000);
+                    }
+                } else {
+                    // No images, print immediately
+                    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+                }
             }
 
             filterSurveys() {

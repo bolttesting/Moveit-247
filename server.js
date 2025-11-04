@@ -238,14 +238,14 @@ function getSeedData() {
     // Inventory Management System
     inventory: {
       materials: [
-        { id: 1, name: 'Medium Box', quantity: 0, minThreshold: 10 },
-        { id: 2, name: 'Large Box', quantity: 0, minThreshold: 10 },
-        { id: 3, name: 'Tapes', quantity: 0, minThreshold: 20 },
-        { id: 4, name: 'Cling wrap', quantity: 0, minThreshold: 15 },
-        { id: 5, name: 'Blanket', quantity: 0, minThreshold: 5 },
-        { id: 6, name: 'Hanger Box', quantity: 0, minThreshold: 10 },
-        { id: 7, name: 'Packing paper', quantity: 0, minThreshold: 10 },
-        { id: 8, name: 'Bubble wrap', quantity: 0, minThreshold: 10 }
+        { id: 1, name: 'Medium Box', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 10 },
+        { id: 2, name: 'Large Box', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 10 },
+        { id: 3, name: 'Tapes', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 20 },
+        { id: 4, name: 'Cling wrap', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 15 },
+        { id: 5, name: 'Blanket', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 5 },
+        { id: 6, name: 'Hanger Box', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 10 },
+        { id: 7, name: 'Packing paper', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 10 },
+        { id: 8, name: 'Bubble wrap', quantity: 0, quantityNew: 0, quantityOld: 0, minThreshold: 10 }
       ],
       transactions: [],
       pendingCollections: []
@@ -1404,7 +1404,7 @@ app.put('/api/inventory/materials', (req, res) => {
 app.post('/api/inventory/assign', (req, res) => {
   try {
     const db = readDb();
-    const { username, projectId, materials } = req.body; // materials: [{id, quantity}, ...]
+    const { username, projectId, materials } = req.body; // materials: [{id, quantity, materialType: 'new'|'old'}, ...]
     
     if (!projectId || !Array.isArray(materials)) {
       return res.status(400).json({ error: 'Invalid request' });
@@ -1413,6 +1413,14 @@ app.post('/api/inventory/assign', (req, res) => {
     if (!db.inventory) {
       db.inventory = { materials: [], transactions: [], pendingCollections: [] };
     }
+    
+    // Ensure all materials have quantityNew and quantityOld (migration)
+    db.inventory.materials.forEach(m => {
+      if (m.quantityNew === undefined) m.quantityNew = 0;
+      if (m.quantityOld === undefined) m.quantityOld = 0;
+      // Update total quantity if not in sync
+      m.quantity = (m.quantityNew || 0) + (m.quantityOld || 0);
+    });
     
     // Check stock availability and deduct
     const updates = [];
@@ -1427,19 +1435,52 @@ app.post('/api/inventory/assign', (req, res) => {
         return res.status(400).json({ error: 'Quantity cannot be negative' });
       }
       
-      // Check if enough stock (unless admin/inventoryController)
+      if (quantity === 0) continue; // Skip zero quantities
+      
+      // Determine material type (old or new)
+      const materialType = mat.materialType || 'new'; // Default to 'new' if not specified
+      const isOld = materialType === 'old';
+      
+      // Check availability in the specific pool (old or new)
+      const availableInPool = isOld ? (material.quantityOld || 0) : (material.quantityNew || 0);
+      const totalAvailable = (material.quantityNew || 0) + (material.quantityOld || 0);
+      
+      // Check if enough stock (unless admin/inventoryController/supervisor)
       const user = db.users[username];
-      if (!user || (user.role !== 'admin' && user.role !== 'inventoryController')) {
-        if (material.quantity < quantity) {
+      if (!user || (user.role !== 'admin' && user.role !== 'inventoryController' && user.role !== 'supervisor')) {
+        if (availableInPool < quantity && totalAvailable < quantity) {
           return res.status(400).json({ 
-            error: `Insufficient stock for ${material.name}. Available: ${material.quantity}, Required: ${quantity}` 
+            error: `Insufficient stock for ${material.name}. Available ${isOld ? 'old' : 'new'}: ${availableInPool}, Total: ${totalAvailable}, Required: ${quantity}` 
           });
         }
       }
       
-      // Deduct from inventory
-      const oldQuantity = material.quantity;
-      material.quantity -= quantity;
+      // Deduct from appropriate pool
+      const oldQuantityNew = material.quantityNew || 0;
+      const oldQuantityOld = material.quantityOld || 0;
+      
+      if (isOld) {
+        // Try to deduct from old first, then from new if needed
+        if (material.quantityOld >= quantity) {
+          material.quantityOld -= quantity;
+        } else {
+          const remaining = quantity - material.quantityOld;
+          material.quantityOld = 0;
+          material.quantityNew = Math.max(0, (material.quantityNew || 0) - remaining);
+        }
+      } else {
+        // Try to deduct from new first, then from old if needed
+        if (material.quantityNew >= quantity) {
+          material.quantityNew -= quantity;
+        } else {
+          const remaining = quantity - material.quantityNew;
+          material.quantityNew = 0;
+          material.quantityOld = Math.max(0, (material.quantityOld || 0) - remaining);
+        }
+      }
+      
+      // Update total quantity
+      material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
       
       // Log transaction
       db.inventory.transactions.push({
@@ -1448,14 +1489,15 @@ app.post('/api/inventory/assign', (req, res) => {
         materialId: mat.id,
         materialName: material.name,
         quantity: -quantity,
+        materialType: materialType,
         projectId: projectId,
         performedBy: username,
         performedByName: user ? user.name : 'System',
         timestamp: new Date().toISOString(),
-        notes: `Assigned to project #${projectId}`
+        notes: `Assigned to project #${projectId} (${materialType})`
       });
       
-      updates.push({ material, oldQuantity });
+      updates.push({ material, oldQuantity: totalAvailable });
     }
     
     writeDb(db);
@@ -1495,8 +1537,13 @@ app.post('/api/inventory/return', (req, res) => {
       const quantity = parseInt(mat.quantity) || 0;
       if (quantity <= 0) continue;
       
-      // Add back to inventory
-      material.quantity += quantity;
+      // Ensure material has quantityNew and quantityOld
+      if (material.quantityNew === undefined) material.quantityNew = 0;
+      if (material.quantityOld === undefined) material.quantityOld = 0;
+      
+      // Add back to old inventory (returned materials)
+      material.quantityOld = (material.quantityOld || 0) + quantity;
+      material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
       
       // Log transaction
       db.inventory.transactions.push({
@@ -1505,11 +1552,12 @@ app.post('/api/inventory/return', (req, res) => {
         materialId: mat.id,
         materialName: material.name,
         quantity: quantity,
+        materialType: 'old',
         projectId: projectId || null,
         performedBy: username,
         performedByName: user.name,
         timestamp: new Date().toISOString(),
-        notes: notes || `Returned from project #${projectId || 'N/A'}`
+        notes: notes || `Returned from project #${projectId || 'N/A'} (added to old inventory)`
       });
       
       updates.push({ material });
@@ -1570,12 +1618,20 @@ app.post('/api/inventory/collections/:collectionId/receive', (req, res) => {
       return res.status(400).json({ error: 'Collection already received' });
     }
     
-    // Add materials to inventory
+    // Add materials to inventory (as old/recycled materials)
     if (collection.materials && Array.isArray(collection.materials)) {
       for (const mat of collection.materials) {
         const material = db.inventory.materials.find(m => m.id === mat.id);
         if (material) {
-          material.quantity += (parseInt(mat.quantity) || 0);
+          // Ensure material has quantityNew and quantityOld
+          if (material.quantityNew === undefined) material.quantityNew = 0;
+          if (material.quantityOld === undefined) material.quantityOld = 0;
+          
+          const quantity = parseInt(mat.quantity) || 0;
+          
+          // Add to old inventory (returned/recycled materials)
+          material.quantityOld = (material.quantityOld || 0) + quantity;
+          material.quantity = (material.quantityNew || 0) + (material.quantityOld || 0);
           
           // Log transaction
           db.inventory.transactions.push({
@@ -1583,12 +1639,13 @@ app.post('/api/inventory/collections/:collectionId/receive', (req, res) => {
             type: 'collection',
             materialId: mat.id,
             materialName: material.name,
-            quantity: parseInt(mat.quantity) || 0,
+            quantity: quantity,
+            materialType: 'old',
             projectId: collection.projectId,
             performedBy: username,
             performedByName: user.name,
             timestamp: new Date().toISOString(),
-            notes: `Collected from completed project #${collection.projectId}`
+            notes: `Collected from completed project #${collection.projectId} (added to old inventory)`
           });
         }
       }

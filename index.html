@@ -6210,27 +6210,52 @@
                     }
                     
                     container.innerHTML = materials.map(material => {
-                        const isLowStock = material.quantity < (material.minThreshold || 10);
-                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock (${material.quantity} available)</span>` : '';
-                        const availableText = material.quantity > 0 ? `${material.quantity} available` : 'Out of stock';
+                        // Ensure quantityNew and quantityOld exist
+                        const quantityNew = material.quantityNew !== undefined ? material.quantityNew : (material.quantity || 0);
+                        const quantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
+                        const totalQuantity = quantityNew + quantityOld;
+                        
+                        const isLowStock = totalQuantity < (material.minThreshold || 10);
+                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock</span>` : '';
+                        const availableText = totalQuantity > 0 ? `Total: ${totalQuantity} (New: ${quantityNew}, Old: ${quantityOld})` : 'Out of stock';
                         
                         return `
-                            <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center; padding: 10px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                <div>
-                                    <label style="font-weight: 600;">${material.name}</label>
-                                    <small style="color: #64748b; display: block;">${availableText} ${stockWarning}</small>
+                            <div class="form-group" style="padding: 12px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
+                                <div style="margin-bottom: 8px;">
+                                    <label style="font-weight: 600; font-size: 14px;">${material.name}</label>
+                                    <small style="color: #64748b; display: block; font-size: 12px;">${availableText} ${stockWarning}</small>
                                 </div>
-                                <div>
-                                    <input type="number" class="form-control material-quantity" 
-                                           data-material-id="${material.id}" 
-                                           data-material-name="${material.name}"
-                                           min="0" 
-                                           max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : material.quantity}"
-                                           value="0"
-                                           style="text-align: center; font-weight: bold;"
-                                           onchange="app.validateMaterialQuantity(${material.id})"
-                                           ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'readonly' : ''}>
-                                    <small style="color: #64748b; display: block; text-align: center;">Qty</small>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Type</label>
+                                        <select class="form-control material-type" 
+                                                data-material-id="${material.id}" 
+                                                style="font-size: 12px; padding: 6px;"
+                                                onchange="app.validateMaterialQuantity(${material.id})"
+                                                ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'disabled' : ''}>
+                                            <option value="new">New</option>
+                                            <option value="old">Old</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Quantity</label>
+                                        <input type="number" class="form-control material-quantity" 
+                                               data-material-id="${material.id}" 
+                                               data-material-name="${material.name}"
+                                               min="0" 
+                                               max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
+                                               value="0"
+                                               style="text-align: center; font-weight: bold; padding: 6px; font-size: 12px;"
+                                               onchange="app.validateMaterialQuantity(${material.id})"
+                                               ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'readonly' : ''}>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-secondary" 
+                                                style="font-size: 11px; padding: 6px 10px; width: 100%;"
+                                                onclick="app.clearMaterialQuantity(${material.id})">
+                                            Clear
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -6241,12 +6266,21 @@
                 }
             }
 
+            clearMaterialQuantity(materialId) {
+                const quantityInput = document.querySelector(`.material-quantity[data-material-id="${materialId}"]`);
+                if (quantityInput) {
+                    quantityInput.value = 0;
+                    this.validateMaterialQuantity(materialId);
+                }
+            }
+
             validateMaterialQuantity(materialId) {
                 const input = document.querySelector(`.material-quantity[data-material-id="${materialId}"]`);
+                const typeSelect = document.querySelector(`.material-type[data-material-id="${materialId}"]`);
                 if (!input) return;
                 
                 const quantity = parseInt(input.value) || 0;
-                const maxAllowed = parseInt(input.max) || 0;
+                const materialType = typeSelect ? typeSelect.value : 'new';
                 
                 // Get material info
                 if (!this.data.inventory || !this.data.inventory.materials) {
@@ -6258,23 +6292,32 @@
                 const material = this.data.inventory.materials.find(m => m.id === materialId);
                 if (!material) return;
                 
-                // Check stock availability (unless admin/inventoryController/supervisor)
+                // Ensure quantityNew and quantityOld exist
+                const quantityNew = material.quantityNew !== undefined ? material.quantityNew : (material.quantity || 0);
+                const quantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
+                const totalQuantity = quantityNew + quantityOld;
+                const availableInPool = materialType === 'old' ? quantityOld : quantityNew;
+                
+                // Check stock availability in selected pool (unless admin/inventoryController/supervisor)
                 if (this.currentRole !== 'admin' && this.currentRole !== 'inventoryController' && this.currentRole !== 'supervisor') {
-                    if (quantity > material.quantity) {
-                        this.showNotification(`Insufficient stock for ${material.name}. Available: ${material.quantity}`, 'error');
-                        input.value = material.quantity;
+                    if (quantity > availableInPool && quantity > totalQuantity) {
+                        this.showNotification(`Insufficient ${materialType} stock for ${material.name}. Available ${materialType}: ${availableInPool}, Total: ${totalQuantity}`, 'error');
+                        input.value = Math.min(availableInPool, totalQuantity);
                         return;
                     }
                 }
                 
                 // Show warning if low stock
-                if (material.quantity < material.minThreshold && quantity > 0) {
+                if (totalQuantity < material.minThreshold && quantity > 0) {
                     const warning = document.getElementById('material-stock-warnings');
                     if (warning) {
                         warning.innerHTML = `<div style="padding: 10px; background: #fef3c7; border-radius: 6px; margin-top: 10px;">
-                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${material.quantity} units remaining (minimum: ${material.minThreshold})
+                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${totalQuantity} units remaining (minimum: ${material.minThreshold}). ${materialType === 'old' ? 'Old' : 'New'}: ${availableInPool}
                         </div>`;
                     }
+                } else {
+                    const warning = document.getElementById('material-stock-warnings');
+                    if (warning) warning.innerHTML = '';
                 }
             }
 
@@ -6299,30 +6342,55 @@
                     const existingMaterials = job.packingMaterials || [];
                     
                     container.innerHTML = materials.map(material => {
-                        const isLowStock = material.quantity < (material.minThreshold || 10);
-                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock (${material.quantity} available)</span>` : '';
-                        const availableText = material.quantity > 0 ? `${material.quantity} available` : 'Out of stock';
+                        // Ensure quantityNew and quantityOld exist
+                        const quantityNew = material.quantityNew !== undefined ? material.quantityNew : (material.quantity || 0);
+                        const quantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
+                        const totalQuantity = quantityNew + quantityOld;
                         
-                        // Find existing quantity for this material
+                        const isLowStock = totalQuantity < (material.minThreshold || 10);
+                        const stockWarning = isLowStock ? `<span style="color: #f59e0b; font-size: 0.9em;">⚠️ Low stock</span>` : '';
+                        const availableText = totalQuantity > 0 ? `Total: ${totalQuantity} (New: ${quantityNew}, Old: ${quantityOld})` : 'Out of stock';
+                        
+                        // Find existing quantity and type for this material
                         const existingMaterial = existingMaterials.find(em => em.id === material.id);
                         const existingQuantity = existingMaterial ? existingMaterial.quantity : 0;
+                        const existingType = existingMaterial ? (existingMaterial.materialType || 'new') : 'new';
                         
                         return `
-                            <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center; padding: 10px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                <div>
-                                    <label style="font-weight: 600;">${material.name}</label>
-                                    <small style="color: #64748b; display: block;">${availableText} ${stockWarning}</small>
+                            <div class="form-group" style="padding: 12px; background: ${isLowStock ? '#fef3c7' : '#fff'}; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
+                                <div style="margin-bottom: 8px;">
+                                    <label style="font-weight: 600; font-size: 14px;">${material.name}</label>
+                                    <small style="color: #64748b; display: block; font-size: 12px;">${availableText} ${stockWarning}</small>
                                 </div>
-                                <div>
-                                    <input type="number" class="form-control edit-material-quantity" 
-                                           data-material-id="${material.id}" 
-                                           data-material-name="${material.name}"
-                                           min="0" 
-                                           max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : material.quantity}"
-                                           value="${existingQuantity}"
-                                           style="text-align: center; font-weight: bold;"
-                                           onchange="app.validateEditMaterialQuantity(${material.id})">
-                                    <small style="color: #64748b; display: block; text-align: center;">Qty</small>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Type</label>
+                                        <select class="form-control edit-material-type" 
+                                                data-material-id="${material.id}" 
+                                                style="font-size: 12px; padding: 6px;"
+                                                onchange="app.validateEditMaterialQuantity(${material.id})">
+                                            <option value="new" ${existingType === 'new' ? 'selected' : ''}>New</option>
+                                            <option value="old" ${existingType === 'old' ? 'selected' : ''}>Old</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Quantity</label>
+                                        <input type="number" class="form-control edit-material-quantity" 
+                                               data-material-id="${material.id}" 
+                                               data-material-name="${material.name}"
+                                               min="0" 
+                                               max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
+                                               value="${existingQuantity}"
+                                               style="text-align: center; font-weight: bold; padding: 6px; font-size: 12px;"
+                                               onchange="app.validateEditMaterialQuantity(${material.id})">
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-secondary" 
+                                                style="font-size: 11px; padding: 6px 10px; width: 100%;"
+                                                onclick="app.clearEditMaterialQuantity(${material.id})">
+                                            Clear
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -6333,11 +6401,21 @@
                 }
             }
 
+            clearEditMaterialQuantity(materialId) {
+                const quantityInput = document.querySelector(`.edit-material-quantity[data-material-id="${materialId}"]`);
+                if (quantityInput) {
+                    quantityInput.value = 0;
+                    this.validateEditMaterialQuantity(materialId);
+                }
+            }
+
             validateEditMaterialQuantity(materialId) {
                 const input = document.querySelector(`.edit-material-quantity[data-material-id="${materialId}"]`);
+                const typeSelect = document.querySelector(`.edit-material-type[data-material-id="${materialId}"]`);
                 if (!input) return;
                 
                 const quantity = parseInt(input.value) || 0;
+                const materialType = typeSelect ? typeSelect.value : 'new';
                 
                 // Get material info
                 if (!this.data.inventory || !this.data.inventory.materials) {
@@ -6349,23 +6427,32 @@
                 const material = this.data.inventory.materials.find(m => m.id === materialId);
                 if (!material) return;
                 
-                // Check stock availability (unless admin/inventoryController/supervisor)
+                // Ensure quantityNew and quantityOld exist
+                const quantityNew = material.quantityNew !== undefined ? material.quantityNew : (material.quantity || 0);
+                const quantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
+                const totalQuantity = quantityNew + quantityOld;
+                const availableInPool = materialType === 'old' ? quantityOld : quantityNew;
+                
+                // Check stock availability in selected pool (unless admin/inventoryController/supervisor)
                 if (this.currentRole !== 'admin' && this.currentRole !== 'inventoryController' && this.currentRole !== 'supervisor') {
-                    if (quantity > material.quantity) {
-                        this.showNotification(`Insufficient stock for ${material.name}. Available: ${material.quantity}`, 'error');
-                        input.value = material.quantity;
+                    if (quantity > availableInPool && quantity > totalQuantity) {
+                        this.showNotification(`Insufficient ${materialType} stock for ${material.name}. Available ${materialType}: ${availableInPool}, Total: ${totalQuantity}`, 'error');
+                        input.value = Math.min(availableInPool, totalQuantity);
                         return;
                     }
                 }
                 
                 // Show warning if low stock
-                if (material.quantity < material.minThreshold && quantity > 0) {
+                if (totalQuantity < material.minThreshold && quantity > 0) {
                     const warning = document.getElementById('edit-material-stock-warnings');
                     if (warning) {
                         warning.innerHTML = `<div style="padding: 10px; background: #fef3c7; border-radius: 6px; margin-top: 10px;">
-                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${material.quantity} units remaining (minimum: ${material.minThreshold})
+                            ⚠️ <strong>Low Stock Warning:</strong> ${material.name} has only ${totalQuantity} units remaining (minimum: ${material.minThreshold}). ${materialType === 'old' ? 'Old' : 'New'}: ${availableInPool}
                         </div>`;
                     }
+                } else {
+                    const warning = document.getElementById('edit-material-stock-warnings');
+                    if (warning) warning.innerHTML = '';
                 }
             }
 
@@ -6516,15 +6603,20 @@
                     externalSurveyForm: document.getElementById('external-survey-form')?.dataset.uploadUrl || ''
                 };
 
-                // Get packing materials from Tab 2
+                // Get packing materials from Tab 2 (with old/new selection)
                 const materials = [];
                 document.querySelectorAll('.material-quantity').forEach(input => {
                     const quantity = parseInt(input.value) || 0;
                     if (quantity > 0) {
+                        const materialId = parseInt(input.dataset.materialId);
+                        const typeSelect = document.querySelector(`.material-type[data-material-id="${materialId}"]`);
+                        const materialType = typeSelect ? typeSelect.value : 'new';
+                        
                         materials.push({
-                            id: parseInt(input.dataset.materialId),
+                            id: materialId,
                             name: input.dataset.materialName,
-                            quantity: quantity
+                            quantity: quantity,
+                            materialType: materialType
                         });
                     }
                 });
@@ -10576,16 +10668,21 @@
                     status: document.getElementById('edit-job-status').value
                 };
 
-                // Get packing materials (only for admin and supervisor)
+                // Get packing materials (only for admin and supervisor) with old/new selection
                 if (this.currentRole === 'admin' || this.currentRole === 'supervisor') {
                     const materials = [];
                     document.querySelectorAll('.edit-material-quantity').forEach(input => {
                         const quantity = parseInt(input.value) || 0;
                         if (quantity > 0) {
+                            const materialId = parseInt(input.dataset.materialId);
+                            const typeSelect = document.querySelector(`.edit-material-type[data-material-id="${materialId}"]`);
+                            const materialType = typeSelect ? typeSelect.value : 'new';
+                            
                             materials.push({
-                                id: parseInt(input.dataset.materialId),
+                                id: materialId,
                                 name: input.dataset.materialName,
-                                quantity: quantity
+                                quantity: quantity,
+                                materialType: materialType
                             });
                         }
                     });
@@ -13236,6 +13333,8 @@
                         id: maxId + 1,
                         name: name,
                         quantity: quantity,
+                        quantityNew: quantity, // New materials go to new stock
+                        quantityOld: 0,
                         minThreshold: minThreshold
                     };
 
@@ -13279,12 +13378,33 @@
                 tbody.innerHTML = '';
 
                 if (!this.data.inventory || !this.data.inventory.materials || this.data.inventory.materials.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No materials in inventory</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="no-data">No materials in inventory</td></tr>';
                     return;
                 }
 
+                // Update table header to include old/new columns
+                const thead = document.querySelector('#inventory-table thead');
+                if (thead) {
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Material Name</th>
+                            <th>New Stock</th>
+                            <th>Old Stock</th>
+                            <th>Total Stock</th>
+                            <th>Min Threshold</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    `;
+                }
+
                 this.data.inventory.materials.forEach(material => {
-                    const isLowStock = material.quantity < (material.minThreshold || 10);
+                    // Ensure quantityNew and quantityOld exist
+                    const quantityNew = material.quantityNew !== undefined ? material.quantityNew : (material.quantity || 0);
+                    const quantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
+                    const totalQuantity = quantityNew + quantityOld;
+                    const isLowStock = totalQuantity < (material.minThreshold || 10);
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>
@@ -13292,11 +13412,19 @@
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <button class="btn btn-sm btn-danger" onclick="app.adjustMaterialQuantity(${material.id}, -1)" style="min-width: 30px; padding: 4px 8px;">-</button>
-                                <input type="number" class="form-control material-quantity-input" value="${material.quantity}" data-id="${material.id}" data-original="${material.quantity}" style="width: 80px; text-align: center; font-weight: bold;" min="0">
-                                <button class="btn btn-sm btn-success" onclick="app.adjustMaterialQuantity(${material.id}, 1)" style="min-width: 30px; padding: 4px 8px;">+</button>
+                                <button class="btn btn-sm btn-danger" onclick="app.adjustMaterialQuantity(${material.id}, -1, 'new')" style="min-width: 30px; padding: 4px 8px;">-</button>
+                                <input type="number" class="form-control material-quantity-new-input" value="${quantityNew}" data-id="${material.id}" data-original="${quantityNew}" style="width: 80px; text-align: center; font-weight: bold;" min="0">
+                                <button class="btn btn-sm btn-success" onclick="app.adjustMaterialQuantity(${material.id}, 1, 'new')" style="min-width: 30px; padding: 4px 8px;">+</button>
                             </div>
                         </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="btn btn-sm btn-danger" onclick="app.adjustMaterialQuantity(${material.id}, -1, 'old')" style="min-width: 30px; padding: 4px 8px;">-</button>
+                                <input type="number" class="form-control material-quantity-old-input" value="${quantityOld}" data-id="${material.id}" data-original="${quantityOld}" style="width: 80px; text-align: center; font-weight: bold;" min="0">
+                                <button class="btn btn-sm btn-success" onclick="app.adjustMaterialQuantity(${material.id}, 1, 'old')" style="min-width: 30px; padding: 4px 8px;">+</button>
+                            </div>
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-size: 16px;">${totalQuantity}</td>
                         <td>
                             <input type="number" class="form-control material-threshold-input" value="${material.minThreshold || 10}" data-id="${material.id}" style="width: 80px; text-align: center;" min="0">
                         </td>
@@ -13308,15 +13436,17 @@
 
                     // Add event listeners for inline editing
                     const nameInput = row.querySelector('.material-name-input');
-                    const quantityInput = row.querySelector('.material-quantity-input');
+                    const quantityNewInput = row.querySelector('.material-quantity-new-input');
+                    const quantityOldInput = row.querySelector('.material-quantity-old-input');
                     const thresholdInput = row.querySelector('.material-threshold-input');
                     const saveBtn = row.querySelector('.save-material-btn');
 
                     const checkChanges = () => {
                         const nameChanged = nameInput.value !== material.name;
-                        const quantityChanged = parseInt(quantityInput.value) !== material.quantity;
+                        const quantityNewChanged = parseInt(quantityNewInput.value) !== quantityNew;
+                        const quantityOldChanged = parseInt(quantityOldInput.value) !== quantityOld;
                         const thresholdChanged = parseInt(thresholdInput.value) !== (material.minThreshold || 10);
-                        if (nameChanged || quantityChanged || thresholdChanged) {
+                        if (nameChanged || quantityNewChanged || quantityOldChanged || thresholdChanged) {
                             saveBtn.style.display = 'inline-block';
                         } else {
                             saveBtn.style.display = 'none';
@@ -13324,47 +13454,81 @@
                     };
 
                     nameInput.addEventListener('input', checkChanges);
-                    quantityInput.addEventListener('input', checkChanges);
+                    quantityNewInput.addEventListener('input', checkChanges);
+                    quantityOldInput.addEventListener('input', checkChanges);
                     thresholdInput.addEventListener('input', checkChanges);
 
-                    quantityInput.addEventListener('change', () => {
-                        if (parseInt(quantityInput.value) < 0) quantityInput.value = 0;
+                    quantityNewInput.addEventListener('change', () => {
+                        if (parseInt(quantityNewInput.value) < 0) quantityNewInput.value = 0;
+                        // Update total display
+                        const totalCell = row.querySelector('td:nth-child(4)');
+                        if (totalCell) {
+                            const newTotal = (parseInt(quantityNewInput.value) || 0) + (parseInt(quantityOldInput.value) || 0);
+                            totalCell.textContent = newTotal;
+                        }
+                    });
+
+                    quantityOldInput.addEventListener('change', () => {
+                        if (parseInt(quantityOldInput.value) < 0) quantityOldInput.value = 0;
+                        // Update total display
+                        const totalCell = row.querySelector('td:nth-child(4)');
+                        if (totalCell) {
+                            const newTotal = (parseInt(quantityNewInput.value) || 0) + (parseInt(quantityOldInput.value) || 0);
+                            totalCell.textContent = newTotal;
+                        }
                     });
 
                     saveBtn.addEventListener('click', () => {
-                        this.saveMaterialChanges(material.id, nameInput.value, parseInt(quantityInput.value), parseInt(thresholdInput.value));
+                        this.saveMaterialChanges(material.id, nameInput.value, parseInt(quantityNewInput.value) || 0, parseInt(quantityOldInput.value) || 0, parseInt(thresholdInput.value));
                     });
 
                     tbody.appendChild(row);
                 });
             }
 
-            adjustMaterialQuantity(materialId, change) {
-                const input = document.querySelector(`.material-quantity-input[data-id="${materialId}"]`);
+            adjustMaterialQuantity(materialId, change, type = 'new') {
+                const inputSelector = type === 'old' ? `.material-quantity-old-input[data-id="${materialId}"]` : `.material-quantity-new-input[data-id="${materialId}"]`;
+                const input = document.querySelector(inputSelector);
                 if (!input) return;
                 
                 const currentValue = parseInt(input.value) || 0;
                 const newValue = Math.max(0, currentValue + change);
                 input.value = newValue;
                 
+                // Update total display
+                const row = input.closest('tr');
+                if (row) {
+                    const totalCell = row.querySelector('td:nth-child(4)');
+                    const newInput = row.querySelector('.material-quantity-new-input');
+                    const oldInput = row.querySelector('.material-quantity-old-input');
+                    if (totalCell && newInput && oldInput) {
+                        const newTotal = (parseInt(newInput.value) || 0) + (parseInt(oldInput.value) || 0);
+                        totalCell.textContent = newTotal;
+                    }
+                }
+                
                 // Trigger change event to show save button
                 input.dispatchEvent(new Event('input'));
             }
 
-            async saveMaterialChanges(materialId, newName, newQuantity, newThreshold) {
+            async saveMaterialChanges(materialId, newName, newQuantityNew, newQuantityOld, newThreshold) {
                 const material = this.data.inventory.materials.find(m => m.id === materialId);
                 if (!material) {
                     this.showNotification('Material not found', 'error');
                     return;
                 }
 
-                const oldQuantity = material.quantity;
+                const oldQuantity = material.quantity || 0;
+                const oldQuantityNew = material.quantityNew !== undefined ? material.quantityNew : oldQuantity;
+                const oldQuantityOld = material.quantityOld !== undefined ? material.quantityOld : 0;
                 const oldName = material.name;
 
                 try {
                     // Update material
                     material.name = newName;
-                    material.quantity = newQuantity;
+                    material.quantityNew = newQuantityNew;
+                    material.quantityOld = newQuantityOld;
+                    material.quantity = newQuantityNew + newQuantityOld; // Update total
                     material.minThreshold = newThreshold;
 
                     const updatedMaterials = this.data.inventory.materials;
@@ -13379,19 +13543,22 @@
                     if (!response.ok) throw new Error('Failed to update material');
 
                     // Log transaction if quantity changed
-                    if (oldQuantity !== newQuantity && this.data.inventory.transactions) {
-                        const quantityChange = newQuantity - oldQuantity;
-                        if (quantityChange !== 0) {
+                    const newTotal = newQuantityNew + newQuantityOld;
+                    if ((oldQuantityNew !== newQuantityNew || oldQuantityOld !== newQuantityOld) && this.data.inventory.transactions) {
+                        const newChange = newQuantityNew - oldQuantityNew;
+                        const oldChange = newQuantityOld - oldQuantityOld;
+                        if (newChange !== 0 || oldChange !== 0) {
                             this.data.inventory.transactions.push({
                                 id: Date.now() + Math.random(),
-                                type: quantityChange > 0 ? 'adjustment_add' : 'adjustment_remove',
+                                type: (newChange + oldChange) > 0 ? 'adjustment_add' : 'adjustment_remove',
                                 materialId: materialId,
                                 materialName: newName,
-                                quantity: quantityChange,
+                                quantity: newChange + oldChange,
+                                materialType: newChange !== 0 ? 'new' : 'old',
                                 performedBy: this.currentUser.username,
                                 performedByName: this.currentUser.name,
                                 timestamp: new Date().toISOString(),
-                                notes: `Manual adjustment: ${quantityChange > 0 ? 'added' : 'removed'} ${Math.abs(quantityChange)} ${oldName !== newName ? `(renamed from ${oldName})` : ''}`
+                                notes: `Manual adjustment: New: ${newChange > 0 ? '+' : ''}${newChange}, Old: ${oldChange > 0 ? '+' : ''}${oldChange} ${oldName !== newName ? `(renamed from ${oldName})` : ''}`
                             });
                         }
                     }

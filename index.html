@@ -11310,6 +11310,36 @@
                 // Setup scroll hint for packing list table on mobile
                 this.setupPackingListScrollHint();
                 
+                // Attach clear signature button handlers (in case they weren't attached during initialization)
+                const clearCustomerBtn = document.getElementById('clear-customer-signature-btn');
+                if (clearCustomerBtn) {
+                    // Remove any existing handlers
+                    const newBtn = clearCustomerBtn.cloneNode(true);
+                    clearCustomerBtn.parentNode.replaceChild(newBtn, clearCustomerBtn);
+                    // Attach new handler
+                    newBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        this.clearSignature('pl-customer-signature');
+                        return false;
+                    });
+                }
+                const clearMoveitBtn = document.getElementById('clear-moveit-signature-btn');
+                if (clearMoveitBtn) {
+                    // Remove any existing handlers
+                    const newBtn = clearMoveitBtn.cloneNode(true);
+                    clearMoveitBtn.parentNode.replaceChild(newBtn, clearMoveitBtn);
+                    // Attach new handler
+                    newBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        this.clearSignature('pl-moveit-signature');
+                        return false;
+                    });
+                }
+                
                 this.showModal('complete-survey-modal');
             }
             
@@ -14942,6 +14972,23 @@
                 const materialsGroup = document.getElementById('materials-collection-group');
                 if (materialsGroup) materialsGroup.style.display = 'none';
                 document.getElementById('completion-tip-amount').value = '';
+                
+                // Attach clear signature button handler (in case it wasn't attached during initialization)
+                const clearCompletionBtn = document.getElementById('clear-completion-signature-btn');
+                if (clearCompletionBtn) {
+                    // Remove any existing handlers
+                    const newBtn = clearCompletionBtn.cloneNode(true);
+                    clearCompletionBtn.parentNode.replaceChild(newBtn, clearCompletionBtn);
+                    // Attach new handler
+                    newBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        this.clearSignature();
+                        return false;
+                    });
+                }
+                
                 this.showModal('completion-modal');
             }
 

@@ -143,6 +143,7 @@
         /* Premium Hero Section */
         .hero {
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             background: 
                 radial-gradient(ellipse at 20% 50%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
@@ -152,6 +153,9 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            /* Add padding-top to account for header + status bar */
+            padding-top: calc(env(safe-area-inset-top, 24px) + 100px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0) + 20px);
         }
         
         .hero::before {

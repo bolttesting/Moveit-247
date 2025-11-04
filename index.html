@@ -4611,7 +4611,7 @@
                 <div class="signature-pad-container">
                     <canvas id="signature-pad" class="signature-pad" width="500" height="200"></canvas>
                     <div class="signature-controls">
-                        <button class="btn btn-secondary btn-sm" onclick="app.clearSignature()">Clear</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); app.clearSignature()">Clear</button>
                         <button class="btn btn-primary btn-sm" onclick="app.saveSignature()">Save Signature</button>
                     </div>
                     <img id="signature-preview" class="signature-preview" style="display: none;">
@@ -5647,14 +5647,14 @@
                                 <label>Customer Signature</label>
                                 <canvas id="pl-customer-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
                                 <div style="margin-top:10px;">
-                                    <button type="button" class="btn btn-sm btn-secondary" onclick="app.clearSignature('pl-customer-signature')">Clear</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); app.clearSignature('pl-customer-signature')">Clear</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>MoveIt Signature</label>
                                 <canvas id="pl-moveit-signature" width="400" height="150" style="border:1px solid #ddd; border-radius:4px; cursor:crosshair; background:#fff;"></canvas>
                                 <div style="margin-top:10px;">
-                                    <button type="button" class="btn btn-sm btn-secondary" onclick="app.clearSignature('pl-moveit-signature')">Clear</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); app.clearSignature('pl-moveit-signature')">Clear</button>
                                 </div>
                             </div>
                         </div>
@@ -14784,11 +14784,29 @@
                 });
             }
 
-            clearSignature() {
+            clearSignature(canvasId) {
+                // If canvasId is provided, clear that specific canvas
+                if (canvasId) {
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                    return;
+                }
+                
+                // Otherwise, clear the default signature-pad canvas (for completion modal)
                 const canvas = document.getElementById('signature-pad');
                 if (canvas) {
                     const ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                // Also clear the signature preview if it exists
+                const preview = document.getElementById('signature-preview');
+                if (preview) {
+                    preview.style.display = 'none';
+                    preview.src = '';
                 }
             }
 

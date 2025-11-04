@@ -365,10 +365,10 @@
         }
         
         .login-header-right {
+            width: 100%;
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
+            justify-content: flex-end;
+            align-items: center;
         }
         
         .login-status-icons {
@@ -387,13 +387,19 @@
             color: #fff;
         }
         .login-footer {
-            position: fixed; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
+            display: none;
+        }
+        
+        /* Fill bottom space with gradient */
+        .login-container::after {
+            content: '';
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
             height: env(safe-area-inset-bottom, 0);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 999;
+            z-index: 998;
         }
 
         .login-box {
@@ -1122,7 +1128,7 @@
                 padding: 0 16px;
             }
         }
-        
+
         @media (max-width: 480px) {
             /* === MOBILE OPTIMIZATION === */
             
@@ -4008,7 +4014,7 @@
                                         <div style="display: flex; gap: 10px; margin-bottom: 8px;">
                                             <select class="form-control" id="survey-form-select" style="flex: 1;">
                                                 <option value="">Loading surveys...</option>
-                                            </select>
+                                        </select>
                                             <button type="button" class="btn btn-primary btn-sm" onclick="app.fetchZohoSurveys()" style="white-space: nowrap;">
                                                 <i class="fas fa-sync-alt"></i> Fetch from Zoho
                                             </button>
@@ -4021,7 +4027,7 @@
                                         <input type="file" class="form-control" id="external-survey-form" accept=".html,.htm,.pdf,.doc,.docx,image/*">
                                         <small style="color: #64748b;">Upload a survey form from outside (HTML, PDF, Word, or Image)</small>
                                         <div id="external-survey-preview" style="margin-top: 10px;"></div>
-                                    </div>
+                            </div>
                             <div class="form-group">
                                 <label>Item Images</label>
                                 <input type="file" class="form-control" id="item-images" accept="image/*" multiple>
@@ -6504,7 +6510,7 @@
                                     <small style="color: #64748b; display: block; font-size: 12px;">${availableText} ${stockWarning}</small>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
-                                    <div>
+                                <div>
                                         <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Type</label>
                                         <select class="form-control material-type" 
                                                 data-material-id="${material.id}" 
@@ -6514,20 +6520,20 @@
                                             <option value="new" selected>New</option>
                                             <option value="old">Old</option>
                                         </select>
-                                    </div>
-                                    <div>
+                                </div>
+                                <div>
                                         <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Quantity</label>
-                                        <input type="number" class="form-control material-quantity" 
-                                               data-material-id="${material.id}" 
-                                               data-material-name="${material.name}"
+                                    <input type="number" class="form-control material-quantity" 
+                                           data-material-id="${material.id}" 
+                                           data-material-name="${material.name}"
                                                data-material-quantity-new="0"
                                                data-material-quantity-old="0"
-                                               min="0" 
+                                           min="0" 
                                                max="${this.currentRole === 'admin' || this.currentRole !== 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
-                                               value="0"
+                                           value="0"
                                                style="text-align: center; font-weight: bold; padding: 6px; font-size: 12px;"
-                                               onchange="app.validateMaterialQuantity(${material.id})"
-                                               ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'readonly' : ''}>
+                                           onchange="app.validateMaterialQuantity(${material.id})"
+                                           ${this.currentRole !== 'admin' && this.currentRole !== 'supervisor' && this.currentRole !== 'inventoryController' ? 'readonly' : ''}>
                                     </div>
                                     <div>
                                         <button type="button" class="btn btn-sm btn-secondary" 
@@ -6688,7 +6694,7 @@
                                     <small style="color: #64748b; display: block; font-size: 12px;">${availableText} ${stockWarning}</small>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
-                                    <div>
+                                <div>
                                         <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Type</label>
                                         <select class="form-control edit-material-type" 
                                                 data-material-id="${material.id}" 
@@ -6697,19 +6703,19 @@
                                             <option value="new" ${existingType === 'new' ? 'selected' : ''}>New</option>
                                             <option value="old" ${existingType === 'old' ? 'selected' : ''}>Old</option>
                                         </select>
-                                    </div>
-                                    <div>
+                                </div>
+                                <div>
                                         <label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Quantity</label>
-                                        <input type="number" class="form-control edit-material-quantity" 
-                                               data-material-id="${material.id}" 
-                                               data-material-name="${material.name}"
+                                    <input type="number" class="form-control edit-material-quantity" 
+                                           data-material-id="${material.id}" 
+                                           data-material-name="${material.name}"
                                                data-material-quantity-new="${existingType === 'new' ? existingQuantity : 0}"
                                                data-material-quantity-old="${existingType === 'old' ? existingQuantity : 0}"
-                                               min="0" 
+                                           min="0" 
                                                max="${this.currentRole === 'admin' || this.currentRole === 'inventoryController' || this.currentRole === 'supervisor' ? '9999' : totalQuantity}"
-                                               value="${existingQuantity}"
+                                           value="${existingQuantity}"
                                                style="text-align: center; font-weight: bold; padding: 6px; font-size: 12px;"
-                                               onchange="app.validateEditMaterialQuantity(${material.id})">
+                                           onchange="app.validateEditMaterialQuantity(${material.id})">
                                     </div>
                                     <div>
                                         <button type="button" class="btn btn-sm btn-secondary" 
@@ -12402,7 +12408,7 @@
                     }
                 } else {
                     // No images, print immediately
-                    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+                setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
                 }
             }
 

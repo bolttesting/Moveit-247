@@ -326,23 +326,43 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: auto;
             background: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
+            padding-top: env(safe-area-inset-top, 0);
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .login-header-inner {
-            width: 100%;
+        
+        .login-status-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0;
+            padding: 4px 16px;
+            height: 24px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .login-time {
+            font-weight: 500;
+        }
+        
+        .login-status-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+        
+        .login-header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            min-height: 56px;
             color: #fff;
         }
+        
         .login-brand {
             display: inline-flex;
             align-items: center;
@@ -351,6 +371,7 @@
             font-size: 16px;
             letter-spacing: -0.02em;
         }
+        
         .login-brand .brand-badge {
             width: 32px; 
             height: 32px; 
@@ -361,13 +382,28 @@
             place-items: center;
             font-size: 16px;
         }
+        
+        .login-header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        
         .login-status-icons {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #fff;
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0.9;
+        }
+        
+        .login-welcome-text {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.85;
+            color: #fff;
         }
         .login-footer {
             position: fixed; 
@@ -1168,17 +1204,37 @@
             }
             
             .login-header {
-                height: 56px;
-                padding: 0 12px;
+                padding-top: 0;
+            }
+            
+            .login-status-bar {
+                height: 20px;
+                padding: 2px 12px;
+                font-size: 11px;
+            }
+            
+            .login-header-inner {
+                min-height: 52px;
+                padding: 6px 12px;
             }
             
             .login-brand {
                 font-size: 14px;
             }
             
+            .login-brand .brand-badge {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            
             .login-status-icons {
+                font-size: 11px;
+                gap: 4px;
+            }
+            
+            .login-welcome-text {
                 font-size: 12px;
-                gap: 6px;
             }
             
             .form-group {
@@ -3630,15 +3686,28 @@
 
         <!-- Android-style header -->
         <div class="login-header">
+            <!-- Status Bar -->
+            <div class="login-status-bar">
+                <div class="login-time" id="login-time">16:45</div>
+                <div class="login-status-bar-icons">
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                </div>
+            </div>
+            <!-- Main Header -->
             <div class="login-header-inner">
                 <div class="login-brand">
                     <div class="brand-badge"><i class="fas fa-truck-loading"></i></div>
-                    <span>MoveIt 24/7</span>
+                    <span>MovePro</span>
                 </div>
-                <div class="login-status-icons">
-                    <i class="fas fa-wifi"></i>
-                    <i class="fas fa-signal"></i>
-                    <i class="fas fa-battery-three-quarters"></i>
+                <div class="login-header-right">
+                    <div class="login-status-icons">
+                        <i class="fas fa-wifi"></i>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-circle" style="font-size: 8px;"></i>
+                    </div>
+                    <div class="login-welcome-text">Welcome back</div>
                 </div>
             </div>
         </div>

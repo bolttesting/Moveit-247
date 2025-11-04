@@ -283,11 +283,13 @@
         .login-container {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             position: relative;
             overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom, 0);
         }
 
         .login-container::before {
@@ -389,13 +391,9 @@
             left: 0; 
             right: 0; 
             bottom: 0; 
-            height: 48px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: rgba(255,255,255,0.7);
-            font-size: 11px;
-            background: transparent;
+            height: env(safe-area-inset-bottom, 0);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 999;
         }
 
         .login-box {
@@ -3673,16 +3671,7 @@
         <!-- Android-style header -->
         <div class="login-header">
             <div class="login-header-inner">
-                <div class="login-brand">
-                    <div class="brand-badge"><i class="fas fa-truck-loading"></i></div>
-                    <span>MovePro</span>
-                </div>
                 <div class="login-header-right">
-                    <div class="login-status-icons">
-                        <i class="fas fa-wifi"></i>
-                        <i class="fas fa-signal"></i>
-                        <i class="fas fa-circle" style="font-size: 8px;"></i>
-                    </div>
                     <div class="login-welcome-text">Welcome back</div>
                 </div>
             </div>

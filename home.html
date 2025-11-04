@@ -38,6 +38,11 @@
             color: #fff;
             overflow-x: hidden;
             line-height: 1.6;
+            /* Add padding for status bar and fill bottom */
+            padding-top: env(safe-area-inset-top, 24px);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
         }
 
         /* Advanced Header with Glass Morphism */
@@ -50,6 +55,8 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
             transition: all 0.3s ease;
+            /* Add space for device status bar */
+            padding-top: env(safe-area-inset-top, 24px);
         }
         
         .container { 
@@ -897,7 +904,7 @@
             .hero {
                 min-height: 100vh;
                 min-height: -webkit-fill-available;
-                padding-top: 70px;
+                padding-top: calc(env(safe-area-inset-top, 24px) + 90px);
             }
             
             .hero-content {
@@ -1019,8 +1026,12 @@
             }
             
             .hero {
-                padding-top: 60px;
-                padding-bottom: 40px;
+                padding-top: calc(env(safe-area-inset-top, 20px) + 80px);
+                padding-bottom: calc(env(safe-area-inset-bottom, 0) + 40px);
+            }
+            
+            header {
+                padding-top: env(safe-area-inset-top, 20px);
             }
             
             h1 {

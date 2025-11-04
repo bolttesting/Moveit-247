@@ -11780,6 +11780,176 @@
                 });
             }
 
+            // Team Leader Packing List Functions
+            async showTLPackingList(jobId) {
+                const job = this.data.jobs.find(j => j.id === jobId);
+                if (!job) {
+                    this.showNotification('Job not found', 'error');
+                    return;
+                }
+
+                document.getElementById('tl-pl-job-id').value = jobId;
+                document.getElementById('tl-pl-notes').value = job.tlPackingList?.notes || '';
+
+                // Load item catalog
+                await this.loadItemCatalog();
+
+                // Populate items table
+                const tbody = document.getElementById('tl-packing-list-tbody');
+                tbody.innerHTML = '';
+
+                // If job has existing packing list, use it; otherwise use catalog
+                const existingItems = job.tlPackingList?.items || [];
+                const itemsToShow = existingItems.length > 0 ? existingItems : this.itemCatalog.map(item => ({ ...item, pieces: 0 }));
+
+                itemsToShow.forEach((item, index) => {
+                    const row = this.createTLItemRow(item, index);
+                    tbody.appendChild(row);
+                });
+
+                this.updateTLPackingListTotals();
+                this.showModal('tl-packing-list-modal');
+            }
+
+            createTLItemRow(item, index) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="tl-item-name">${item.name || ''}</td>
+                    <td class="tl-item-cbm" style="text-align:center;">${(item.cbm || 0).toFixed(2)}</td>
+                    <td><input type="number" class="form-control tl-item-pieces" min="0" value="${item.pieces || 0}" onchange="app.updateTLPackingListTotals()" style="width:80px;"></td>
+                    <td class="tl-item-total-cbm" style="text-align:center;">${((item.cbm || 0) * (item.pieces || 0)).toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="app.removeTLItemFromTable(this)">Remove</button></td>
+                `;
+                return row;
+            }
+
+            removeTLItemFromTable(btn) {
+                btn.closest('tr').remove();
+                this.updateTLPackingListTotals();
+            }
+
+            updateTLPackingListTotals() {
+                let totalCbm = 0;
+                const rows = document.querySelectorAll('#tl-packing-list-tbody tr');
+                rows.forEach(row => {
+                    const cbm = parseFloat(row.querySelector('.tl-item-cbm')?.textContent || 0);
+                    const pieces = parseInt(row.querySelector('.tl-item-pieces')?.value || 0);
+                    const totalRowCbm = cbm * pieces;
+                    totalCbm += totalRowCbm;
+                    const totalCell = row.querySelector('.tl-item-total-cbm');
+                    if (totalCell) totalCell.textContent = totalRowCbm.toFixed(2);
+                });
+                document.getElementById('tl-pl-total-cbm').textContent = totalCbm.toFixed(2);
+            }
+
+            filterTLPackingItems() {
+                const searchTerm = document.getElementById('tl-pl-search')?.value.toLowerCase() || '';
+                const rows = document.querySelectorAll('#tl-packing-list-tbody tr');
+                rows.forEach(row => {
+                    const itemName = row.querySelector('.tl-item-name')?.textContent.toLowerCase() || '';
+                    row.style.display = itemName.includes(searchTerm) ? '' : 'none';
+                });
+            }
+
+            showTLAddCustomItemModal() {
+                document.getElementById('tl-add-custom-item-form').reset();
+                this.showModal('tl-add-custom-item-modal');
+            }
+
+            addTLCustomItem() {
+                const name = document.getElementById('tl-custom-item-name')?.value.trim();
+                const cbm = parseFloat(document.getElementById('tl-custom-item-cbm')?.value || 0);
+                
+                if (!name || cbm <= 0 || isNaN(cbm)) {
+                    this.showNotification('Please enter item name and valid CBM', 'error');
+                    return;
+                }
+                
+                const tbody = document.getElementById('tl-packing-list-tbody');
+                if (!tbody) {
+                    this.showNotification('Packing list table not found', 'error');
+                    return;
+                }
+                
+                const existingItems = Array.from(tbody.querySelectorAll('.tl-item-name'));
+                const itemExists = existingItems.some(item => item.textContent.trim().toLowerCase() === name.toLowerCase());
+                
+                if (itemExists) {
+                    this.showNotification('This item already exists in the list', 'error');
+                    return;
+                }
+                
+                const row = this.createTLItemRow({ name, cbm, pieces: 0 }, tbody.children.length);
+                tbody.appendChild(row);
+                
+                document.getElementById('tl-add-custom-item-form').reset();
+                this.hideModal('tl-add-custom-item-modal');
+                this.updateTLPackingListTotals();
+                this.showNotification('Custom item added successfully', 'success');
+            }
+
+            async saveTLPackingList() {
+                const jobId = parseInt(document.getElementById('tl-pl-job-id')?.value);
+                if (!jobId) {
+                    this.showNotification('Job ID is missing', 'error');
+                    return;
+                }
+
+                try {
+                    const job = this.data.jobs.find(j => j.id === jobId);
+                    if (!job) {
+                        this.showNotification('Job not found', 'error');
+                        return;
+                    }
+
+                    // Check if team leader can edit (admins and supervisors can always edit)
+                    const isTeamLeader = (this.currentRole === 'teamleader' && job.teamLeader === this.currentUser?.name);
+                    const isAdmin = this.currentRole === 'admin';
+                    const isSupervisor = this.currentRole === 'supervisor';
+                    
+                    if (isTeamLeader && !isAdmin && !isSupervisor) {
+                        const editableStatuses = ['arrived', 'packing-start', 'first-location-completed', 'arrived-second-location', 'unpacking-start'];
+                        if (!editableStatuses.includes(job.status)) {
+                            this.showNotification('Packing list can only be edited during: Arrived, Packing Start, 1st Location Completed, Arrived at 2nd Location, or Unpacking Start status', 'error');
+                            return;
+                        }
+                    }
+
+                    const items = Array.from(document.querySelectorAll('#tl-packing-list-tbody tr')).map(row => ({
+                        name: row.querySelector('.tl-item-name').textContent,
+                        cbm: parseFloat(row.querySelector('.tl-item-cbm').textContent),
+                        pieces: parseInt(row.querySelector('.tl-item-pieces').value),
+                        totalCbm: parseFloat(row.querySelector('.tl-item-total-cbm').textContent)
+                    })).filter(item => item.pieces > 0); // Only save items with quantity > 0
+
+                    const notes = document.getElementById('tl-pl-notes')?.value || '';
+
+                    const packingListData = {
+                        items,
+                        notes,
+                        totalCbm: parseFloat(document.getElementById('tl-pl-total-cbm').textContent),
+                        createdAt: new Date().toISOString()
+                    };
+
+                    job.tlPackingList = packingListData;
+
+                    const response = await fetch(`/api/jobs/${jobId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(job)
+                    });
+
+                    if (!response.ok) throw new Error('Failed to save packing list');
+
+                    this.showNotification('Packing list saved successfully', 'success');
+                    this.hideModals();
+                    this.showJobDetails(jobId); // Refresh job details
+                } catch (error) {
+                    console.error('Error saving packing list:', error);
+                    this.showNotification('Failed to save packing list', 'error');
+                }
+            }
+
             // View Details Methods
             showJobDetails(jobId) {
                 const job = this.data.jobs.find(j => j.id === jobId);

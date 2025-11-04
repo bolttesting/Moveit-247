@@ -11950,6 +11950,136 @@
                 }
             }
 
+            // Download Team Leader Packing List
+            async downloadTLPackingList(jobId) {
+                const job = this.data.jobs.find(j => j.id === jobId);
+                if (!job || !job.tlPackingList) {
+                    this.showNotification('Packing list not found', 'error');
+                    return;
+                }
+
+                const pl = job.tlPackingList;
+                const items = pl.items || [];
+                
+                // Filter items to only show those with quantity > 0
+                const filteredItems = items.filter(it => (it.pieces || 0) > 0);
+                
+                const itemsTable = filteredItems.length > 0 ? `
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="border:1px solid #e5e7eb; padding:8px; text-align:left; font-weight:600;">Item Name</th>
+                                <th style="border:1px solid #e5e7eb; padding:8px; text-align:center; font-weight:600;">CBM</th>
+                                <th style="border:1px solid #e5e7eb; padding:8px; text-align:center; font-weight:600;">Quantity Packed</th>
+                                <th style="border:1px solid #e5e7eb; padding:8px; text-align:center; font-weight:600;">Total CBM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredItems.map(it => `
+                                <tr>
+                                    <td style="border:1px solid #e5e7eb; padding:8px;">${it.name || ''}</td>
+                                    <td style="border:1px solid #e5e7eb; padding:8px; text-align:center;">${Number(it.cbm || 0).toFixed(2)}</td>
+                                    <td style="border:1px solid #e5e7eb; padding:8px; text-align:center;">${it.pieces || 0}</td>
+                                    <td style="border:1px solid #e5e7eb; padding:8px; text-align:center; font-weight:600;">${Number(it.totalCbm || (it.cbm||0)*(it.pieces||0)).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#f8fafc; font-weight:bold;">
+                                <td colspan="3" style="border:1px solid #e5e7eb; padding:8px; text-align:right;">Total CBM Packed:</td>
+                                <td style="border:1px solid #e5e7eb; padding:8px; text-align:center;">${Number(pl.totalCbm || 0).toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                ` : '<p style="color:#64748b; margin-top:10px;">No items packed yet.</p>';
+
+                // Branding logo (if set)
+                let logoHtml = '';
+                try {
+                    const branding = await fetch('/api/branding').then(r=>r.json());
+                    if (branding && branding.logoUrl) {
+                        let logoUrl = this.getImageUrl(branding.logoUrl);
+                        if (!logoUrl.startsWith('http') && !logoUrl.startsWith('data:')) {
+                            logoUrl = window.location.origin + (logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl);
+                        }
+                        logoHtml = `<div style="text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #e5e7eb;"><img src="${logoUrl}" style="max-height:60px; width:auto; display:block; margin:0 auto;" onerror="this.style.display='none'"/></div>`;
+                    }
+                } catch(e) {
+                    console.error('Error loading logo for PDF:', e);
+                }
+
+                const container = document.createElement('div');
+                container.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; padding: 16px; color:#111827;">
+                        ${logoHtml}
+                        <h2 style="margin:0 0 12px;">Packing List Report</h2>
+                        <div style="margin:8px 0;"><strong>Project ID:</strong> #${job.id}</div>
+                        <div style="margin:8px 0;"><strong>Project Name:</strong> ${job.projectName || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Client Name:</strong> ${job.clientName || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Client Phone:</strong> ${job.clientPhone || job.phone || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Moving From:</strong> ${job.moveFrom || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Moving To:</strong> ${job.moveTo || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Moving Date:</strong> ${job.date || 'N/A'}</div>
+                        <div style="margin:8px 0;"><strong>Team Leader:</strong> ${job.teamLeader || 'N/A'}</div>
+                        ${pl.createdAt ? `<div style="margin:8px 0;"><strong>Created At:</strong> ${new Date(pl.createdAt).toLocaleString()}</div>` : ''}
+                        
+                        <hr style="margin:16px 0; border:none; border-top:1px solid #e5e7eb;"/>
+                        
+                        <h3 style="margin:0 0 8px;">Items Packed</h3>
+                        ${itemsTable}
+                        
+                        ${pl.notes ? `
+                            <div style="margin:16px 0;">
+                                <strong>Notes:</strong>
+                                <div style="white-space:pre-wrap; background:#f8fafc; padding:12px; border-radius:8px; margin-top:8px; border-left:4px solid #6366f1;">
+                                    ${pl.notes}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                const w = window.open('', '_blank');
+                if (!w) return;
+                w.document.write('<html><head><title>Packing List Report</title><style>@page{size:auto; margin:12mm;} body{margin:0;} img{max-width:100%; height:auto;}</style></head><body>' + container.innerHTML + '</body></html>');
+                w.document.close();
+                w.focus();
+                
+                // Wait for images (especially logo) to load before printing
+                const pdfImages = w.document.querySelectorAll('img');
+                let imagesLoaded = 0;
+                const totalImages = pdfImages.length;
+                
+                if (totalImages > 0) {
+                    pdfImages.forEach(img => {
+                        if (img.complete) {
+                            imagesLoaded++;
+                        } else {
+                            img.onload = () => {
+                                imagesLoaded++;
+                                if (imagesLoaded === totalImages) {
+                                    setTimeout(() => { try { w.print(); } catch (e) {} }, 300);
+                                }
+                            };
+                            img.onerror = () => {
+                                imagesLoaded++;
+                                if (imagesLoaded === totalImages) {
+                                    setTimeout(() => { try { w.print(); } catch (e) {} }, 300);
+                                }
+                            };
+                        }
+                    });
+                    
+                    if (imagesLoaded === totalImages) {
+                        setTimeout(() => { try { w.print(); } catch (e) {} }, 1000);
+                    } else {
+                        setTimeout(() => { try { w.print(); } catch (e) {} }, 3000);
+                    }
+                } else {
+                    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+                }
+            }
+
             // View Details Methods
             showJobDetails(jobId) {
                 const job = this.data.jobs.find(j => j.id === jobId);
@@ -12192,14 +12322,19 @@
                                 <div class="detail-row">
                                     <div class="detail-label">Packing List:</div>
                                     <div class="detail-value">
-                                        <button class="btn ${buttonClass} btn-sm" onclick="${canEdit ? `app.showTLPackingList(${job.id})` : 'void(0)'}" style="margin: 0;" ${disabledAttr}>
-                                            <i class="fas fa-box"></i> ${buttonText}
-                                        </button>
-                                        ${job.tlPackingList ? `
-                                            <span style="margin-left: 10px; color: #059669;">
-                                                <i class="fas fa-check-circle"></i> Packing list saved
-                                            </span>
-                                        ` : ''}
+                                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                            <button class="btn ${buttonClass} btn-sm" onclick="${canEdit ? `app.showTLPackingList(${job.id})` : 'void(0)'}" style="margin: 0;" ${disabledAttr}>
+                                                <i class="fas fa-box"></i> ${buttonText}
+                                            </button>
+                                            ${job.tlPackingList ? `
+                                                <button class="btn btn-success btn-sm" onclick="app.downloadTLPackingList(${job.id})" style="margin: 0;">
+                                                    <i class="fas fa-file-pdf"></i> Download Packing List
+                                                </button>
+                                                <span style="color: #059669;">
+                                                    <i class="fas fa-check-circle"></i> Packing list saved
+                                                </span>
+                                            ` : ''}
+                                        </div>
                                         ${statusMessage}
                                     </div>
                                 </div>

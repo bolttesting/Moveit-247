@@ -11257,7 +11257,9 @@
                 const surveyData = survey.surveyData || {};
                 const images = surveyData.images || [];
                 const pl = survey.packingList || null;
-                const itemsTable = pl && pl.items && pl.items.length ? `
+                // Filter items to only show those with quantity > 0
+                const filteredItems = pl && pl.items ? pl.items.filter(it => (it.pieces || 0) > 0) : [];
+                const itemsTable = filteredItems.length > 0 ? `
                     <div class="table-responsive" style="overflow-x: auto; margin-top: 15px;">
                         <table class="table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                             <thead>
@@ -11269,7 +11271,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${pl.items.map(it => `
+                                ${filteredItems.map(it => `
                                     <tr>
                                         <td style="border: 1px solid #e5e7eb; padding: 10px;">${it.name || ''}</td>
                                         <td style="border: 1px solid #e5e7eb; padding: 10px; text-align: center;">${Number(it.cbm || 0).toFixed(2)}</td>
@@ -11433,7 +11435,9 @@
                 const surveyData = survey.surveyData || {};
                 const images = surveyData.images || [];
                 const pl = survey.packingList || null;
-                const itemsTable = pl && pl.items && pl.items.length ? `
+                // Filter items to only show those with quantity > 0
+                const filteredItems = pl && pl.items ? pl.items.filter(it => (it.pieces || 0) > 0) : [];
+                const itemsTable = filteredItems.length > 0 ? `
                     <table style="width:100%; border-collapse:collapse; font-size:12px;">
                                 <thead>
                             <tr>
@@ -11444,7 +11448,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${pl.items.map(it => `
+                            ${filteredItems.map(it => `
                                 <tr>
                                     <td style=\"border:1px solid #e5e7eb; padding:6px;\">${it.name || ''}</td>
                                     <td style=\"border:1px solid #e5e7eb; padding:6px; text-align:center;\">${Number(it.cbm || 0).toFixed(2)}</td>

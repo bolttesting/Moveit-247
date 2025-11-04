@@ -3731,7 +3731,13 @@
                                             <option value="">None - Select from Survey History</option>
                                         </select>
                                         <small style="color: #64748b;">Attach a completed survey form from history</small>
-                            </div>
+                                    </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label>Upload External Survey Form (Optional)</label>
+                                        <input type="file" class="form-control" id="external-survey-form" accept=".html,.htm,.pdf,.doc,.docx,image/*">
+                                        <small style="color: #64748b;">Upload a survey form from outside (HTML, PDF, Word, or Image)</small>
+                                        <div id="external-survey-preview" style="margin-top: 10px;"></div>
+                                    </div>
                             <div class="form-group">
                                 <label>Item Images</label>
                                 <input type="file" class="form-control" id="item-images" accept="image/*" multiple>
@@ -4657,6 +4663,87 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="close-job-details">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Leader Packing List Modal -->
+    <div class="modal" id="tl-packing-list-modal">
+        <div class="modal-content" style="max-width: 1200px; max-height: 95vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>Packing List - Items Packed</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="tl-packing-list-form">
+                    <div class="form-group">
+                        <label>Project ID</label>
+                        <input type="text" class="form-control" id="tl-pl-job-id" readonly>
+                    </div>
+                    <div class="card" style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 15px;">Items Packed</h4>
+                        <div style="display:flex; gap:10px; margin-bottom:15px;">
+                            <input type="text" id="tl-pl-search" placeholder="Search items..." class="form-control" style="flex:1;" onkeyup="app.filterTLPackingItems()">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="app.showTLAddCustomItemModal()">Add Custom Item</button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table" id="tl-packing-list-table">
+                                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                                    <tr>
+                                        <th style="width:200px;">Item Name</th>
+                                        <th style="width:80px;">CBM</th>
+                                        <th style="width:100px;">Quantity Packed</th>
+                                        <th style="width:100px;">Total CBM</th>
+                                        <th style="width:100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tl-packing-list-tbody">
+                                    <!-- Items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>Total CBM Packed:</strong>
+                                <span id="tl-pl-total-cbm" style="font-size: 18px; font-weight: bold; color: #6366f1;">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="form-control" id="tl-pl-notes" rows="3" placeholder="Any additional notes about the packing..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.hideModals()">Cancel</button>
+                <button class="btn btn-primary" onclick="app.saveTLPackingList()">Save Packing List</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TL Add Custom Item Modal -->
+    <div class="modal" id="tl-add-custom-item-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Custom Item</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="tl-add-custom-item-form">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" class="form-control" id="tl-custom-item-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CBM (Cubic Meter) *</label>
+                        <input type="number" class="form-control" id="tl-custom-item-cbm" step="0.01" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.hideModal('tl-add-custom-item-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.addTLCustomItem()">Add Item</button>
             </div>
         </div>
     </div>
@@ -6334,7 +6421,8 @@
                     itemImages: document.getElementById('item-images')?.dataset.uploadUrls ? JSON.parse(document.getElementById('item-images').dataset.uploadUrls) : [],
                     instructions: document.getElementById('job-instructions')?.value || '',
                     stuffDetails: document.getElementById('stuff-details')?.value || '',
-                    surveyFormId: document.getElementById('survey-form-select')?.value || ''
+                    surveyFormId: document.getElementById('survey-form-select')?.value || '',
+                    externalSurveyForm: document.getElementById('external-survey-form')?.dataset.uploadUrl || ''
                 };
 
                 // Get packing materials from Tab 2
@@ -6445,6 +6533,15 @@
                     );
                 }
                 
+                // Upload external survey form
+                const externalSurveyElement = document.getElementById('external-survey-form');
+                const externalSurveyFile = externalSurveyElement?.files?.[0];
+                if (externalSurveyFile) {
+                    uploadPromises.push(
+                        this.uploadFile(externalSurveyFile).then(url => ({ externalSurveyForm: url }))
+                    );
+                }
+                
                 // Upload item images
                 const itemImagesElement = document.getElementById('item-images');
                 const itemFiles = itemImagesElement ? Array.from(itemImagesElement.files || []) : [];
@@ -6470,7 +6567,7 @@
                     customInput.value = '';
                 }
                 // Clear image previews
-                ['move-out-preview', 'move-in-preview', 'item-images-preview'].forEach(id => {
+                ['move-out-preview', 'move-in-preview', 'item-images-preview', 'external-survey-preview'].forEach(id => {
                     const preview = document.getElementById(id);
                     if (preview) preview.innerHTML = '';
                 });
@@ -6872,6 +6969,109 @@
                     }).catch(()=>{});
                 }
                 document.body.prepend(header);
+            }
+
+            setupImagePreviews() {
+                // Setup image preview for file inputs
+                const setupPreview = (inputId, previewId) => {
+                    const input = document.getElementById(inputId);
+                    const preview = document.getElementById(previewId);
+                    
+                    if (input && preview) {
+                        // Remove existing event listeners to prevent duplicates
+                        input.removeEventListener('change', input._imagePreviewHandler);
+                        
+                        input._imagePreviewHandler = async (e) => {
+                            preview.innerHTML = '';
+                            const files = Array.from(e.target.files || []);
+                            const uploadedUrls = [];
+
+                            for (const file of files) {
+                                if (!file.type.startsWith('image/')) continue;
+
+                                // Local preview
+                                    const reader = new FileReader();
+                                reader.onload = function(evt) {
+                                        const previewItem = document.createElement('div');
+                                        previewItem.className = 'preview-item';
+                                        const img = document.createElement('img');
+                                    img.src = evt.target.result;
+                                        img.style.width = '100%';
+                                        img.style.height = '100%';
+                                        img.style.objectFit = 'cover';
+                                        previewItem.appendChild(img);
+                                        preview.appendChild(previewItem);
+                                };
+                                    reader.readAsDataURL(file);
+
+                                // Upload to backend and collect URL
+                                try {
+                                    const url = await this.uploadFile(file);
+                                    if (url) uploadedUrls.push(url);
+                                } catch (err) {
+                                    console.error('Upload failed:', err);
+                                }
+                            }
+
+                            // Store URLs on the input element for later save
+                            if (input.multiple) {
+                                input.dataset.uploadUrls = JSON.stringify(uploadedUrls);
+                            } else {
+                                input.dataset.uploadUrl = uploadedUrls[0] || '';
+                            }
+                        };
+                        
+                        input.addEventListener('change', input._imagePreviewHandler);
+                    }
+                };
+                
+                // Setup previews for all file inputs
+                setupPreview('move-out-permit', 'move-out-preview');
+                setupPreview('move-in-permit', 'move-in-preview');
+                setupPreview('item-images', 'item-images-preview');
+                
+                // Setup external survey form preview (supports images and documents)
+                const externalSurveyInput = document.getElementById('external-survey-form');
+                const externalSurveyPreview = document.getElementById('external-survey-preview');
+                if (externalSurveyInput && externalSurveyPreview) {
+                    externalSurveyInput.removeEventListener('change', externalSurveyInput._externalSurveyHandler);
+                    externalSurveyInput._externalSurveyHandler = async (e) => {
+                        externalSurveyPreview.innerHTML = '';
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            if (file.type.startsWith('image/')) {
+                                const img = document.createElement('img');
+                                img.src = evt.target.result;
+                                img.style.maxWidth = '200px';
+                                img.style.maxHeight = '200px';
+                                img.style.borderRadius = '6px';
+                                img.style.border = '1px solid #e2e8f0';
+                                externalSurveyPreview.appendChild(img);
+                            } else {
+                                const div = document.createElement('div');
+                                div.style.padding = '10px';
+                                div.style.background = '#f8fafc';
+                                div.style.borderRadius = '6px';
+                                div.style.border = '1px solid #e2e8f0';
+                                div.innerHTML = `<i class="fas fa-file"></i> ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                                externalSurveyPreview.appendChild(div);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                        
+                        // Upload file
+                        try {
+                            const url = await this.uploadFile(file);
+                            if (url) externalSurveyInput.dataset.uploadUrl = url;
+                        } catch (err) {
+                            console.error('Upload failed:', err);
+                        }
+                    };
+                    externalSurveyInput.addEventListener('change', externalSurveyInput._externalSurveyHandler);
+                }
             }
 
             setupImagePreviews() {
@@ -11783,6 +11983,45 @@
                         </div>
                     </div>
                     ` : ''}
+                    ${job.externalSurveyForm ? `
+                    <div class="detail-row">
+                        <div class="detail-label">External Survey Form:</div>
+                        <div class="detail-value">
+                            <div class="image-gallery">
+                                <div class="image-item" onclick="app.showImageModal('${job.externalSurveyForm}')">
+                                    <img src="${app.getImageUrl(job.externalSurveyForm)}" alt="External Survey Form" onerror="this.style.display='none'">
+                                    <div style="margin-top: 8px;">
+                                        <a href="${app.getImageUrl(job.externalSurveyForm)}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-external-link-alt"></i> View/Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${(() => {
+                        const isTeamLeader = (this.currentRole === 'teamleader' && job.teamLeader === this.currentUser?.name);
+                        const canViewPackingList = isTeamLeader || this.currentRole === 'admin' || this.currentRole === 'supervisor';
+                        if (canViewPackingList) {
+                            return `
+                                <div class="detail-row">
+                                    <div class="detail-label">Packing List:</div>
+                                    <div class="detail-value">
+                                        <button class="btn btn-primary btn-sm" onclick="app.showTLPackingList(${job.id})" style="margin: 0;">
+                                            <i class="fas fa-box"></i> ${job.tlPackingList ? 'View/Edit Packing List' : 'Create Packing List'}
+                                        </button>
+                                        ${job.tlPackingList ? `
+                                            <span style="margin-left: 10px; color: #059669;">
+                                                <i class="fas fa-check-circle"></i> Packing list saved
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        return '';
+                    })()}
                     
                     <!-- Job History Section -->
                     <div class="job-history-container">

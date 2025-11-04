@@ -1150,21 +1150,35 @@
             .login-box {
                 width: 100%;
                 max-width: 100%;
-                padding: 28px 20px;
-                margin: 0;
+                padding: 32px 24px;
+                margin: 70px auto 20px;
                 border-radius: 16px;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             }
             
             .login-box h2 {
-                font-size: 22px;
-                margin-bottom: 20px;
+                font-size: 20px;
+                margin-bottom: 24px;
                 line-height: 1.3;
             }
             
             .login-logo {
-                font-size: 2.2rem;
-                margin-bottom: 16px;
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .login-header {
+                height: 56px;
+                padding: 0 12px;
+            }
+            
+            .login-brand {
+                font-size: 14px;
+            }
+            
+            .login-status-icons {
+                font-size: 12px;
+                gap: 6px;
             }
             
             .form-group {
@@ -3614,14 +3628,18 @@
         <div class="login-orb orb-accent"></div>
         <div class="login-orb orb-success"></div>
 
-        <!-- header chrome (login only) -->
+        <!-- Android-style header -->
         <div class="login-header">
             <div class="login-header-inner">
                 <div class="login-brand">
                     <div class="brand-badge"><i class="fas fa-truck-loading"></i></div>
-                    <span>MovePro</span>
+                    <span>MoveIt 24/7</span>
                 </div>
-                <div style="opacity:.85; font-weight:600;">Welcome back</div>
+                <div class="login-status-icons">
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
             </div>
         </div>
 
@@ -3632,19 +3650,20 @@
             <h2>MoveIt 247 - Login</h2>
             <form id="login-form" novalidate>
                 <div class="form-group">
-                    <label>Username</label>
+                    <label>USERNAME</label>
                     <input type="text" class="form-control" id="username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
+                    <label>PASSWORD</label>
                     <input type="password" class="form-control" id="password" required>
                 </div>
-                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="app.handleLogin(event)">Login</button>
+                <button type="button" class="btn btn-primary" style="width: 100%; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;" onclick="app.handleLogin(event)">LOGIN</button>
             </form>
+            <div style="margin-top: 24px; font-size: 11px; color: #9ca3af; text-align: center;">© <span id="login-year"></span> MoveIt. All rights reserved.</div>
         </div>
 
         <!-- footer chrome (login only) -->
-        <div class="login-footer">© <span id="login-year"></span> MovePro. All rights reserved.</div>
+        <div class="login-footer" style="display: none;"></div>
     </div>
 
     <script>

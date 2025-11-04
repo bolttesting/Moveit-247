@@ -819,6 +819,31 @@
             transform: translateZ(-1px) scale(2);
         }
 
+        /* Mobile App Optimizations */
+        @media (max-width: 480px) {
+            html {
+                -webkit-text-size-adjust: 100%;
+            }
+            
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                touch-action: manipulation;
+            }
+            
+            /* Prevent zoom on input focus */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            
+            /* Touch-friendly buttons */
+            .btn-primary, .btn-secondary, .nav-cta {
+                min-height: 48px;
+                padding: 14px 24px;
+                touch-action: manipulation;
+            }
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .features-grid, .testimonials-grid, .pricing-grid {
@@ -847,33 +872,97 @@
                 padding: 0 20px;
             }
             
+            .nav {
+                height: 70px;
+            }
+            
             .nav-links {
                 display: none;
             }
             
+            .brand {
+                font-size: 1.25rem;
+            }
+            
+            .brand-logo {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .nav-cta {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .hero {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+                padding-top: 70px;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+            }
+            
             .features-grid, .testimonials-grid, .pricing-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
             
             .footer-content {
                 grid-template-columns: 1fr;
+                gap: 40px;
             }
             
             h1 {
                 font-size: 2.5rem;
+                line-height: 1.2;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
             }
             
             .section-title, .cta-title {
                 font-size: 2rem;
             }
             
+            .section-subtitle {
+                font-size: 1.1rem;
+            }
+            
             .cta-group {
                 flex-direction: column;
+                gap: 12px;
+            }
+            
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
             }
             
             .hero-stats {
-                flex-direction: column;
+                flex-direction: row;
                 gap: 20px;
+                flex-wrap: wrap;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.85rem;
+            }
+            
+            .feature-card, .testimonial-card, .pricing-card {
+                padding: 30px 24px;
+            }
+            
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
             }
             
             .pricing-card.featured {
@@ -886,6 +975,127 @@
             
             .scene-container {
                 display: none;
+            }
+            
+            .showcase-scene {
+                height: 300px;
+            }
+            
+            .testimonials, .pricing, .features, .feature-showcase, .cta-section {
+                padding: 80px 0;
+            }
+            
+            .section-header {
+                margin-bottom: 50px;
+            }
+            
+            footer {
+                padding: 60px 0 30px;
+            }
+            
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            header {
+                padding: 0;
+            }
+            
+            .nav {
+                height: 60px;
+                padding: 0 16px;
+            }
+            
+            .brand {
+                font-size: 1.1rem;
+            }
+            
+            .hero {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 16px;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+                margin-bottom: 30px;
+            }
+            
+            .hero-badge {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+                margin-bottom: 20px;
+            }
+            
+            .cta-group {
+                margin-bottom: 30px;
+            }
+            
+            .btn-primary, .btn-secondary {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+            
+            .hero-stats {
+                gap: 16px;
+            }
+            
+            .stat-value {
+                font-size: 1.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
+            }
+            
+            .section-title {
+                font-size: 1.75rem;
+            }
+            
+            .cta-title {
+                font-size: 1.75rem;
+            }
+            
+            .section-subtitle {
+                font-size: 1rem;
+            }
+            
+            .feature-card, .testimonial-card, .pricing-card {
+                padding: 24px 20px;
+                border-radius: 16px;
+            }
+            
+            .feature-title {
+                font-size: 1.25rem;
+            }
+            
+            .pricing-price {
+                font-size: 2.5rem;
+            }
+            
+            .testimonials, .pricing, .features, .feature-showcase, .cta-section {
+                padding: 60px 0;
+            }
+            
+            .section-header {
+                margin-bottom: 40px;
+            }
+            
+            .section-badge {
+                font-size: 0.8rem;
+                padding: 6px 16px;
             }
         }
     </style>

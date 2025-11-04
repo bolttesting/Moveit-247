@@ -12002,20 +12002,35 @@
                     ` : ''}
                     ${(() => {
                         const isTeamLeader = (this.currentRole === 'teamleader' && job.teamLeader === this.currentUser?.name);
-                        const canViewPackingList = isTeamLeader || this.currentRole === 'admin' || this.currentRole === 'supervisor';
+                        const isAdmin = this.currentRole === 'admin';
+                        const isSupervisor = this.currentRole === 'supervisor';
+                        
+                        // Team leaders can only edit during packing-related statuses
+                        const editableStatuses = ['arrived', 'packing-start', 'first-location-completed', 'arrived-second-location', 'unpacking-start'];
+                        const canEditAsTeamLeader = isTeamLeader && editableStatuses.includes(job.status);
+                        const canViewPackingList = isAdmin || isSupervisor || canEditAsTeamLeader || (isTeamLeader && job.tlPackingList); // Can view if already created
+                        
                         if (canViewPackingList) {
+                            const canEdit = isAdmin || isSupervisor || canEditAsTeamLeader;
+                            const buttonText = job.tlPackingList ? 'View/Edit Packing List' : 'Create Packing List';
+                            const buttonClass = canEdit ? 'btn-primary' : 'btn-secondary';
+                            const disabledAttr = canEdit ? '' : 'disabled';
+                            const statusMessage = !canEdit && isTeamLeader ? 
+                                `<span style="margin-left: 10px; color: #f59e0b; font-size: 0.9em;"><i class="fas fa-info-circle"></i> Packing list can only be edited during: Arrived, Packing Start, 1st Location Completed, Arrived at 2nd Location, or Unpacking Start</span>` : '';
+                            
                             return `
                                 <div class="detail-row">
                                     <div class="detail-label">Packing List:</div>
                                     <div class="detail-value">
-                                        <button class="btn btn-primary btn-sm" onclick="app.showTLPackingList(${job.id})" style="margin: 0;">
-                                            <i class="fas fa-box"></i> ${job.tlPackingList ? 'View/Edit Packing List' : 'Create Packing List'}
+                                        <button class="btn ${buttonClass} btn-sm" onclick="${canEdit ? `app.showTLPackingList(${job.id})` : 'void(0)'}" style="margin: 0;" ${disabledAttr}>
+                                            <i class="fas fa-box"></i> ${buttonText}
                                         </button>
                                         ${job.tlPackingList ? `
                                             <span style="margin-left: 10px; color: #059669;">
                                                 <i class="fas fa-check-circle"></i> Packing list saved
                                             </span>
                                         ` : ''}
+                                        ${statusMessage}
                                     </div>
                                 </div>
                             `;

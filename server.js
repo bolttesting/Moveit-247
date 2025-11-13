@@ -886,7 +886,10 @@ function updateRoute(key, idField = 'id') {
           username: updated.username,
           password: updated.password || db.users[updated.username]?.password || old.password,
           role: role,
-          name: updated.name
+          name: updated.name,
+          phone: updated.phone || db.users[updated.username]?.phone || old.phone || '',
+          email: updated.email || db.users[updated.username]?.email || old.email || '',
+          profileImage: updated.profileImage || db.users[updated.username]?.profileImage || old.profileImage || ''
         };
       }
       writeDb(db);

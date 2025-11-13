@@ -320,72 +320,121 @@
             50% { transform: translateY(-18px) translateZ(0); }
         }
 
-        /* Login header/footer chrome (only visible before login) */
+        /* Login header/footer chrome (Android-style) */
         .login-header {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
+            background: #0f172a;
+            /* Add space for device status bar - uses safe area on iOS, fallback for Android */
+            padding-top: env(safe-area-inset-top, 24px);
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        
         .login-header-inner {
-            width: 100%;
-            max-width: 1200px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 12px 16px;
+            min-height: 56px;
             color: #fff;
-            mix-blend-mode: screen;
         }
+        
         .login-brand {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            font-weight: 900;
+            font-weight: 700;
+            font-size: 16px;
             letter-spacing: -0.02em;
         }
+        
         .login-brand .brand-badge {
-            width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #fff, #e5e7eb); color: #111827; display: grid; place-items: center;
-            box-shadow: 0 8px 24px rgba(255,255,255,0.2);
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: #fff; 
+            display: grid; 
+            place-items: center;
+            font-size: 16px;
+        }
+        
+        .login-header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        
+        .login-status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .login-welcome-text {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.85;
+            color: #fff;
         }
         .login-footer {
-            position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85);
-            font-size: 13px;
+            position: fixed; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            height: 48px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            background: transparent;
         }
 
         .login-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             width: 420px;
-            padding: 48px;
+            max-width: 90%;
+            padding: 40px 32px;
             text-align: center;
             position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Add margin-top to account for header + status bar space */
+            margin-top: calc(env(safe-area-inset-top, 24px) + 80px);
+            margin-bottom: 60px;
+            margin-left: auto;
+            margin-right: auto;
+            border: none;
         }
 
         .login-box h2 {
             margin-bottom: 32px;
-            color: var(--gray-900);
-            font-size: 28px;
+            color: #1f2937;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.025em;
         }
 
         .login-logo {
-            font-size: 3rem;
-            background: linear-gradient(135deg, var(--primary), var(--info));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 3.5rem;
+            color: #667eea;
             margin-bottom: 24px;
             font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-logo i {
+            color: #667eea;
         }
 
         .form-group {
@@ -1120,21 +1169,58 @@
             .login-box {
                 width: 100%;
                 max-width: 100%;
-                padding: 28px 20px;
-                margin: 0;
+                padding: 32px 24px;
+                /* Account for header + status bar space */
+                margin-top: calc(env(safe-area-inset-top, 20px) + 70px);
+                margin-bottom: 20px;
+                margin-left: auto;
+                margin-right: auto;
                 border-radius: 16px;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             }
             
             .login-box h2 {
-                font-size: 22px;
-                margin-bottom: 20px;
+                font-size: 20px;
+                margin-bottom: 24px;
                 line-height: 1.3;
             }
             
             .login-logo {
-                font-size: 2.2rem;
-                margin-bottom: 16px;
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .login-header {
+                /* Add space for device status bar on mobile */
+                padding-top: env(safe-area-inset-top, 20px);
+            }
+            
+            .login-header-inner {
+                min-height: 52px;
+                padding: 10px 12px;
+            }
+            
+            .login-box {
+                margin-top: calc(env(safe-area-inset-top, 20px) + 70px);
+            }
+            
+            .login-brand {
+                font-size: 14px;
+            }
+            
+            .login-brand .brand-badge {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            
+            .login-status-icons {
+                font-size: 11px;
+                gap: 4px;
+            }
+            
+            .login-welcome-text {
+                font-size: 12px;
             }
             
             .form-group {
@@ -3584,14 +3670,21 @@
         <div class="login-orb orb-accent"></div>
         <div class="login-orb orb-success"></div>
 
-        <!-- header chrome (login only) -->
+        <!-- Android-style header -->
         <div class="login-header">
             <div class="login-header-inner">
                 <div class="login-brand">
                     <div class="brand-badge"><i class="fas fa-truck-loading"></i></div>
                     <span>MovePro</span>
                 </div>
-                <div style="opacity:.85; font-weight:600;">Welcome back</div>
+                <div class="login-header-right">
+                    <div class="login-status-icons">
+                        <i class="fas fa-wifi"></i>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-circle" style="font-size: 8px;"></i>
+                    </div>
+                    <div class="login-welcome-text">Welcome back</div>
+                </div>
             </div>
         </div>
 
@@ -3602,19 +3695,20 @@
             <h2>MoveIt 247 - Login</h2>
             <form id="login-form" novalidate>
                 <div class="form-group">
-                    <label>Username</label>
+                    <label>USERNAME</label>
                     <input type="text" class="form-control" id="username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
+                    <label>PASSWORD</label>
                     <input type="password" class="form-control" id="password" required>
                 </div>
-                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="app.handleLogin(event)">Login</button>
+                <button type="button" class="btn btn-primary" style="width: 100%; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;" onclick="app.handleLogin(event)">LOGIN</button>
             </form>
+            <div style="margin-top: 24px; font-size: 11px; color: #9ca3af; text-align: center;">© <span id="login-year"></span> MoveIt. All rights reserved.</div>
         </div>
 
         <!-- footer chrome (login only) -->
-        <div class="login-footer">© <span id="login-year"></span> MovePro. All rights reserved.</div>
+        <div class="login-footer" style="display: none;"></div>
     </div>
 
     <script>

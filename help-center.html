@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center | MoveIt 247</title>
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/png" href="Move It  White-01.png">
+    <link rel="apple-touch-icon" href="Move It  White-01.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d4672e">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #d4672e; --primary-dark: #b8561f; --dark: #000000; --light: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--dark); line-height: 1.6; }
+        header { position: fixed; top: 0; width: 100%; background: var(--light); border-bottom: 1px solid rgba(0, 0, 0, 0.1); z-index: 1000; padding: 20px 0; }
+        .container-padded { max-width: 1400px; margin: 0 auto; padding: 0 30px; }
+        .nav { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 50px; height: 70px; }
+        .brand { display: flex; align-items: center; justify-self: start; text-decoration: none; }
+        .brand img { height: 50px; width: auto; object-fit: contain; }
+        .brand:hover { color: var(--dark); }
+        .brand-logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+        .nav-links { display: flex; gap: 40px; justify-self: end; }
+        .nav-link { color: var(--dark); text-decoration: none; font-weight: 500; }
+        .nav-link:hover { color: var(--primary); }
+        .nav-cta-wrapper { justify-self: end; }
+        .nav-cta { padding: 12px 28px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; text-decoration: none; font-weight: 600; }
+        .main-content { padding-top: 150px; padding-bottom: 60px; min-height: calc(100vh - 200px); }
+        .page-header { text-align: center; margin-bottom: 60px; }
+        .page-title { font-size: 3rem; font-weight: 800; margin-bottom: 20px; color: var(--dark); }
+        .page-content { max-width: 900px; margin: 0 auto; }
+        .content-section { margin-bottom: 40px; }
+        .content-section h2 { font-size: 2rem; margin-bottom: 20px; color: var(--primary); }
+        .content-section p { margin-bottom: 15px; opacity: 0.8; }
+        footer { background: var(--light); padding: 40px 0 20px; border-top: 1px solid rgba(0, 0, 0, 0.1); }
+        .footer-container { max-width: 1400px; margin: 0 auto; padding: 0 50px; }
+        .footer-content { display: grid; grid-template-columns: 1fr auto; gap: 60px; margin-bottom: 30px; }
+        .footer-brand { display: flex; flex-direction: column; gap: 10px; justify-self: center; align-items: center; text-align: center; }
+        .footer-logo { display: flex; align-items: center; color: var(--dark); }
+        .footer-logo img { height: 50px; width: auto; object-fit: contain; }
+        .footer-description { color: var(--dark); line-height: 1.5; font-size: 0.85rem; max-width: 280px; opacity: 0.8; }
+        .footer-links-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; justify-self: center; }
+        .footer-links { display: flex; flex-direction: column; gap: 8px; }
+        .footer-heading { font-weight: 700; margin-bottom: 6px; color: var(--dark); font-size: 0.9rem; }
+        .footer-link { color: var(--dark); text-decoration: none; font-size: 0.85rem; opacity: 0.8; }
+        .footer-link:hover { color: var(--primary); opacity: 1; }
+        .footer-bottom { padding-top: 20px; border-top: 1px solid rgba(0, 0, 0, 0.1); }
+        .footer-copyright { color: var(--dark); font-size: 0.85rem; opacity: 0.7; }
+        /* Mobile Accordion Footer Menu */
+        @media (max-width: 768px) {
+            .footer-heading { position: relative; cursor: pointer; padding: 12px 0; margin-bottom: 0; user-select: none; border-bottom: 1px solid rgba(0, 0, 0, 0.1); text-align: center; }
+            .footer-heading::after { content: '+'; position: absolute; right: 0; font-size: 1.2rem; font-weight: 300; transition: transform 0.3s ease; color: var(--primary); }
+            .footer-heading.active::after { content: '−'; transform: rotate(0deg); }
+            .footer-links { overflow: hidden; }
+            .footer-links .footer-link { display: block; padding: 0; opacity: 0; max-height: 0; overflow: hidden; transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease; text-align: center; }
+            .footer-links.active .footer-link { opacity: 0.8; max-height: 50px; padding: 10px 0; }
+            .footer-links-group { gap: 0; justify-self: center; }
+            .footer-links { margin-bottom: 0; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+            .footer-links:last-child { border-bottom: none; }
+        }
+        @media (max-width: 992px) {
+            .footer-links-group { grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        }
+        @media (max-width: 768px) {
+            .nav { grid-template-columns: auto 1fr auto; gap: 20px; height: 70px; }
+            .nav-links { display: none; }
+            .brand img { height: 40px; }
+            .nav-cta { padding: 10px 20px; font-size: 14px; }
+            .footer-content { grid-template-columns: 1fr; gap: 25px; }
+            .footer-links-group { grid-template-columns: 1fr; gap: 25px; }
+            .footer-logo img { height: 40px; }
+            .footer-container { padding: 0 20px; }
+            .container-padded { padding: 0 20px; }
+            .main-content { padding-top: 120px; }
+        }
+        @media (max-width: 480px) {
+            .nav { height: 60px; gap: 15px; }
+            .brand img { height: 35px; }
+            .nav-cta { padding: 8px 16px; font-size: 12px; }
+            .nav-cta i { display: none; }
+            .footer-logo img { height: 35px; }
+            .footer-container { padding: 0 16px; }
+            .container-padded { padding: 0 16px; }
+            .page-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container-padded">
+            <div class="nav">
+                <a href="home.html" class="brand">
+                    <img src="Move It  White-01.png" alt="Move It" style="height: 50px; width: auto; object-fit: contain;">
+                </a>
+                <div class="nav-links">
+                    <a href="home.html#features" class="nav-link">Features</a>
+                    <a href="home.html#testimonials" class="nav-link">Testimonials</a>
+                    <a href="home.html#pricing" class="nav-link">Pricing</a>
+                    <a href="enterprise.html" class="nav-link">Enterprise</a>
+                </div>
+                <div class="nav-cta-wrapper">
+                    <a href="/portal" class="nav-cta"><i class="fas fa-sign-in-alt"></i> Launch Portal</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        <div class="container-padded">
+            <div class="page-header">
+                <h1 class="page-title">Help Center</h1>
+                <p style="font-size: 1.25rem; opacity: 0.8;">Get help and support</p>
+            </div>
+            <div class="page-content">
+                <div class="content-section">
+                    <h2>Frequently Asked Questions</h2>
+                    <p>Find answers to common questions about using MoveIt 247. Our help center covers everything from getting started to advanced features.</p>
+                </div>
+                <div class="content-section">
+                    <h2>Contact Support</h2>
+                    <p>Need additional help? Our support team is available 24/7 to assist you with any questions or issues you may have.</p>
+                </div>
+                <div class="content-section">
+                    <h2>Video Tutorials</h2>
+                    <p>Watch step-by-step video tutorials to learn how to use MoveIt 247's features effectively.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <img src="Move It  White-01.png" alt="Move It" style="height: 50px; width: auto; object-fit: contain;">
+                    </div>
+                    <p class="footer-description">The world's most advanced moving company management platform.</p>
+                </div>
+                <div class="footer-links-group">
+                    <div class="footer-links">
+                        <div class="footer-heading">Product</div>
+                        <a href="home.html#features" class="footer-link">Features</a>
+                        <a href="home.html#pricing" class="footer-link">Pricing</a>
+                        <a href="enterprise.html" class="footer-link">Enterprise</a>
+                        <a href="whats-new.html" class="footer-link">What's New</a>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-heading">Resources</div>
+                        <a href="documentation.html" class="footer-link">Documentation</a>
+                        <a href="api-reference.html" class="footer-link">API Reference</a>
+                        <a href="help-center.html" class="footer-link">Help Center</a>
+                        <a href="community.html" class="footer-link">Community</a>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-heading">Company</div>
+                        <a href="about.html" class="footer-link">About</a>
+                        <a href="careers.html" class="footer-link">Careers</a>
+                        <a href="contact.html" class="footer-link">Contact</a>
+                        <a href="partners.html" class="footer-link">Partners</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">© <span id="year"></span> MoveIt 247. All rights reserved. Designed and developed by Muhammad Ahmad.</div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+        function goToPortal() { window.location.href = '/portal'; }
+        function initFooterAccordion() {
+            if (window.innerWidth <= 768) {
+                document.querySelectorAll('.footer-heading').forEach(heading => {
+                    if (!heading.hasAttribute('data-listener')) {
+                        heading.setAttribute('data-listener', 'true');
+                        heading.addEventListener('click', function() {
+                            const linksContainer = this.parentElement;
+                            const isActive = linksContainer.classList.contains('active');
+                            document.querySelectorAll('.footer-links').forEach(container => {
+                                container.classList.remove('active');
+                            });
+                            if (!isActive) {
+                                linksContainer.classList.add('active');
+                                this.classList.add('active');
+                            } else {
+                                linksContainer.classList.remove('active');
+                                this.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            } else {
+                document.querySelectorAll('.footer-links').forEach(container => {
+                    container.classList.remove('active');
+                });
+                document.querySelectorAll('.footer-heading').forEach(heading => {
+                    heading.classList.remove('active');
+                    heading.removeAttribute('data-listener');
+                });
+            }
+        }
+        initFooterAccordion();
+        window.addEventListener('resize', function() { initFooterAccordion(); });
+    </script>
+</body>
+</html>
+

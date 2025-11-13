@@ -39,11 +39,11 @@
         footer { background: var(--light); padding: 40px 0 20px; border-top: 1px solid rgba(0, 0, 0, 0.1); }
         .footer-container { max-width: 1400px; margin: 0 auto; padding: 0 50px; }
         .footer-content { display: grid; grid-template-columns: 1fr auto; gap: 60px; margin-bottom: 30px; }
-        .footer-brand { display: flex; flex-direction: column; gap: 10px; justify-self: center; align-items: center; text-align: center; }
+        .footer-brand { display: flex; flex-direction: column; gap: 10px; justify-self: start; }
         .footer-logo { display: flex; align-items: center; color: var(--dark); }
         .footer-logo img { height: 50px; width: auto; object-fit: contain; }
         .footer-description { color: var(--dark); line-height: 1.5; font-size: 0.85rem; max-width: 280px; opacity: 0.8; }
-        .footer-links-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; justify-self: center; }
+        .footer-links-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; justify-self: end; }
         .footer-links { display: flex; flex-direction: column; gap: 8px; }
         .footer-heading { font-weight: 700; margin-bottom: 6px; color: var(--dark); font-size: 0.9rem; }
         .footer-link { color: var(--dark); text-decoration: none; font-size: 0.85rem; opacity: 0.8; }
@@ -52,13 +52,13 @@
         .footer-copyright { color: var(--dark); font-size: 0.85rem; opacity: 0.7; }
         /* Mobile Accordion Footer Menu */
         @media (max-width: 768px) {
-            .footer-heading { position: relative; cursor: pointer; padding: 12px 0; margin-bottom: 0; user-select: none; border-bottom: 1px solid rgba(0, 0, 0, 0.1); text-align: center; }
+            .footer-heading { position: relative; cursor: pointer; padding: 12px 0; margin-bottom: 0; user-select: none; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
             .footer-heading::after { content: '+'; position: absolute; right: 0; font-size: 1.2rem; font-weight: 300; transition: transform 0.3s ease; color: var(--primary); }
             .footer-heading.active::after { content: '−'; transform: rotate(0deg); }
             .footer-links { overflow: hidden; }
-            .footer-links .footer-link { display: block; padding: 0; opacity: 0; max-height: 0; overflow: hidden; transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease; text-align: center; }
+            .footer-links .footer-link { display: block; padding: 0; opacity: 0; max-height: 0; overflow: hidden; transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease; }
             .footer-links.active .footer-link { opacity: 0.8; max-height: 50px; padding: 10px 0; }
-            .footer-links-group { gap: 0; justify-self: center; }
+            .footer-links-group { gap: 0; }
             .footer-links { margin-bottom: 0; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
             .footer-links:last-child { border-bottom: none; }
         }

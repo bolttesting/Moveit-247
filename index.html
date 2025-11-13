@@ -7834,6 +7834,9 @@
                     avatar.className = `user-avatar ${this.currentRole}`;
                 }
 
+                // Update avatar with profile image
+                this.updateUserAvatar();
+
                 console.log('Calling updateMenuForRole...');
                 this.updateMenuForRole();
                 console.log('Switching to app container...');
@@ -14403,15 +14406,19 @@
                 if (this.currentUser && this.currentUser.profileImage) {
                     if (avatarEl && initialsEl) {
                         initialsEl.style.display = 'none';
-                        avatarEl.style.backgroundImage = `url(${this.currentUser.profileImage})`;
+                        // Use getImageUrl to ensure proper URL formatting
+                        const imageUrl = this.getImageUrl(this.currentUser.profileImage);
+                        avatarEl.style.backgroundImage = `url(${imageUrl})`;
                         avatarEl.style.backgroundSize = 'cover';
                         avatarEl.style.backgroundPosition = 'center';
+                        console.log('Avatar updated with profile image:', imageUrl);
                     }
                 } else if (this.currentUser && this.currentUser.name) {
                     if (avatarEl && initialsEl) {
                         initialsEl.style.display = 'flex';
                         initialsEl.textContent = this.currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
                         avatarEl.style.backgroundImage = '';
+                        console.log('Avatar updated with initials');
                     }
                 }
             }
